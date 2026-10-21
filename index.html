@@ -7,9 +7,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
+        tailwind.config = { darkMode: 'class' }
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -23,116 +21,100 @@
     <style>
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.2); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(22, 163, 74, 0.3); border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(22, 163, 74, 0.6); }
-        .fade-in { animation: fadeIn 0.4s ease-in-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(22, 163, 74, 0.4); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(22, 163, 74, 0.7); }
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         
-        /* Hiệu ứng khung giả lập điện thoại */
         .mobile-device-container {
             max-width: 420px !important;
-            height: 85vh !important;
-            border: 12px solid #1e293b;
-            border-radius: 36px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            height: 88vh !important;
+            border: 14px solid #0f172a;
+            border-radius: 40px;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
             margin: auto;
             overflow: hidden;
             display: flex;
             flex-direction: column;
         }
+        
+        /* Hiệu ứng xoay 3D mô phỏng */
+        @keyframes floatModel {
+            0%, 100% { transform: translateY(0px) rotateY(0deg); }
+            50% { transform: translateY(-8px) rotateY(5deg); }
+        }
+        .model-3d-preview { animation: floatModel 4s ease-in-out infinite; }
     </style>
 </head>
 <body class="h-full bg-slate-950 dark:bg-slate-950 text-slate-100 font-sans antialiased overflow-hidden flex flex-col relative selection:bg-emerald-500 selection:text-slate-950 transition-colors duration-300" id="body-root">
 
-    <!-- NỀN ĐỘNG HIỆU ỨNG SÁNG AN NINH -->
+    <!-- HIỆU ỨNG NỀN ÁNH SÁNG AN NINH -->
     <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div class="absolute -top-40 -left-40 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl animate-pulse"></div>
-        <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-green-800/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-emerald-600/15 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-green-700/15 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
     </div>
 
     <!-- 1. MÀN HÌNH ĐĂNG NHẬP GOOGLE THẬT -->
-    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl">
-        <div class="bg-slate-900/90 dark:bg-slate-900/90 border border-emerald-500/40 rounded-3xl max-w-md w-full p-8 shadow-2xl text-center relative overflow-hidden fade-in">
-            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-2xl">
+        <div class="bg-slate-900/90 border border-emerald-500/40 rounded-3xl max-w-md w-full p-8 shadow-2xl text-center relative overflow-hidden fade-in">
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
             <div class="w-20 h-20 bg-gradient-to-tr from-emerald-800 to-emerald-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30 mb-6 text-yellow-400 text-3xl border border-yellow-500/50">
                 <i class="fa-solid fa-shield-halved"></i>
             </div>
-            <h1 class="text-2xl font-extrabold text-white mb-2 tracking-wide">Trợ Lý AI C500</h1>
-            <p class="text-xs text-slate-300 mb-8 leading-relaxed">Hệ thống trợ lý học tập, tra cứu pháp luật và quy chế an ninh dành riêng cho sinh viên C500. Đăng nhập để đồng bộ dữ liệu vĩnh viễn trên mây.</p>
-            <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3.5 px-6 rounded-xl shadow-lg transition duration-200 flex items-center justify-center space-x-3">
+            <h1 class="text-2xl font-extrabold text-white mb-2 tracking-wide">Trợ Lý AI Học Viện C500</h1>
+            <p class="text-xs text-slate-300 mb-8 leading-relaxed">Hệ thống trợ lý học tập, tra cứu pháp luật và quy chế an ninh dành riêng cho sinh viên C500. Đăng nhập để kích hoạt tài khoản định danh.</p>
+            <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3.5 px-6 rounded-xl shadow-lg transition duration-200 flex items-center justify-center space-x-3 cursor-pointer">
                 <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.21 21.32 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.19C.43 8.13 0 9.87 0 11.7s.43 3.57 1.19 5.1l4.08-2.56z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.21 2.68 1.19 6.6l4.08 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
                 <span class="text-sm">Đăng nhập với tài khoản Google</span>
             </button>
         </div>
     </div>
 
-    <!-- 2. MÀN HÌNH TÙY CHỈNH / CUSTOMIZE AI (TRANG PHỤC AN NINH) -->
-    <div id="setup-screen" class="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto hidden">
-        <div class="bg-slate-900/95 border border-emerald-500/40 rounded-3xl max-w-xl w-full p-6 md:p-8 shadow-2xl relative fade-in">
+    <!-- 2. QUY TRÌNH TẠO AI CÁ NHÂN HÓA TỪNG BƯỚC (WIZARD 4 BƯỚC) -->
+    <div id="setup-wizard-screen" class="fixed inset-0 z-40 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto hidden">
+        <div class="bg-slate-900/95 border border-emerald-500/40 rounded-3xl max-w-lg w-full p-8 shadow-2xl relative fade-in">
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
+            
+            <!-- TIÊU ĐỀ & TIẾN TRÌNH -->
             <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-emerald-950 border border-yellow-500 rounded-2xl mx-auto flex items-center justify-center text-yellow-400 text-2xl mb-3 shadow">
-                    <i class="fa-solid fa-user-shield"></i>
-                </div>
-                <h2 class="text-2xl font-bold text-yellow-400 tracking-wide uppercase">Cấu Hình Sĩ Quan AI C500</h2>
-                <p class="text-xs text-slate-300 mt-1">Đăng nhập thành công! Thiết lập danh tính và sắc phục cho trợ lý ảo của bạn.</p>
+                <span id="wizard-step-indicator" class="px-3 py-1 bg-emerald-950 border border-emerald-700/60 text-emerald-300 rounded-full text-[11px] font-bold uppercase tracking-wider">Bước 1 / 4</span>
+                <h2 id="wizard-title" class="text-2xl font-extrabold text-yellow-400 mt-2 tracking-wide">Nhập Ngày Tháng Năm Sinh</h2>
+                <p id="wizard-desc" class="text-xs text-slate-300 mt-1">Cung cấp thông tin ngày sinh để đồng bộ hồ sơ học tập C500.</p>
             </div>
 
-            <form id="config-form" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Tên Trợ lý AI</label>
-                    <input type="text" id="ai-name" value="Sĩ quan An ninh - C500" required 
-                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 transition">
-                </div>
+            <!-- NỘI DUNG TỪNG BƯỚC -->
+            <div id="wizard-step-content" class="space-y-4 mb-6">
+                <!-- Sẽ được render linh hoạt bằng JavaScript -->
+            </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Giới tính</label>
-                        <select id="ai-gender" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
-                            <option value="male">Nam Sĩ quan</option>
-                            <option value="female">Nữ Sĩ quan</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Trang phục</label>
-                        <select id="ai-uniform" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
-                            <option value="green">Cảnh phục CAND (Xanh lá đậm)</option>
-                            <option value="ceremony">Lễ phục Nghi lễ / Đại lễ</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Kiểu tóc</label>
-                        <select id="ai-hair" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
-                            <option value="short">Tóc ngắn điều lệnh</option>
-                            <option value="neat">Tóc gọn gàng chính thức</option>
-                        </select>
-                    </div>
-                </div>
-
-                <button type="submit" class="w-full bg-gradient-to-r from-emerald-700 to-green-600 hover:from-emerald-600 hover:to-green-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition uppercase tracking-wider text-xs flex items-center justify-center space-x-2 mt-4">
-                    <i class="fa-solid fa-brain"></i>
-                    <span>Kích hoạt Sĩ quan AI</span>
+            <!-- NÚT ĐIỀU HƯỚNG BƯỚC -->
+            <div class="flex space-x-3">
+                <button id="wizard-prev-btn" onclick="prevWizardStep()" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs transition hidden">Quay lại</button>
+                <button id="wizard-next-btn" onclick="nextWizardStep()" class="flex-1 bg-gradient-to-r from-emerald-700 to-green-600 hover:from-emerald-600 hover:to-green-500 text-white font-bold py-3 rounded-xl shadow-lg transition uppercase tracking-wider text-xs flex items-center justify-center space-x-2">
+                    <span>Tiếp tục</span>
+                    <i class="fa-solid fa-arrow-right"></i>
                 </button>
-            </form>
+            </div>
         </div>
     </div>
 
     <!-- 3. GIAO DIỆN CHÍNH (APP & DASHBOARD) -->
     <div id="main-app" class="flex-1 flex overflow-hidden hidden z-10 transition-all duration-300">
         
-        <!-- SIDEBAR (LINH ĐỘNG ĐỔI VỊ TRÍ KHI CHỌN CHẾ ĐỘ MOBILE HOẶC DESKTOP) -->
-        <aside id="app-sidebar" class="w-72 bg-slate-900/90 dark:bg-slate-900/90 border-r border-slate-800 flex flex-col backdrop-blur-md transition-all">
+        <!-- SIDEBAR -->
+        <aside id="app-sidebar" class="w-72 bg-slate-900/95 dark:bg-slate-900/95 border-r border-slate-800 flex flex-col backdrop-blur-md transition-all">
             <div class="p-4 border-b border-slate-800 flex items-center justify-between">
                 <div class="flex items-center space-x-2">
                     <div class="w-8 h-8 rounded-lg bg-emerald-900 border border-yellow-500 flex items-center justify-center text-yellow-400 font-bold text-xs">C5</div>
                     <span class="font-bold text-sm text-emerald-400 tracking-tight">C500 Security Hub</span>
                 </div>
                 <div class="flex items-center space-x-1">
-                    <button onclick="openConfig()" title="Cài đặt lại AI" class="text-slate-400 hover:text-emerald-400 p-2 rounded-lg hover:bg-slate-800 transition"><i class="fa-solid fa-gear text-sm"></i></button>
+                    <button onclick="restartWizard()" title="Cấu hình lại AI" class="text-slate-400 hover:text-emerald-400 p-2 rounded-lg hover:bg-slate-800 transition"><i class="fa-solid fa-wand-magic-sparkles text-sm"></i></button>
                     <button onclick="logout()" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800 transition"><i class="fa-solid fa-power-off text-sm"></i></button>
                 </div>
             </div>
 
-            <!-- CÁC TÙY CHỌN GIAO DIỆN: SÁNG/TỐI & MÁY TÍNH/ĐIỆN THOẠI -->
+            <!-- TÙY CHỌN SÁNG/TỐI & MÁY TÍNH/ĐIỆN THOẠI -->
             <div class="p-3 bg-slate-950/40 border-b border-slate-800 space-y-2">
                 <div class="grid grid-cols-2 gap-2">
                     <button onclick="toggleTheme()" id="theme-toggle-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl py-2 px-2 text-[11px] font-semibold flex items-center justify-center space-x-1.5 transition">
@@ -150,8 +132,9 @@
                 <button onclick="switchView('chat')" class="w-full bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/50 text-emerald-200 rounded-xl py-2.5 px-4 text-xs font-semibold flex items-center space-x-2.5 transition shadow-sm">
                     <i class="fa-solid fa-comments text-emerald-400"></i><span>Trợ lý AI C500</span>
                 </button>
-                <button id="admin-nav-btn" onclick="switchView('admin')" class="w-full bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-400 rounded-xl py-2.5 px-4 text-xs font-semibold flex items-center space-x-2.5 transition hidden shadow-sm">
-                    <i class="fa-solid fa-gauge-high"></i><span>Dashboard Quản Trị</span>
+                <!-- CHỈ HIỆN KHI ĐĂNG NHẬP BẰNG TÀI KHOẢN QUẢN LÝ -->
+                <button id="admin-nav-btn" onclick="switchView('admin')" class="w-full bg-slate-800/80 hover:bg-slate-800 border border-amber-600/50 text-amber-400 rounded-xl py-2.5 px-4 text-xs font-semibold flex items-center space-x-2.5 transition hidden shadow-sm">
+                    <i class="fa-solid fa-gauge-high"></i><span>Dashboard Quản Lý Web</span>
                 </button>
             </div>
 
@@ -180,7 +163,7 @@
                 </div>
                 <div class="text-[11px] text-emerald-300 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-800/60 flex items-center space-x-1.5">
                     <i class="fa-solid fa-shield-halved text-emerald-400"></i>
-                    <span>Bộ lọc an ninh & biểu tình (2015+): Đang hoạt động</span>
+                    <span id="header-ai-nickname-badge">Biệt danh: Sĩ quan AI</span>
                 </div>
             </header>
 
@@ -197,12 +180,12 @@
             </div>
         </main>
 
-        <!-- DASHBOARD QUẢN TRỊ (ADMIN) -->
-        <main id="admin-view" class="flex-1 flex flex-col bg-slate-950/80 p-8 overflow-y-auto custom-scrollbar hidden">
+        <!-- DASHBOARD QUẢN LÝ WEB (ADMIN) -->
+        <main id="admin-view" class="flex-1 flex flex-col bg-slate-950/90 p-8 overflow-y-auto custom-scrollbar hidden">
             <div class="max-w-5xl w-full mx-auto space-y-6">
                 <div>
-                    <h2 class="text-xl font-bold text-amber-400"><i class="fa-solid fa-gauge-high mr-2"></i>Dashboard Quản Trị Hệ Thống An Ninh C500</h2>
-                    <p class="text-xs text-slate-400 mt-1">Giám sát sinh viên, tinh chỉnh từ khóa kiểm duyệt nghiệp vụ & biểu tình, và theo dõi nhật ký vi phạm bảo mật vĩnh viễn.</p>
+                    <h2 class="text-xl font-bold text-amber-400"><i class="fa-solid fa-gauge-high mr-2"></i>Dashboard Quản Lý Web Hệ Thống C500</h2>
+                    <p class="text-xs text-slate-400 mt-1">Giám sát tài khoản định danh sinh viên, quản lý từ khóa kiểm duyệt an ninh tự động & theo dõi nhật ký vi phạm vĩnh viễn.</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -215,7 +198,7 @@
                         <h3 id="stat-keywords-count" class="text-3xl font-extrabold text-amber-400 mt-2">0</h3>
                     </div>
                     <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow">
-                        <span class="text-xs text-slate-400 font-medium">Số lượt vi phạm bị chặn</span>
+                        <span class="text-xs text-slate-400 font-medium">Số lượt vi phạm bị từ chối</span>
                         <h3 id="stat-violations-count" class="text-3xl font-extrabold text-red-400 mt-2">0</h3>
                     </div>
                 </div>
@@ -259,12 +242,12 @@
             </div>
         </div>
         <div class="mt-2 text-center">
-            <h5 class="text-xs font-bold text-yellow-400 truncate w-36" id="widget-ai-name">Sĩ quan AI</h5>
-            <p class="text-[10px] text-slate-400">C500 Security</p>
+            <h5 class="text-xs font-bold text-yellow-400 truncate w-36" id="widget-ai-nickname">Sĩ quan AI</h5>
+            <p class="text-[10px] text-slate-400" id="widget-student-info">C500 Hub</p>
         </div>
     </div>
 
-    <!-- 5. LOGIC JAVASCRIPT ĐẦY ĐỦ -->
+    <!-- 5. LOGIC JAVASCRIPT ĐẦY ĐỦ (1500+ DÒNG TÍCH HỢP) -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDWeQWEjKh9zXyJhbHRZNe4MH-nEao87mU",
@@ -281,15 +264,20 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        const adminEmails = ["admin@gmail.com", "your-google-email@gmail.com"];
+        // TÀI KHOẢN QUẢN LÝ WEB CỐ ĐỊNH THEO YÊU CẦU
+        const MANAGEMENT_EMAIL = "nguyenduongbaominh2006@gmail.com";
 
         let currentUser = null;
-        let config = {
-            name: 'Sĩ quan An ninh - C500',
-            gender: 'male',
-            uniform: 'green',
-            hair: 'short'
+        let aiConfig = {
+            dob: '',
+            fullName: '',
+            studentClass: '',
+            hairColor: 'black', // white, black, brown
+            uniformType: 'police', // police, security
+            nickname: 'Sĩ quan AI'
         };
+
+        let currentWizardStep = 1;
 
         let sensitiveKeywords = [
             'gián điệp', 'mật mã', 'trinh sát', 'tội phạm', 'biện pháp nghiệp vụ',
@@ -306,7 +294,7 @@
         let isDarkMode = true;
         let isMobileViewMode = false;
 
-        // Xử lý chuyển đổi Sáng / Tối
+        // Quản lý Giao diện Sáng / Tối
         function toggleTheme() {
             isDarkMode = !isDarkMode;
             const body = document.getElementById('body-root');
@@ -326,7 +314,7 @@
             }
         }
 
-        // Xử lý chuyển đổi Máy tính / Điện thoại (Thanh tùy chỉnh chuyển xuống dưới khung chat khi ở chế độ Mobile)
+        // Quản lý Chế độ Máy tính / Điện thoại
         function toggleDeviceMode() {
             isMobileViewMode = !isMobileViewMode;
             const appMainContainer = document.getElementById('main-app');
@@ -338,8 +326,6 @@
                 appMainContainer.classList.add('mobile-device-container', 'my-auto');
                 sidebar.classList.remove('w-72', 'flex-col', 'border-r');
                 sidebar.classList.add('w-full', 'order-last', 'flex-row', 'border-t', 'h-20', 'overflow-x-auto');
-                
-                // Thu gọn sidebar thành thanh menu dưới khi ở chế độ điện thoại
                 document.getElementById('chat-sidebar-section').style.display = 'none';
                 deviceIcon.className = "fa-solid fa-mobile-screen text-emerald-400";
                 deviceText.innerText = "Điện Thoại";
@@ -347,45 +333,61 @@
                 appMainContainer.classList.remove('mobile-device-container', 'my-auto');
                 sidebar.classList.add('w-72', 'flex-col', 'border-r');
                 sidebar.classList.remove('w-full', 'order-last', 'flex-row', 'border-t', 'h-20', 'overflow-x-auto');
-                
                 document.getElementById('chat-sidebar-section').style.display = 'flex';
                 deviceIcon.className = "fa-solid fa-desktop text-emerald-400";
                 deviceText.innerText = "Máy Tính";
             }
         }
 
+        // Lắng nghe trạng thái xác thực Firebase Auth
         auth.onAuthStateChanged(async (user) => {
+            const loginScreen = document.getElementById('login-screen');
+            const mainApp = document.getElementById('main-app');
+            const aiWidget = document.getElementById('ai-widget');
+            const setupWizard = document.getElementById('setup-wizard-screen');
+
             if (user) {
                 currentUser = user;
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('user-name').innerText = user.displayName;
-                document.getElementById('user-email').innerText = user.email;
-                document.getElementById('user-avatar').src = user.photoURL;
+                loginScreen.classList.add('hidden');
+                
+                document.getElementById('user-name').innerText = user.displayName || 'Sinh viên C500';
+                document.getElementById('user-email').innerText = user.email || '';
+                document.getElementById('user-avatar').src = user.photoURL || '';
 
-                await db.collection('users').doc(user.uid).set({
-                    name: user.displayName,
-                    email: user.email,
-                    lastLogin: new Date().toISOString()
-                }, { merge: true });
-
-                const userCfgDoc = await db.collection('users').doc(user.uid).collection('settings').doc('ai_config').get();
-                if (userCfgDoc.exists) {
-                    config = userCfgDoc.data();
-                    launchApp();
-                } else {
-                    document.getElementById('setup-screen').classList.remove('hidden');
-                }
-
-                if (adminEmails.includes(user.email)) {
+                // Kiểm tra xem tài khoản có phải quản lý web không
+                if (user.email === MANAGEMENT_EMAIL) {
                     document.getElementById('admin-nav-btn').classList.remove('hidden');
                     loadAdminDashboardData();
+                } else {
+                    document.getElementById('admin-nav-btn').classList.add('hidden');
                 }
 
-                await loadKeywords();
+                try {
+                    await db.collection('users').doc(user.uid).set({
+                        name: user.displayName,
+                        email: user.email,
+                        lastLogin: new Date().toISOString()
+                    }, { merge: true });
+
+                    // Kiểm tra xem user đã hoàn thành 4 bước tạo AI cá nhân chưa
+                    const cfgDoc = await db.collection('users').doc(user.uid).collection('settings').doc('ai_config').get();
+                    if (cfgDoc.exists && cfgDoc.data().completed) {
+                        aiConfig = cfgDoc.data();
+                        launchApp();
+                    } else {
+                        setupWizard.classList.remove('hidden');
+                        renderWizardStep();
+                    }
+
+                    await loadKeywords();
+                } catch (err) {
+                    console.error("Lỗi đồng bộ Firestore:", err);
+                }
             } else {
-                document.getElementById('login-screen').classList.remove('hidden');
-                document.getElementById('main-app').classList.add('hidden');
-                document.getElementById('ai-widget').classList.add('hidden');
+                loginScreen.classList.remove('hidden');
+                mainApp.classList.add('hidden');
+                aiWidget.classList.add('hidden');
+                setupWizard.classList.add('hidden');
             }
         });
 
@@ -396,31 +398,150 @@
 
         function logout() { auth.signOut(); }
 
-        document.getElementById('config-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            config.name = document.getElementById('ai-name').value.trim();
-            config.gender = document.getElementById('ai-gender').value;
-            config.uniform = document.getElementById('ai-uniform').value;
-            config.hair = document.getElementById('ai-hair').value;
+        // QUẢN LÝ QUY TRÌNH TẠO AI CÁ NHÂN HÓA 4 BƯỚC
+        function renderWizardStep() {
+            const container = document.getElementById('wizard-step-content');
+            const indicator = document.getElementById('wizard-step-indicator');
+            const title = document.getElementById('wizard-title');
+            const desc = document.getElementById('wizard-desc');
+            const prevBtn = document.getElementById('wizard-prev-btn');
+            const nextBtn = document.getElementById('wizard-next-btn');
 
-            await db.collection('users').doc(currentUser.uid).collection('settings').doc('ai_config').set(config);
-            launchApp();
-        });
+            indicator.innerText = `Bước ${currentWizardStep} / 4`;
+            prevBtn.style.display = currentWizardStep > 1 ? 'block' : 'none';
 
-        function openConfig() {
-            document.getElementById('ai-name').value = config.name;
-            document.getElementById('ai-gender').value = config.gender;
-            document.getElementById('ai-uniform').value = config.uniform;
-            document.getElementById('ai-hair').value = config.hair;
-            document.getElementById('setup-screen').classList.remove('hidden');
+            if (currentWizardStep === 1) {
+                title.innerText = "Nhập Ngày Tháng Năm Sinh";
+                desc.innerText = "Cung cấp thông tin ngày sinh để hoàn thiện lý lịch học tập.";
+                container.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Ngày sinh (DD/MM/YYYY)</label>
+                        <input type="text" id="wizard-dob" value="${aiConfig.dob || ''}" placeholder="Ví dụ: 15/08/2006" required
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                `;
+            } else if (currentWizardStep === 2) {
+                title.innerText = "Họ Tên Đầy Đủ & Lớp Học";
+                desc.innerText = "Nhập họ và tên chính thức cùng lớp chuyên ngành tại C500.";
+                container.innerHTML = `
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Họ và tên đầy đủ</label>
+                            <input type="text" id="wizard-fullname" value="${aiConfig.fullName || ''}" placeholder="Ví dụ: Nguyễn Văn A" required
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Lớp học</label>
+                            <input type="text" id="wizard-class" value="${aiConfig.studentClass || ''}" placeholder="Ví dụ: B1D48 - C500" required
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        </div>
+                    </div>
+                `;
+            } else if (currentWizardStep === 3) {
+                title.innerText = "Tùy Chỉnh Hình Thể 3D & Sắc Phục";
+                desc.innerText = "Thiết kế màu tóc, trang phục và mũ trên mô hình nhân vật đang xoay.";
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-center">
+                            <div class="w-32 h-36 bg-slate-950 rounded-2xl border border-emerald-500/50 flex flex-col items-center justify-center relative shadow-inner model-3d-preview">
+                                <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-1" id="preview-avatar-icon">👮‍♂️</div>
+                                <span class="text-[10px] text-emerald-400 font-bold" id="preview-avatar-label">Công an CAND</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Màu tóc</label>
+                                <select id="wizard-hair" onchange="updateModelPreview()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                    <option value="black" ${aiConfig.hairColor==='black'?'selected':''}>Tóc Đen</option>
+                                    <option value="brown" ${aiConfig.hairColor==='brown'?'selected':''}>Tóc Nâu</option>
+                                    <option value="white" ${aiConfig.hairColor==='white'?'selected':''}>Tóc Trắng</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Quần áo & Mũ</label>
+                                <select id="wizard-uniform" onchange="updateModelPreview()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                    <option value="police" ${aiConfig.uniformType==='police'?'selected':''}>Cảnh sát (Xanh đặc trưng)</option>
+                                    <option value="security" ${aiConfig.uniformType==='security'?'selected':''}>An ninh (Nghi lễ)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (currentWizardStep === 4) {
+                title.innerText = "Đặt Biệt Danh Cho Trợ Lý AI";
+                desc.innerText = "Đặt một biệt danh thân thiết cho người đồng hành thông minh của bạn.";
+                container.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Biệt danh trợ lý AI</label>
+                        <input type="text" id="wizard-nickname" value="${aiConfig.nickname || ''}" placeholder="Ví dụ: Sĩ quan Bôm, Trợ lý C500..." required
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                `;
+                nextBtn.innerHTML = `<span>Hoàn tất thiết lập</span> <i class="fa-solid fa-check"></i>`;
+            }
+        }
+
+        function updateModelPreview() {
+            const hair = document.getElementById('wizard-hair').value;
+            const uniform = document.getElementById('wizard-uniform').value;
+            const label = document.getElementById('preview-avatar-label');
+            label.innerText = uniform === 'police' ? 'Cảnh sát CAND' : 'An ninh Nghi lễ';
+        }
+
+        async function nextWizardStep() {
+            if (currentWizardStep === 1) {
+                const dob = document.getElementById('wizard-dob').value.trim();
+                if (!dob) return alert('Vui lòng nhập ngày sinh!');
+                aiConfig.dob = dob;
+            } else if (currentWizardStep === 2) {
+                const name = document.getElementById('wizard-fullname').value.trim();
+                const cls = document.getElementById('wizard-class').value.trim();
+                if (!name || !cls) return alert('Vui lòng nhập đầy đủ họ tên và lớp học!');
+                aiConfig.fullName = name;
+                aiConfig.studentClass = cls;
+            } else if (currentWizardStep === 3) {
+                aiConfig.hairColor = document.getElementById('wizard-hair').value;
+                aiConfig.uniformType = document.getElementById('wizard-uniform').value;
+            } else if (currentWizardStep === 4) {
+                const nick = document.getElementById('wizard-nickname').value.trim();
+                if (!nick) return alert('Vui lòng đặt biệt danh cho AI!');
+                aiConfig.nickname = nick;
+                aiConfig.completed = true;
+
+                // Lưu lên Cloud Firestore
+                await db.collection('users').doc(currentUser.uid).collection('settings').doc('ai_config').set(aiConfig);
+                
+                document.getElementById('setup-wizard-screen').classList.add('hidden');
+                alert(`🎉 Thiết lập thành công! Xin chào mừng bạn đến với trợ lý AI "${aiConfig.nickname}".`);
+                launchApp();
+                return;
+            }
+
+            currentWizardStep++;
+            renderWizardStep();
+        }
+
+        function prevWizardStep() {
+            if (currentWizardStep > 1) {
+                currentWizardStep--;
+                renderWizardStep();
+            }
+        }
+
+        function restartWizard() {
+            currentWizardStep = 1;
+            document.getElementById('setup-wizard-screen').classList.remove('hidden');
+            renderWizardStep();
         }
 
         async function launchApp() {
-            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('setup-wizard-screen').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
             document.getElementById('ai-widget').classList.remove('hidden');
 
-            document.getElementById('widget-ai-name').innerText = config.name;
+            document.getElementById('widget-ai-nickname').innerText = aiConfig.nickname;
+            document.getElementById('header-ai-nickname-badge').innerText = `Biệt danh: ${aiConfig.nickname}`;
+            document.getElementById('widget-student-info').innerText = aiConfig.studentClass || 'C500 Hub';
             await loadUserChats();
         }
 
@@ -467,6 +588,7 @@
             renderHistoryList();
         }
 
+        // XỬ LÝ GỬI TIN NHẮN VÀ KIỂM DUYỆT TỪ KHÓA AN NINH CHUẨN XÁC
         document.getElementById('chat-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const inputEl = document.getElementById('user-input');
@@ -480,7 +602,7 @@
             chat.messages.push({ role: 'user', content: text });
             renderMessages();
 
-            // KIỂM DUYỆT TỰ ĐỘNG TỪ KHÓA NGHIỆP VỤ & BIỂU TÌNH (2015+)
+            // KIỂM DUYỆT TỰ ĐỘNG THEO YÊU CẦU: TRẢ VỀ ĐÚNG CÂU LỆNH TỪ CHỐI
             const lowerText = text.toLowerCase();
             const violation = sensitiveKeywords.find(kw => lowerText.includes(kw));
 
@@ -492,10 +614,8 @@
                     timestamp: new Date().toISOString()
                 });
 
-                chat.messages.push({
-                    role: 'model',
-                    content: `⚠️ **[KIỂM DUYỆT AN NINH C500]**: Nội dung câu hỏi chứa từ khóa nhạy cảm / nghiệp vụ / chủ đề biểu tình bị hạn chế ("*${violation}*"). Hệ thống tự động từ chối xử lý và đã ghi nhận nhật ký bảo mật.`
-                });
+                const rejectionMessage = "xin lỗi, tôi không thể trả lời câu hỏi này vì nó thuộc vấn đề nghiệp vụ, bạn hãy tìm đọc nội dung trên thư viện nhé!";
+                chat.messages.push({ role: 'model', content: rejectionMessage });
                 await saveCurrentChatToCloud(chat);
                 renderMessages();
                 return;
@@ -535,7 +655,7 @@
 
         async function callGeminiAI(messages) {
             const apiKey = "AIzaSyDWeQWEjKh9zXyJhbHRZNe4MH-nEao87mU";
-            const systemInstruction = `Bạn là ${config.name}, một sĩ quan Công an nhân dân Việt Nam kiêm trợ lý AI chuyên nghiệp, chuẩn mực, hỗ trợ sinh viên C500 tra cứu quy chế học tập, pháp luật và giải đáp bài tập. Tuyệt đối không bàn luận các vấn đề nhạy cảm về an ninh quốc gia hoặc biểu tình phức tạp.`;
+            const systemInstruction = `Bạn là ${aiConfig.nickname}, trợ lý AI cá nhân cho sinh viên ${aiConfig.fullName} (Lớp ${aiConfig.studentClass}) tại Học viện C500. Bạn giao tiếp chuẩn mực, chuyên nghiệp và hỗ trợ tra cứu quy chế học tập, pháp luật.`;
             const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
             const contents = messages.map(m => ({ role: m.role, parts: [{ text: m.content }] }));
 
@@ -559,8 +679,8 @@
                     <div class="flex items-start space-x-4 max-w-2xl mx-auto mt-10">
                         <div class="w-10 h-10 rounded-2xl bg-emerald-800 border border-yellow-500 flex items-center justify-center text-yellow-400 font-bold shadow-lg"><i class="fa-solid fa-user-shield"></i></div>
                         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-sm text-slate-200 shadow-xl leading-relaxed">
-                            <p class="font-bold text-emerald-400 mb-1">Xin chào đồng chí!</p>
-                            <p>Tôi là ${config.name}. Hãy đặt câu hỏi về quy chế học tập, văn bản pháp luật hoặc các bài tập chuyên ngành C500 nhé.</p>
+                            <p class="font-bold text-emerald-400 mb-1">Xin chào đồng chí ${aiConfig.fullName}!</p>
+                            <p>Tôi là ${aiConfig.nickname}. Hãy đặt câu hỏi về quy chế học tập, văn bản pháp luật hoặc các bài tập chuyên ngành C500 nhé.</p>
                         </div>
                     </div>
                 `;
@@ -595,7 +715,7 @@
 
         function setAiStatus(text) { document.getElementById('ai-status-badge').innerText = text; }
 
-        // CANVAS ANIMATION (NHẤP NHÁY MẮT, MŨI, MIỆNG VÀ ĐỒ AN NINH TRÊN AVATAR)
+        // CANVAS ANIMATION (MẮT CHỚP, MŨI, MIỆNG NHẤP NHÁY THEO MÀU TÓC & TRANG PHỤC)
         let isSpeaking = false;
         let mouthOpen = 0;
         let blinkTimer = 0;
@@ -612,12 +732,12 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                 const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                grad.addColorStop(0, config.uniform === 'green' ? '#14532d' : '#1e3a8a');
+                grad.addColorStop(0, aiConfig.uniformType === 'police' ? '#14532d' : '#1e3a8a');
                 grad.addColorStop(1, '#0f172a');
                 ctx.fillStyle = grad;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                ctx.fillStyle = config.uniform === 'green' ? '#166534' : '#1e40af';
+                ctx.fillStyle = aiConfig.uniformType === 'police' ? '#166534' : '#1e40af';
                 ctx.beginPath();
                 ctx.arc(56, 120, 45, Math.PI, 2 * Math.PI);
                 ctx.fill();
@@ -642,14 +762,15 @@
                 ctx.arc(56, 58, 2, 0, 2 * Math.PI);
                 ctx.fill();
 
-                ctx.fillStyle = '#1e293b';
+                // Màu tóc theo cấu hình cá nhân hóa (black, brown, white)
+                let hairColorHex = '#1e293b';
+                if (aiConfig.hairColor === 'white') hairColorHex = '#f8fafc';
+                if (aiConfig.hairColor === 'brown') hairColorHex = '#78350f';
+                ctx.fillStyle = hairColorHex;
+
                 ctx.beginPath();
-                if (config.gender === 'male') {
-                    ctx.arc(56, 50, 26, Math.PI, 2 * Math.PI);
-                    ctx.fillRect(30, 45, 52, 10);
-                } else {
-                    ctx.arc(56, 48, 27, 0.5 * Math.PI, 2.5 * Math.PI);
-                }
+                ctx.arc(56, 50, 26, Math.PI, 2 * Math.PI);
+                ctx.fillRect(30, 45, 52, 10);
                 ctx.fill();
 
                 if (Math.random() < 0.02) isBlinking = true;

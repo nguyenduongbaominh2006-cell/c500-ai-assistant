@@ -4,29 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trợ lý AI C500 - Sĩ quan An ninh Nhân dân</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    
-    <!-- Marked.js cho Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
-<body class="h-full bg-slate-950 text-slate-100 flex flex-col font-sans">
+<body class="h-full bg-slate-950 text-slate-100 flex flex-col font-sans overflow-hidden">
 
-    <!-- LOADER ĐIỀU HƯỚNG -->
     <div id="app-loading" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center space-y-4">
         <div class="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-        <p class="text-xs text-slate-400 font-medium">Đang kiểm tra định danh hệ thống C500...</p>
+        <p class="text-xs text-slate-400 font-medium">Đang khởi tạo hệ thống C500...</p>
     </div>
 
-    <!-- GIAO DIỆN CHÍNH KHUNG CHAT & CANVAS 3D -->
     <div id="main-app" class="flex-1 flex overflow-hidden hidden">
-        <!-- Sidebar -->
         <aside class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col">
             <div class="p-4 border-b border-slate-800 flex items-center justify-between">
                 <div class="flex items-center space-x-2">
@@ -59,15 +51,12 @@
             </div>
         </aside>
 
-        <!-- Khung Chat -->
         <main class="flex-1 flex flex-col bg-slate-950 relative">
             <header class="h-16 border-b border-slate-800 px-6 flex items-center justify-between bg-slate-900/40">
                 <h3 class="text-sm font-semibold text-slate-200" id="ai-nickname-header">Trợ Lý Pháp Luật & Quy Chế C500</h3>
                 <button onclick="startNewChat()" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-xl border border-slate-700 text-emerald-400 font-bold"><i class="fa-solid fa-plus mr-1"></i> Cuộc trò chuyện mới</button>
             </header>
-
             <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-6"></div>
-
             <div class="p-4 border-t border-slate-800 bg-slate-900/30">
                 <form id="chat-form" class="max-w-4xl mx-auto flex items-center space-x-3">
                     <input type="text" id="user-input" placeholder="Hỏi về quy chế, pháp luật hoặc học tập C500..." autocomplete="off"
@@ -80,33 +69,18 @@
         </main>
     </div>
 
-    <!-- WIDGET CANVAS HOẠT HỌA 3D AN NINH -->
-    <div id="ai-widget" class="fixed bottom-4 left-4 z-40 bg-slate-900/90 border border-emerald-500/40 rounded-2xl p-3 shadow-2xl backdrop-blur-xl flex flex-col items-center w-44 select-none hidden">
-        <div class="relative w-28 h-32 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex items-center justify-center">
-            <canvas id="avatar-canvas" width="112" height="128" class="w-full h-full"></canvas>
-            <div id="ai-status-badge" class="absolute bottom-1 px-2 py-0.5 rounded text-[9px] font-bold bg-slate-900/90 text-emerald-400 border border-emerald-700/50">Sẵn sàng</div>
-        </div>
-        <div class="mt-2 text-center">
-            <h5 class="text-xs font-bold text-yellow-400 truncate w-36" id="widget-ai-nickname">Sĩ quan AI</h5>
-        </div>
-    </div>
-
-    <!-- SCRIPTS -->
     <script src="js/firebase-config.js"></script>
-    <script src="js/security-filetr.js"></script>
+    <script src="js/security-filter.js"></script>
     <script>
         let currentUser = null;
         let userApiKey = '';
-        let aiConfig = { nickname: 'Sĩ quan AI', hairColor: 'black', uniformType: 'police' };
+        let aiConfig = {};
         let chats = [];
         let currentChatId = null;
         let isGenerating = false;
 
         auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
+            if (!user) { window.location.href = 'login.html'; return; }
             currentUser = user;
             document.getElementById('user-email').innerText = user.email;
 
@@ -115,34 +89,29 @@
             }
 
             try {
-                // Kiểm tra API Key cá nhân
                 const keyDoc = await db.collection('users').doc(user.uid).collection('settings').doc('apikey').get();
-                if (!keyDoc.exists || !keyDoc.data().key) {
-                    window.location.href = 'setup.html';
-                    return;
-                }
-                userApiKey = keyDoc.data().key;
-
-                // Kiểm tra cấu hình AI
                 const cfgDoc = await db.collection('users').doc(user.uid).collection('settings').doc('ai_config').get();
-                if (!cfgDoc.exists || !cfgDoc.data().completed) {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+
+                if (!keyDoc.exists || !keyDoc.data().key || !cfgDoc.exists || !cfgDoc.data().completed) {
                     window.location.href = 'setup.html';
                     return;
                 }
-                aiConfig = cfgDoc.data();
-                document.getElementById('user-name').innerText = aiConfig.fullName || user.email.split('@')[0];
-                document.getElementById('ai-nickname-header').innerText = `Trợ lý: ${aiConfig.nickname}`;
-                document.getElementById('widget-ai-nickname').innerText = aiConfig.nickname;
 
-                // Hiển thị ứng dụng
+                userApiKey = keyDoc.data().key;
+                aiConfig = cfgDoc.data();
+                if (userDoc.exists && userDoc.data().fullName) {
+                    aiConfig.fullName = userDoc.data().fullName;
+                    document.getElementById('user-name').innerText = aiConfig.fullName;
+                } else {
+                    document.getElementById('user-name').innerText = user.email.split('@')[0];
+                }
+                document.getElementById('ai-nickname-header').innerText = `Trợ lý: ${aiConfig.nickname}`;
+
                 document.getElementById('app-loading').classList.add('hidden');
                 document.getElementById('main-app').classList.remove('hidden');
-                document.getElementById('ai-widget').classList.remove('hidden');
-
-                startCanvasAnimation();
                 await loadChats();
             } catch (err) {
-                console.error(err);
                 window.location.href = 'setup.html';
             }
         });
@@ -151,13 +120,8 @@
             const snap = await db.collection('users').doc(currentUser.uid).collection('chats').orderBy('updatedAt', 'desc').get();
             chats = [];
             snap.forEach(doc => chats.push({ id: doc.id, ...doc.data() }));
-            if (chats.length === 0) {
-                await startNewChat();
-            } else {
-                currentChatId = chats[0].id;
-                renderMessages();
-                renderHistory();
-            }
+            if (chats.length === 0) await startNewChat();
+            else { currentChatId = chats[0].id; renderMessages(); renderHistory(); }
         }
 
         async function startNewChat() {
@@ -178,22 +142,14 @@
 
             const chat = chats.find(c => c.id === currentChatId);
             if (chat.messages.length === 0) chat.title = text.substring(0, 20) + '...';
-
             chat.messages.push({ role: 'user', content: text });
             renderMessages();
 
-            // Kiểm tra bộ lọc an ninh
             if (typeof checkSecurityViolation === 'function') {
                 const violation = checkSecurityViolation(text);
                 if (violation) {
-                    await db.collection('violations').add({
-                        user: currentUser.email,
-                        keyword: violation,
-                        query: text,
-                        timestamp: new Date().toISOString()
-                    });
-                    const rejection = "xin lỗi, tôi không thể trả lời câu hỏi này vì nó thuộc vấn đề nghiệp vụ, bạn hãy tìm đọc nội dung trên thư viện nhé!";
-                    chat.messages.push({ role: 'model', content: rejection });
+                    await db.collection('violations').add({ user: currentUser.email, keyword: violation, query: text, timestamp: new Date().toISOString() });
+                    chat.messages.push({ role: 'model', content: "xin lỗi, tôi không thể trả lời câu hỏi này vì nó thuộc vấn đề nghiệp vụ, bạn hãy tìm đọc nội dung trên thư viện nhé!" });
                     await saveChat(chat);
                     renderMessages();
                     return;
@@ -201,7 +157,6 @@
             }
 
             isGenerating = true;
-            document.getElementById('ai-status-badge').innerText = 'Đang trả lời...';
             chat.messages.push({ role: 'model', content: '...' });
             renderMessages();
 
@@ -210,7 +165,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        system_instruction: { parts: [{ text: `Bạn là ${aiConfig.nickname}, trợ lý AI cho sinh viên ${aiConfig.fullName} tại Học viện C500. Chuyên nghiệp, chuẩn mực.` }] },
+                        system_instruction: { parts: [{ text: `Bạn là ${aiConfig.nickname}, trợ lý AI cho sinh viên ${aiConfig.fullName || 'C500'}. Chuẩn mực, chuyên nghiệp.` }] },
                         contents: chat.messages.slice(0, -1).map(m => ({ role: m.role, parts: [{ text: m.content }] }))
                     })
                 });
@@ -221,7 +176,6 @@
                 chat.messages[chat.messages.length - 1] = { role: 'model', content: '❌ Lỗi API Key cá nhân: ' + err.message };
             } finally {
                 isGenerating = false;
-                document.getElementById('ai-status-badge').innerText = 'Sẵn sàng';
             }
 
             await saveChat(chat);
@@ -260,24 +214,6 @@
             chats.forEach(c => {
                 list.innerHTML += `<div onclick="currentChatId='${c.id}'; renderMessages();" class="p-2 rounded-xl cursor-pointer truncate ${c.id===currentChatId?'bg-emerald-950 text-emerald-300 font-semibold':'text-slate-400 hover:bg-slate-800'}"><i class="fa-regular fa-comment mr-2"></i>${c.title}</div>`;
             });
-        }
-
-        // Canvas 3D hoạt họa
-        function startCanvasAnimation() {
-            const canvas = document.getElementById('avatar-canvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = aiConfig.uniformType === 'police' ? '#14532d' : '#1e3a8a';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#fed7aa';
-                ctx.beginPath();
-                ctx.arc(56, 56, 26, 0, 2 * Math.PI);
-                ctx.fill();
-                requestAnimationFrame(animate);
-            }
-            animate();
         }
     </script>
 </body>

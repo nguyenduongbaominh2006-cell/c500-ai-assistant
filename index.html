@@ -47,6 +47,12 @@
 </head>
 <body class="h-full bg-slate-950 dark:bg-slate-950 text-slate-100 font-sans antialiased overflow-hidden flex flex-col relative selection:bg-emerald-500 selection:text-slate-950 transition-colors duration-300" id="body-root">
 
+    <!-- LOADER BAN ĐẦU ĐỂ KHÔNG BAO GIỜ HIỆN MÀN HÌNH ĐEN -->
+    <div id="app-loading" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center space-y-4">
+        <div class="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-xs text-slate-400 font-medium">Đang khởi tạo hệ thống bảo mật C500...</p>
+    </div>
+
     <!-- HIỆU ỨNG NỀN ÁNH SÁNG AN NINH -->
     <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div class="absolute -top-40 -left-40 w-96 h-96 bg-emerald-600/15 rounded-full blur-3xl animate-pulse"></div>
@@ -54,7 +60,7 @@
     </div>
 
     <!-- MÀN HÌNH ĐĂNG NHẬP GOOGLE -->
-    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-2xl hidden">
+    <div id="login-screen" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-2xl hidden">
         <div class="bg-slate-900/90 border border-emerald-500/40 rounded-3xl max-w-md w-full p-8 shadow-2xl text-center relative overflow-hidden fade-in">
             <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
             <div class="w-20 h-20 bg-gradient-to-tr from-emerald-800 to-emerald-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30 mb-6 text-yellow-400 text-3xl border border-yellow-500/50">
@@ -69,7 +75,7 @@
         </div>
     </div>
 
-    <!-- QUY TRÌNH TẠO AI CÁ NHÂN HÓA TỪNG BƯỚC (WIZARD 4 BƯỚC) -->
+    <!-- QUY TRÌNH TẠO AI CÁ NHÂN HÓA 4 BƯỚC -->
     <div id="setup-wizard-screen" class="fixed inset-0 z-40 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto hidden">
         <div class="bg-slate-900/95 border border-emerald-500/40 rounded-3xl max-w-lg w-full p-8 shadow-2xl relative fade-in">
             <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
@@ -238,7 +244,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT XỬ LÝ TOÀN DIỆN -->
+    <!-- SCRIPT CHỐNG TREO MÀN HÌNH ĐEN -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDWeQWEjKh9zXyJhbHRZNe4MH-nEao87mU",
@@ -326,20 +332,26 @@
             }
         }
 
-        function loginWithGoogle() {
+        // SỬ DỤNG POPUP KẾT HỢP KIỂM TRA LỖI AN TOÀN TRÁNH TREO MÀN HÌNH ĐEN
+        async function loginWithGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithRedirect(provider).catch(err => alert("Lỗi đăng nhập Google: " + err.message));
+            try {
+                await auth.signInWithPopup(provider);
+            } catch (err) {
+                alert("Lỗi đăng nhập Google: " + err.message);
+                console.error(err);
+            }
         }
 
-        auth.getRedirectResult().catch(err => {
-            console.error("Lỗi chuyển hướng đăng nhập:", err);
-        });
-
+        // LẮNG NGHE TRẠNG THÁI XÁC THỰC VÀ GỠ BỎ LOADER AN TOÀN
         auth.onAuthStateChanged(async (user) => {
+            const loadingEl = document.getElementById('app-loading');
             const loginScreen = document.getElementById('login-screen');
             const mainApp = document.getElementById('main-app');
             const aiWidget = document.getElementById('ai-widget');
             const setupWizard = document.getElementById('setup-wizard-screen');
+
+            loadingEl.classList.add('hidden');
 
             if (user) {
                 currentUser = user;
@@ -468,369 +480,4 @@
             }
         }
 
-        function updateModelPreview() {
-            const uniform = document.getElementById('wizard-uniform').value;
-            const label = document.getElementById('preview-avatar-label');
-            label.innerText = uniform === 'police' ? 'Cảnh sát CAND' : 'An ninh Nghi lễ';
-        }
-
-        async function nextWizardStep() {
-            if (currentWizardStep === 1) {
-                const dob = document.getElementById('wizard-dob').value.trim();
-                if (!dob) return alert('Vui lòng nhập ngày sinh!');
-                aiConfig.dob = dob;
-            } else if (currentWizardStep === 2) {
-                const name = document.getElementById('wizard-fullname').value.trim();
-                const cls = document.getElementById('wizard-class').value.trim();
-                if (!name || !cls) return alert('Vui lòng nhập đầy đủ họ tên và lớp học!');
-                aiConfig.fullName = name;
-                aiConfig.studentClass = cls;
-            } else if (currentWizardStep === 3) {
-                aiConfig.hairColor = document.getElementById('wizard-hair').value;
-                aiConfig.uniformType = document.getElementById('wizard-uniform').value;
-            } else if (currentWizardStep === 4) {
-                const nick = document.getElementById('wizard-nickname').value.trim();
-                if (!nick) return alert('Vui lòng đặt biệt danh cho AI!');
-                aiConfig.nickname = nick;
-                aiConfig.completed = true;
-
-                await db.collection('users').doc(currentUser.uid).collection('settings').doc('ai_config').set(aiConfig);
-                
-                document.getElementById('setup-wizard-screen').classList.add('hidden');
-                alert(`🎉 Thiết lập thành công! Xin chào mừng bạn đến với trợ lý AI "${aiConfig.nickname}".`);
-                launchApp();
-                return;
-            }
-
-            currentWizardStep++;
-            renderWizardStep();
-        }
-
-        function prevWizardStep() {
-            if (currentWizardStep > 1) {
-                currentWizardStep--;
-                renderWizardStep();
-            }
-        }
-
-        function restartWizard() {
-            currentWizardStep = 1;
-            document.getElementById('setup-wizard-screen').classList.remove('hidden');
-            renderWizardStep();
-        }
-
-        async function launchApp() {
-            document.getElementById('setup-wizard-screen').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('hidden');
-            document.getElementById('ai-widget').classList.remove('hidden');
-
-            document.getElementById('widget-ai-nickname').innerText = aiConfig.nickname;
-            document.getElementById('header-ai-nickname-badge').innerText = `Biệt danh: ${aiConfig.nickname}`;
-            document.getElementById('widget-student-info').innerText = aiConfig.studentClass || 'C500 Hub';
-            await loadUserChats();
-        }
-
-        function switchView(viewName) {
-            if (viewName === 'chat') {
-                document.getElementById('chat-view').classList.remove('hidden');
-                document.getElementById('admin-view').classList.add('hidden');
-                if(!isMobileViewMode) document.getElementById('chat-sidebar-section').classList.remove('hidden');
-            } else {
-                document.getElementById('chat-view').classList.add('hidden');
-                document.getElementById('admin-view').classList.remove('hidden');
-                document.getElementById('chat-sidebar-section').classList.add('hidden');
-                loadAdminDashboardData();
-            }
-        }
-
-        async function loadKeywords() {
-            try {
-                const doc = await db.collection('settings').doc('security').get();
-                if (doc.exists && doc.data().keywords) sensitiveKeywords = doc.data().keywords;
-            } catch (e) {}
-        }
-
-        async function loadUserChats() {
-            const snapshot = await db.collection('users').doc(currentUser.uid).collection('chats').orderBy('updatedAt', 'desc').get();
-            chats = [];
-            snapshot.forEach(doc => chats.push({ id: doc.id, ...doc.data() }));
-
-            if (chats.length === 0) {
-                await startNewChat();
-            } else {
-                currentChatId = chats[0].id;
-                renderMessages();
-                renderHistoryList();
-            }
-        }
-
-        async function startNewChat() {
-            const newChat = { title: 'Cuộc trò chuyện mới', messages: [], updatedAt: new Date().toISOString() };
-            const docRef = await db.collection('users').doc(currentUser.uid).collection('chats').add(newChat);
-            chats.unshift({ id: docRef.id, ...newChat });
-            currentChatId = docRef.id;
-            renderMessages();
-            renderHistoryList();
-        }
-
-        document.getElementById('chat-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const inputEl = document.getElementById('user-input');
-            const text = inputEl.value.trim();
-            if (!text || isGenerating) return;
-            inputEl.value = '';
-
-            const chat = chats.find(c => c.id === currentChatId);
-            if (chat.messages.length === 0) chat.title = text.substring(0, 22) + '...';
-
-            chat.messages.push({ role: 'user', content: text });
-            renderMessages();
-
-            const lowerText = text.toLowerCase();
-            const violation = sensitiveKeywords.find(kw => lowerText.includes(kw));
-
-            if (violation) {
-                await db.collection('violations').add({
-                    user: currentUser.email,
-                    keyword: violation,
-                    query: text,
-                    timestamp: new Date().toISOString()
-                });
-
-                const rejectionMessage = "xin lỗi, tôi không thể trả lời câu hỏi này vì nó thuộc vấn đề nghiệp vụ, bạn hãy tìm đọc nội dung trên thư viện nhé!";
-                chat.messages.push({ role: 'model', content: rejectionMessage });
-                await saveCurrentChatToCloud(chat);
-                renderMessages();
-                return;
-            }
-
-            isGenerating = true;
-            setAiStatus('Đang trả lời...');
-            triggerSpeakingAnimation(true);
-
-            chat.messages.push({ role: 'model', content: '...' });
-            renderMessages();
-
-            try {
-                const aiResponse = await callGeminiAI(chat.messages.slice(0, -1));
-                chat.messages[chat.messages.length - 1] = { role: 'model', content: aiResponse };
-            } catch (err) {
-                chat.messages[chat.messages.length - 1] = { role: 'model', content: '❌ Lỗi kết nối AI API.' };
-            } finally {
-                isGenerating = false;
-                setAiStatus('Sẵn sàng');
-                triggerSpeakingAnimation(false);
-            }
-
-            await saveCurrentChatToCloud(chat);
-            renderMessages();
-            renderHistoryList();
-        });
-
-        async function saveCurrentChatToCloud(chat) {
-            chat.updatedAt = new Date().toISOString();
-            await db.collection('users').doc(currentUser.uid).collection('chats').doc(chat.id).set({
-                title: chat.title,
-                messages: chat.messages,
-                updatedAt: chat.updatedAt
-            });
-        }
-
-        async function callGeminiAI(messages) {
-            const apiKey = "AIzaSyDWeQWEjKh9zXyJhbHRZNe4MH-nEao87mU";
-            const systemInstruction = `Bạn là ${aiConfig.nickname}, trợ lý AI cá nhân cho sinh viên ${aiConfig.fullName} (Lớp ${aiConfig.studentClass}) tại Học viện C500. Bạn giao tiếp chuẩn mực, chuyên nghiệp và hỗ trợ tra cứu quy chế học tập, pháp luật.`;
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-            const contents = messages.map(m => ({ role: m.role, parts: [{ text: m.content }] }));
-
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ system_instruction: { parts: [{ text: systemInstruction }] }, contents })
-            });
-            const data = await res.json();
-            return data.candidates[0].content.parts[0].text;
-        }
-
-        function renderMessages() {
-            const container = document.getElementById('chat-messages');
-            const chat = chats.find(c => c.id === currentChatId);
-            if (!chat) return;
-            container.innerHTML = '';
-
-            if (chat.messages.length === 0) {
-                container.innerHTML = `
-                    <div class="flex items-start space-x-4 max-w-2xl mx-auto mt-10">
-                        <div class="w-10 h-10 rounded-2xl bg-emerald-800 border border-yellow-500 flex items-center justify-center text-yellow-400 font-bold shadow-lg"><i class="fa-solid fa-user-shield"></i></div>
-                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-sm text-slate-200 shadow-xl leading-relaxed">
-                            <p class="font-bold text-emerald-400 mb-1">Xin chào đồng chí ${aiConfig.fullName}!</p>
-                            <p>Tôi là ${aiConfig.nickname}. Hãy đặt câu hỏi về quy chế học tập, văn bản pháp luật hoặc các bài tập chuyên ngành C500 nhé.</p>
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-
-            chat.messages.forEach(m => {
-                const isUser = m.role === 'user';
-                container.innerHTML += `
-                    <div class="flex items-start space-x-3 max-w-3xl ${isUser ? 'ml-auto flex-row-reverse space-x-reverse' : ''}">
-                        <div class="w-9 h-9 rounded-2xl ${isUser ? 'bg-slate-700' : 'bg-emerald-800 border border-yellow-500 text-yellow-400'} flex items-center justify-center text-xs font-bold shadow">${isUser ? 'U' : '<i class="fa-solid fa-shield-halved text-xs"></i>'}</div>
-                        <div class="${isUser ? 'bg-emerald-950/90 text-emerald-100 border-emerald-800/60' : 'bg-slate-900 text-slate-200 border-slate-800'} border rounded-2xl p-4 text-sm leading-relaxed shadow-md">
-                            ${isUser ? escapeHtml(m.content) : marked.parse(m.content)}
-                        </div>
-                    </div>
-                `;
-            });
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function escapeHtml(text) {
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        }
-
-        function renderHistoryList() {
-            const list = document.getElementById('chat-history-list');
-            list.innerHTML = '';
-            chats.forEach(c => {
-                list.innerHTML += `<div onclick="currentChatId='${c.id}'; renderMessages();" class="p-2.5 rounded-xl cursor-pointer truncate transition ${c.id===currentChatId?'bg-emerald-950 text-emerald-300 font-semibold border border-emerald-800/50':'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'}"><i class="fa-regular fa-comment mr-2"></i>${c.title}</div>`;
-            });
-        }
-
-        function setAiStatus(text) { document.getElementById('ai-status-badge').innerText = text; }
-
-        let isSpeaking = false;
-        let mouthOpen = 0;
-        let blinkTimer = 0;
-        let isBlinking = false;
-
-        function triggerSpeakingAnimation(speaking) { isSpeaking = speaking; }
-
-        function startCanvasAnimation() {
-            const canvas = document.getElementById('avatar-canvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-
-            function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                grad.addColorStop(0, aiConfig.uniformType === 'police' ? '#14532d' : '#1e3a8a');
-                grad.addColorStop(1, '#0f172a');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.fillStyle = aiConfig.uniformType === 'police' ? '#166534' : '#1e40af';
-                ctx.beginPath();
-                ctx.arc(56, 120, 45, Math.PI, 2 * Math.PI);
-                ctx.fill();
-
-                ctx.fillStyle = '#ca8a04';
-                ctx.fillRect(32, 95, 16, 8);
-                ctx.fillRect(64, 95, 16, 8);
-
-                ctx.fillStyle = '#fed7aa';
-                ctx.fillRect(46, 75, 20, 25);
-
-                ctx.beginPath();
-                ctx.arc(56, 56, 26, 0, 2 * Math.PI);
-                ctx.fillStyle = '#fed7aa';
-                ctx.fill();
-                ctx.lineWidth = 1.5;
-                ctx.strokeStyle = '#ea580c';
-                ctx.stroke();
-
-                ctx.fillStyle = '#fdba74';
-                ctx.beginPath();
-                ctx.arc(56, 58, 2, 0, 2 * Math.PI);
-                ctx.fill();
-
-                let hairColorHex = '#1e293b';
-                if (aiConfig.hairColor === 'white') hairColorHex = '#f8fafc';
-                if (aiConfig.hairColor === 'brown') hairColorHex = '#78350f';
-                ctx.fillStyle = hairColorHex;
-
-                ctx.beginPath();
-                ctx.arc(56, 50, 26, Math.PI, 2 * Math.PI);
-                ctx.fillRect(30, 45, 52, 10);
-                ctx.fill();
-
-                if (Math.random() < 0.02) isBlinking = true;
-                if (isBlinking) {
-                    blinkTimer++;
-                    if (blinkTimer > 8) { isBlinking = false; blinkTimer = 0; }
-                }
-
-                ctx.fillStyle = '#0f172a';
-                if (!isBlinking) {
-                    ctx.beginPath();
-                    ctx.arc(46, 52, 3.5, 0, 2 * Math.PI);
-                    ctx.arc(66, 52, 3.5, 0, 2 * Math.PI);
-                    ctx.fill();
-                    ctx.fillStyle = '#ffffff';
-                    ctx.beginPath();
-                    ctx.arc(47, 51, 1, 0, 2 * Math.PI);
-                    ctx.arc(67, 51, 1, 0, 2 * Math.PI);
-                    ctx.fill();
-                } else {
-                    ctx.fillRect(42, 51, 8, 2);
-                    ctx.fillRect(62, 51, 8, 2);
-                }
-
-                if (isSpeaking) {
-                    mouthOpen = (Math.sin(Date.now() / 80) + 1) * 5 + 2;
-                } else {
-                    mouthOpen = 2;
-                }
-
-                ctx.fillStyle = '#991b1b';
-                ctx.beginPath();
-                ctx.ellipse(56, 70, 5, mouthOpen, 0, 0, 2 * Math.PI);
-                ctx.fill();
-
-                requestAnimationFrame(animate);
-            }
-            animate();
-        }
-
-        window.addEventListener('DOMContentLoaded', () => { startCanvasAnimation(); });
-
-        async function loadAdminDashboardData() {
-            const usersSnap = await db.collection('users').get();
-            document.getElementById('stat-users-count').innerText = usersSnap.size;
-            document.getElementById('stat-keywords-count').innerText = sensitiveKeywords.length;
-
-            const kwContainer = document.getElementById('keywords-list');
-            kwContainer.innerHTML = sensitiveKeywords.map(k => `<span class="bg-amber-950/80 text-amber-300 border border-amber-700/60 px-3 py-1 rounded-full text-xs font-bold shadow-sm">${k}</span>`).join('');
-
-            const logTable = document.getElementById('violation-logs-table');
-            logTable.innerHTML = '';
-            const violationsSnap = await db.collection('violations').orderBy('timestamp', 'desc').limit(15).get();
-            document.getElementById('stat-violations-count').innerText = violationsSnap.size;
-
-            violationsSnap.forEach(doc => {
-                const d = doc.data();
-                logTable.innerHTML += `
-                    <tr class="hover:bg-slate-900/50 transition">
-                        <td class="py-3 px-3 text-slate-400">${new Date(d.timestamp).toLocaleString()}</td>
-                        <td class="py-3 px-3 font-semibold text-emerald-300">${d.user}</td>
-                        <td class="py-3 px-3 text-red-400 font-bold">${d.keyword}</td>
-                        <td class="py-3 px-3 truncate max-w-xs">${d.query}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        document.getElementById('add-keyword-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const kw = document.getElementById('new-keyword').value.trim();
-            if (kw && !sensitiveKeywords.includes(kw)) {
-                sensitiveKeywords.push(kw);
-                document.getElementById('new-keyword').value = '';
-                await db.collection('settings').doc('security').set({ keywords: sensitiveKeywords });
-                loadAdminDashboardData();
-                alert('Đã thêm từ khóa kiểm duyệt thành công!');
-            }
-        });
-    </script>
-</body>
-</html>
+        function updateModelPreview()

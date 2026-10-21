@@ -47,7 +47,7 @@
 </head>
 <body class="h-full bg-slate-950 dark:bg-slate-950 text-slate-100 font-sans antialiased overflow-hidden flex flex-col relative selection:bg-emerald-500 selection:text-slate-950 transition-colors duration-300" id="body-root">
 
-    <!-- LOADER BAN ĐẦU ĐỂ KHÔNG BAO GIỜ HIỆN MÀN HÌNH ĐEN -->
+    <!-- LOADER BAN ĐẦU -->
     <div id="app-loading" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center space-y-4">
         <div class="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
         <p class="text-xs text-slate-400 font-medium">Đang khởi tạo hệ thống bảo mật C500...</p>
@@ -71,6 +71,30 @@
             <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3.5 px-6 rounded-xl shadow-lg transition duration-200 flex items-center justify-center space-x-3 cursor-pointer">
                 <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.21 21.32 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.19C.43 8.13 0 9.87 0 11.7s.43 3.57 1.19 5.1l4.08-2.56z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.21 2.68 1.19 6.6l4.08 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
                 <span class="text-sm">Đăng nhập với tài khoản Google</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH NHẬP GEMINI API KEY CÁ NHÂN (BƯỚC 0) -->
+    <div id="api-key-screen" class="fixed inset-0 z-40 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto hidden">
+        <div class="bg-slate-900/95 border border-emerald-500/40 rounded-3xl max-w-md w-full p-8 shadow-2xl relative fade-in">
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
+            <div class="text-center mb-6">
+                <span class="px-3 py-1 bg-emerald-950 border border-emerald-700/60 text-emerald-300 rounded-full text-[11px] font-bold uppercase tracking-wider">Cấu hình API Key cá nhân</span>
+                <h2 class="text-xl font-extrabold text-yellow-400 mt-2 tracking-wide">Nhập Google Gemini API Key</h2>
+                <p class="text-xs text-slate-300 mt-1">Mỗi sinh viên sử dụng API Key riêng của mình để chatbot hoạt động ổn định và không bị quá tải hệ thống chung.</p>
+            </div>
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Gemini API Key của bạn</label>
+                    <input type="password" id="user-gemini-apikey" placeholder="Dán API Key (AIzaSy...)" required
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    <p class="text-[11px] text-slate-400 mt-2">Chưa có key? Lấy miễn phí tại <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-emerald-400 underline font-semibold">Google AI Studio</a>.</p>
+                </div>
+            </div>
+            <button onclick="saveUserApiKey()" class="w-full bg-gradient-to-r from-emerald-700 to-green-600 hover:from-emerald-600 hover:to-green-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition uppercase tracking-wider text-xs flex items-center justify-center space-x-2">
+                <span>Xác nhận & Tiếp tục</span>
+                <i class="fa-solid fa-arrow-right"></i>
             </button>
         </div>
     </div>
@@ -244,7 +268,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT CHỐNG TREO MÀN HÌNH ĐEN -->
+    <!-- SCRIPT LOGIC HOÀN CHỈNH -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDWeQWEjKh9zXyJhbHRZNe4MH-nEao87mU",
@@ -264,6 +288,7 @@
         const MANAGEMENT_EMAIL = "nguyenduongbaominh2006@gmail.com";
 
         let currentUser = null;
+        let userGeminiApiKey = '';
         let aiConfig = {
             dob: '',
             fullName: '',
@@ -332,21 +357,15 @@
             }
         }
 
-        // SỬ DỤNG POPUP KẾT HỢP KIỂM TRA LỖI AN TOÀN TRÁNH TREO MÀN HÌNH ĐEN
-        async function loginWithGoogle() {
+        function loginWithGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
-            try {
-                await auth.signInWithPopup(provider);
-            } catch (err) {
-                alert("Lỗi đăng nhập Google: " + err.message);
-                console.error(err);
-            }
+            auth.signInWithPopup(provider).catch(err => alert("Lỗi đăng nhập Google: " + err.message));
         }
 
-        // LẮNG NGHE TRẠNG THÁI XÁC THỰC VÀ GỠ BỎ LOADER AN TOÀN
         auth.onAuthStateChanged(async (user) => {
             const loadingEl = document.getElementById('app-loading');
             const loginScreen = document.getElementById('login-screen');
+            const apiKeyScreen = document.getElementById('api-key-screen');
             const mainApp = document.getElementById('main-app');
             const aiWidget = document.getElementById('ai-widget');
             const setupWizard = document.getElementById('setup-wizard-screen');
@@ -375,6 +394,16 @@
                         lastLogin: new Date().toISOString()
                     }, { merge: true });
 
+                    // Kiểm tra xem user đã lưu Gemini API Key cá nhân chưa
+                    const apiKeyDoc = await db.collection('users').doc(user.uid).collection('settings').doc('apikey').get();
+                    if (!apiKeyDoc.exists || !apiKeyDoc.data().key) {
+                        // Chưa có -> Hiện màn hình nhập API Key cá nhân
+                        apiKeyScreen.classList.remove('hidden');
+                        return;
+                    }
+                    userGeminiApiKey = apiKeyDoc.data().key;
+
+                    // Kiểm tra tiếp xem đã hoàn thành 4 bước cài đặt AI chưa
                     const cfgDoc = await db.collection('users').doc(user.uid).collection('settings').doc('ai_config').get();
                     if (cfgDoc.exists && cfgDoc.data().completed) {
                         aiConfig = cfgDoc.data();
@@ -390,11 +419,32 @@
                 }
             } else {
                 loginScreen.classList.remove('hidden');
+                apiKeyScreen.classList.add('hidden');
                 mainApp.classList.add('hidden');
                 aiWidget.classList.add('hidden');
                 setupWizard.classList.add('hidden');
             }
         });
+
+        async function saveUserApiKey() {
+            const key = document.getElementById('user-gemini-apikey').value.trim();
+            if (!key) return alert('Vui lòng nhập API Key của bạn!');
+            
+            await db.collection('users').doc(currentUser.uid).collection('settings').doc('apikey').set({ key });
+            userGeminiApiKey = key;
+            
+            document.getElementById('api-key-screen').classList.add('hidden');
+
+            // Kiểm tra tiếp 4 bước cài đặt AI
+            const cfgDoc = await db.collection('users').doc(currentUser.uid).collection('settings').doc('ai_config').get();
+            if (cfgDoc.exists && cfgDoc.data().completed) {
+                aiConfig = cfgDoc.data();
+                launchApp();
+            } else {
+                document.getElementById('setup-wizard-screen').classList.remove('hidden');
+                renderWizardStep();
+            }
+        }
 
         function logout() { auth.signOut(); }
 
@@ -624,10 +674,11 @@
             renderMessages();
 
             try {
+                // SỬ DỤNG CHÍNH GEMINI API KEY CÁ NHÂN CỦA USER ĐỂ GỌI API
                 const aiResponse = await callGeminiAI(chat.messages.slice(0, -1));
                 chat.messages[chat.messages.length - 1] = { role: 'model', content: aiResponse };
             } catch (err) {
-                chat.messages[chat.messages.length - 1] = { role: 'model', content: '❌ Lỗi kết nối AI API.' };
+                chat.messages[chat.messages.length - 1] = { role: 'model', content: '❌ Lỗi gọi AI API: Vui lòng kiểm tra lại API Key cá nhân của bạn.' };
             } finally {
                 isGenerating = false;
                 setAiStatus('Sẵn sàng');
@@ -649,9 +700,8 @@
         }
 
         async function callGeminiAI(messages) {
-            const apiKey = "AIzaSyDWeQWEjKh9zXyJhbHRZNe4MH-nEao87mU";
             const systemInstruction = `Bạn là ${aiConfig.nickname}, trợ lý AI cá nhân cho sinh viên ${aiConfig.fullName} (Lớp ${aiConfig.studentClass}) tại Học viện C500. Bạn giao tiếp chuẩn mực, chuyên nghiệp và hỗ trợ tra cứu quy chế học tập, pháp luật.`;
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${userGeminiApiKey}`;
             const contents = messages.map(m => ({ role: m.role, parts: [{ text: m.content }] }));
 
             const res = await fetch(endpoint, {
@@ -660,6 +710,7 @@
                 body: JSON.stringify({ system_instruction: { parts: [{ text: systemInstruction }] }, contents })
             });
             const data = await res.json();
+            if (data.error) throw new Error(data.error.message);
             return data.candidates[0].content.parts[0].text;
         }
 

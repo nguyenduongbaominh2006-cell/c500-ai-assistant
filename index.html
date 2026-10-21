@@ -59,37 +59,89 @@
         <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-green-700/15 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
     </div>
 
-    <!-- MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ AN TOÀN TUYỆT ĐỐI (KHÔNG BAO GIỜ BỊ CHẶN) -->
+    <!-- 1. MÀN HÌNH ĐĂNG NHẬP (LOGIN SCREEN) -->
     <div id="login-screen" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-2xl hidden">
         <div class="bg-slate-900/90 border border-emerald-500/40 rounded-3xl max-w-md w-full p-8 shadow-2xl relative overflow-hidden fade-in">
             <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
             <div class="w-20 h-20 bg-gradient-to-tr from-emerald-800 to-emerald-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30 mb-5 text-yellow-400 text-3xl border border-yellow-500/50">
                 <i class="fa-solid fa-shield-halved"></i>
             </div>
-            <h1 class="text-2xl font-extrabold text-white mb-1 tracking-wide text-center">Định Danh Sĩ Quan C500</h1>
-            <p class="text-xs text-slate-300 mb-6 text-center leading-relaxed">Đăng nhập hoặc tạo nhanh tài khoản bằng Email cá nhân để bắt đầu sử dụng Trợ lý AI.</p>
+            <h1 class="text-2xl font-extrabold text-white mb-1 tracking-wide text-center">Đăng Nhập Hệ Thống C500</h1>
+            <p class="text-xs text-slate-300 mb-6 text-center leading-relaxed">Nhập Gmail và mật khẩu định danh của đồng chí để tiếp tục.</p>
             
-            <form id="auth-form" class="space-y-4">
+            <form id="login-form" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Email định danh (Ví dụ: admin hoặc sinh viên)</label>
-                    <input type="email" id="auth-email" placeholder="nhapemail@gmail.com" required
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Gmail</label>
+                    <input type="email" id="login-email" placeholder="example@gmail.com" required
                         class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Mật khẩu</label>
-                    <input type="password" id="auth-password" placeholder="••••••••" required minlength="6"
+                    <input type="password" id="login-password" placeholder="••••••••" required
                         class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
                 </div>
-                <div class="pt-2 flex space-x-3">
-                    <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider transition shadow-lg">Đăng Nhập</button>
-                    <button type="button" onclick="registerAccount()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider transition border border-slate-700">Tạo Tài Khoản</button>
-                </div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider transition shadow-lg mt-2">Đăng Nhập</button>
             </form>
-            <p class="text-[11px] text-amber-400 text-center mt-4">* Lưu ý: Đăng nhập bằng email <code class="bg-slate-950 px-1.5 py-0.5 rounded text-amber-300">nguyenduongbaominh2006@gmail.com</code> sẽ tự động kích hoạt quyền Quản lý Web.</p>
+
+            <div class="mt-6 text-center border-t border-slate-800 pt-4">
+                <p class="text-xs text-slate-400">Chưa có tài khoản định danh?</p>
+                <button onclick="showRegisterScreen()" class="mt-2 text-emerald-400 hover:text-emerald-300 text-xs font-bold underline cursor-pointer">Bấm vào đây để tạo tài khoản mới</button>
+            </div>
         </div>
     </div>
 
-    <!-- MÀN HÌNH NHẬP GEMINI API KEY CÁ NHÂN (BƯỚC 0) -->
+    <!-- 2. MÀN HÌNH TẠO TÀI KHOẢN MỚI (FORM ĐĂNG KÝ RIÊNG BIỆT) -->
+    <div id="register-screen" class="fixed inset-0 z-40 bg-slate-950/95 backdrop-blur-2xl flex items-center justify-center p-4 overflow-y-auto hidden">
+        <div class="bg-slate-900/90 border border-emerald-500/40 rounded-3xl max-w-md w-full p-8 shadow-2xl relative overflow-hidden fade-in my-auto">
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
+            <div class="text-center mb-6">
+                <span class="px-3 py-1 bg-emerald-950 border border-emerald-700/60 text-emerald-300 rounded-full text-[11px] font-bold uppercase tracking-wider">Đăng ký định danh</span>
+                <h2 class="text-xl font-extrabold text-yellow-400 mt-2 tracking-wide">Tạo Tài Khoản Sĩ Quan C500</h2>
+                <p class="text-xs text-slate-300 mt-1">Điền đầy đủ thông tin hồ sơ học tập bên dưới.</p>
+            </div>
+
+            <form id="register-form" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Họ và tên đầy đủ</label>
+                    <input type="text" id="reg-fullname" placeholder="Ví dụ: Nguyễn Văn A" required
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Lớp học</label>
+                        <input type="text" id="reg-class" placeholder="Ví dụ: B1D48" required
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Chuyên ngành</label>
+                        <input type="text" id="reg-major" placeholder="Ví dụ: Quản lý nhà nước" required
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Ngày tháng năm sinh</label>
+                    <input type="text" id="reg-dob" placeholder="Ví dụ: 15/08/2006" required
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Gmail cá nhân</label>
+                    <input type="email" id="reg-email" placeholder="example@gmail.com" required
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Mật khẩu</label>
+                    <input type="password" id="reg-password" placeholder="••••••••" required minlength="6"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="pt-2 flex space-x-3">
+                    <button type="button" onclick="showLoginScreen()" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs uppercase transition">Quay lại</button>
+                    <button type="submit" class="flex-1 bg-gradient-to-r from-emerald-700 to-green-600 hover:from-emerald-600 hover:to-green-500 text-white font-bold py-3 rounded-xl shadow-lg transition uppercase tracking-wider text-xs">Đăng Ký Ngay</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. MÀN HÌNH NHẬP GEMINI API KEY CÁ NHÂN -->
     <div id="api-key-screen" class="fixed inset-0 z-40 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto hidden">
         <div class="bg-slate-900/95 border border-emerald-500/40 rounded-3xl max-w-md w-full p-8 shadow-2xl relative fade-in">
             <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
@@ -113,30 +165,27 @@
         </div>
     </div>
 
-    <!-- QUY TRÌNH TẠO AI CÁ NHÂN HÓA 4 BƯỚC -->
+    <!-- 4. QUY TRÌNH TÙY CHỈNH AI 3D (BƯỚC 3 & 4) -->
     <div id="setup-wizard-screen" class="fixed inset-0 z-40 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto hidden">
         <div class="bg-slate-900/95 border border-emerald-500/40 rounded-3xl max-w-lg w-full p-8 shadow-2xl relative fade-in">
             <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
             
             <div class="text-center mb-6">
-                <span id="wizard-step-indicator" class="px-3 py-1 bg-emerald-950 border border-emerald-700/60 text-emerald-300 rounded-full text-[11px] font-bold uppercase tracking-wider">Bước 1 / 4</span>
-                <h2 id="wizard-title" class="text-2xl font-extrabold text-yellow-400 mt-2 tracking-wide">Nhập Ngày Tháng Năm Sinh</h2>
-                <p id="wizard-desc" class="text-xs text-slate-300 mt-1">Cung cấp thông tin ngày sinh để đồng bộ hồ sơ học tập C500.</p>
+                <span id="wizard-step-indicator" class="px-3 py-1 bg-emerald-950 border border-emerald-700/60 text-emerald-300 rounded-full text-[11px] font-bold uppercase tracking-wider">Bước 1 / 2</span>
+                <h2 id="wizard-title" class="text-2xl font-extrabold text-yellow-400 mt-2 tracking-wide">Tùy Chỉnh Hình Thể 3D & Sắc Phục</h2>
+                <p id="wizard-desc" class="text-xs text-slate-300 mt-1">Thiết kế màu tóc, trang phục và mũ trên mô hình nhân vật đang xoay.</p>
             </div>
 
             <div id="wizard-step-content" class="space-y-4 mb-6"></div>
 
-            <div class="flex space-x-3">
-                <button id="wizard-prev-btn" onclick="prevWizardStep()" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs transition hidden">Quay lại</button>
-                <button id="wizard-next-btn" onclick="nextWizardStep()" class="flex-1 bg-gradient-to-r from-emerald-700 to-green-600 hover:from-emerald-600 hover:to-green-500 text-white font-bold py-3 rounded-xl shadow-lg transition uppercase tracking-wider text-xs flex items-center justify-center space-x-2">
-                    <span>Tiếp tục</span>
-                    <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </div>
+            <button id="wizard-next-btn" onclick="nextWizardStep()" class="w-full bg-gradient-to-r from-emerald-700 to-green-600 hover:from-emerald-600 hover:to-green-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition uppercase tracking-wider text-xs flex items-center justify-center space-x-2">
+                <span>Tiếp tục</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
         </div>
     </div>
 
-    <!-- GIAO DIỆN CHÍNH (APP & DASHBOARD) -->
+    <!-- 5. GIAO DIỆN CHÍNH (APP & DASHBOARD) -->
     <div id="main-app" class="flex-1 flex overflow-hidden hidden z-10 transition-all duration-300">
         
         <aside id="app-sidebar" class="w-72 bg-slate-900/95 dark:bg-slate-900/95 border-r border-slate-800 flex flex-col backdrop-blur-md transition-all">
@@ -282,7 +331,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT LOGIC ĐĂNG NHẬP AN TOÀN -->
+    <!-- SCRIPT LOGIC HOÀN CHỈNH -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDWeQWEjKh9zXyJhbHRZNe4MH-nEao87mU",
@@ -307,6 +356,7 @@
             dob: '',
             fullName: '',
             studentClass: '',
+            major: '',
             hairColor: 'black',
             uniformType: 'police',
             nickname: 'Sĩ quan AI'
@@ -371,11 +421,21 @@
             }
         }
 
-        // XỬ LÝ ĐĂNG NHẬP / TẠO TÀI KHOẢN AN TOÀN TUYỆT ĐỐI KHÔNG CHẶN DOMAIN
-        document.getElementById('auth-form').addEventListener('submit', async (e) => {
+        function showRegisterScreen() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('register-screen').classList.remove('hidden');
+        }
+
+        function showLoginScreen() {
+            document.getElementById('register-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+        }
+
+        // XỬ LÝ ĐĂNG NHẬP
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-password').value.trim();
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value.trim();
             try {
                 await auth.signInWithEmailAndPassword(email, password);
             } catch (err) {
@@ -383,21 +443,38 @@
             }
         });
 
-        async function registerAccount() {
-            const email = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-password').value.trim();
-            if (!email || !password) return alert('Vui lòng nhập đầy đủ email và mật khẩu!');
+        // XỬ LÝ ĐĂNG KÝ VỚI FORM RIÊNG BIỆT (TÊN, LỚP, CHUYÊN NGÀNH, NGÀY SINH, GMAIL, MẬT KHẨU)
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById('reg-fullname').value.trim();
+            const studentClass = document.getElementById('reg-class').value.trim();
+            const major = document.getElementById('reg-major').value.trim();
+            const dob = document.getElementById('reg-dob').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
+
             try {
-                await auth.createUserWithEmailAndPassword(email, password);
-                alert("Tạo tài khoản thành công! Hệ thống đang đăng nhập...");
+                const cred = await auth.createUserWithEmailAndPassword(email, password);
+                // Lưu ngay thông tin hồ sơ vào Firestore
+                await db.collection('users').doc(cred.user.uid).set({
+                    email,
+                    fullName,
+                    studentClass,
+                    major,
+                    dob,
+                    createdAt: new Date().toISOString()
+                }, { merge: true });
+
+                alert("Tạo tài khoản định danh thành công!");
             } catch (err) {
                 alert("Lỗi tạo tài khoản: " + err.message);
             }
-        }
+        });
 
         auth.onAuthStateChanged(async (user) => {
             const loadingEl = document.getElementById('app-loading');
             const loginScreen = document.getElementById('login-screen');
+            const registerScreen = document.getElementById('register-screen');
             const apiKeyScreen = document.getElementById('api-key-screen');
             const mainApp = document.getElementById('main-app');
             const aiWidget = document.getElementById('ai-widget');
@@ -408,8 +485,8 @@
             if (user) {
                 currentUser = user;
                 loginScreen.classList.add('hidden');
+                registerScreen.classList.add('hidden');
                 
-                document.getElementById('user-name').innerText = user.email.split('@')[0];
                 document.getElementById('user-email').innerText = user.email;
 
                 if (user.email === MANAGEMENT_EMAIL) {
@@ -420,11 +497,19 @@
                 }
 
                 try {
-                    await db.collection('users').doc(user.uid).set({
-                        email: user.email,
-                        lastLogin: new Date().toISOString()
-                    }, { merge: true });
+                    // Lấy thông tin user từ Firestore
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    if (userDoc.exists && userDoc.data().fullName) {
+                        aiConfig.fullName = userDoc.data().fullName;
+                        aiConfig.studentClass = userDoc.data().studentClass;
+                        aiConfig.dob = userDoc.data().dob;
+                        aiConfig.major = userDoc.data().major;
+                        document.getElementById('user-name').innerText = aiConfig.fullName;
+                    } else {
+                        document.getElementById('user-name').innerText = user.email.split('@')[0];
+                    }
 
+                    // Kiểm tra xem đã lưu Gemini API Key cá nhân chưa
                     const apiKeyDoc = await db.collection('users').doc(user.uid).collection('settings').doc('apikey').get();
                     if (!apiKeyDoc.exists || !apiKeyDoc.data().key) {
                         apiKeyScreen.classList.remove('hidden');
@@ -432,6 +517,7 @@
                     }
                     userGeminiApiKey = apiKeyDoc.data().key;
 
+                    // Kiểm tra cấu hình AI 3D còn lại (Bước 3 & 4)
                     const cfgDoc = await db.collection('users').doc(user.uid).collection('settings').doc('ai_config').get();
                     if (cfgDoc.exists && cfgDoc.data().completed) {
                         aiConfig = cfgDoc.data();
@@ -447,6 +533,7 @@
                 }
             } else {
                 loginScreen.classList.remove('hidden');
+                registerScreen.classList.add('hidden');
                 apiKeyScreen.classList.add('hidden');
                 mainApp.classList.add('hidden');
                 aiWidget.classList.add('hidden');
@@ -475,81 +562,53 @@
 
         function logout() { auth.signOut(); }
 
+        // WIZARD TÙY CHỈNH 3D & BIỆT DANH (2 BƯỚC CUỐI)
         function renderWizardStep() {
             const container = document.getElementById('wizard-step-content');
             const indicator = document.getElementById('wizard-step-indicator');
             const title = document.getElementById('wizard-title');
             const desc = document.getElementById('wizard-desc');
-            const prevBtn = document.getElementById('wizard-prev-btn');
             const nextBtn = document.getElementById('wizard-next-btn');
 
-            indicator.innerText = `Bước ${currentWizardStep} / 4`;
-            prevBtn.style.display = currentWizardStep > 1 ? 'block' : 'none';
+            indicator.innerText = `Bước ${currentWizardStep} / 2`;
 
             if (currentWizardStep === 1) {
-                title.innerText = "Nhập Ngày Tháng Năm Sinh";
-                desc.innerText = "Cung cấp thông tin ngày sinh để hoàn thiện lý lịch học tập.";
-                container.innerHTML = `
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Ngày sinh (DD/MM/YYYY)</label>
-                        <input type="text" id="wizard-dob" value="${aiConfig.dob || ''}" placeholder="Ví dụ: 15/08/2006" required
-                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-                `;
-            } else if (currentWizardStep === 2) {
-                title.innerText = "Họ Tên Đầy Đủ & Lớp Học";
-                desc.innerText = "Nhập họ và tên chính thức cùng lớp chuyên ngành tại C500.";
-                container.innerHTML = `
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Họ và tên đầy đủ</label>
-                            <input type="text" id="wizard-fullname" value="${aiConfig.fullName || ''}" placeholder="Ví dụ: Nguyễn Văn A" required
-                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Lớp học</label>
-                            <input type="text" id="wizard-class" value="${aiConfig.studentClass || ''}" placeholder="Ví dụ: B1D48 - C500" required
-                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
-                        </div>
-                    </div>
-                `;
-            } else if (currentWizardStep === 3) {
                 title.innerText = "Tùy Chỉnh Hình Thể 3D & Sắc Phục";
                 desc.innerText = "Thiết kế màu tóc, trang phục và mũ trên mô hình nhân vật đang xoay.";
                 container.innerHTML = `
                     <div class="space-y-4">
                         <div class="flex justify-center">
                             <div class="w-32 h-36 bg-slate-950 rounded-2xl border border-emerald-500/50 flex flex-col items-center justify-center relative shadow-inner model-3d-preview">
-                                <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-1" id="preview-avatar-icon">👮‍♂️</div>
+                                <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-1">👮‍♂️</div>
                                 <span class="text-[10px] text-emerald-400 font-bold" id="preview-avatar-label">Công an CAND</span>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Màu tóc</label>
-                                <select id="wizard-hair" onchange="updateModelPreview()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
-                                    <option value="black" ${aiConfig.hairColor==='black'?'selected':''}>Tóc Đen</option>
-                                    <option value="brown" ${aiConfig.hairColor==='brown'?'selected':''}>Tóc Nâu</option>
-                                    <option value="white" ${aiConfig.hairColor==='white'?'selected':''}>Tóc Trắng</option>
+                                <select id="wizard-hair" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                    <option value="black">Tóc Đen</option>
+                                    <option value="brown">Tóc Nâu</option>
+                                    <option value="white">Tóc Trắng</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Quần áo & Mũ</label>
-                                <select id="wizard-uniform" onchange="updateModelPreview()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
-                                    <option value="police" ${aiConfig.uniformType==='police'?'selected':''}>Cảnh sát (Xanh đặc trưng)</option>
-                                    <option value="security" ${aiConfig.uniformType==='security'?'selected':''}>An ninh (Nghi lễ)</option>
+                                <select id="wizard-uniform" onchange="document.getElementById('preview-avatar-label').innerText=this.value==='police'?'Cảnh sát CAND':'An ninh Nghi lễ'" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                    <option value="police">Cảnh sát (Xanh đặc trưng)</option>
+                                    <option value="security">An ninh (Nghi lễ)</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                 `;
-            } else if (currentWizardStep === 4) {
+            } else if (currentWizardStep === 2) {
                 title.innerText = "Đặt Biệt Danh Cho Trợ Lý AI";
                 desc.innerText = "Đặt một biệt danh thân thiết cho người đồng hành thông minh của bạn.";
                 container.innerHTML = `
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Biệt danh trợ lý AI</label>
-                        <input type="text" id="wizard-nickname" value="${aiConfig.nickname || ''}" placeholder="Ví dụ: Sĩ quan Bôm, Trợ lý C500..." required
+                        <input type="text" id="wizard-nickname" placeholder="Ví dụ: Sĩ quan Bôm, Trợ lý C500..." required
                             class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
                     </div>
                 `;
@@ -557,27 +616,13 @@
             }
         }
 
-        function updateModelPreview() {
-            const uniform = document.getElementById('wizard-uniform').value;
-            const label = document.getElementById('preview-avatar-label');
-            label.innerText = uniform === 'police' ? 'Cảnh sát CAND' : 'An ninh Nghi lễ';
-        }
-
         async function nextWizardStep() {
             if (currentWizardStep === 1) {
-                const dob = document.getElementById('wizard-dob').value.trim();
-                if (!dob) return alert('Vui lòng nhập ngày sinh!');
-                aiConfig.dob = dob;
-            } else if (currentWizardStep === 2) {
-                const name = document.getElementById('wizard-fullname').value.trim();
-                const cls = document.getElementById('wizard-class').value.trim();
-                if (!name || !cls) return alert('Vui lòng nhập đầy đủ họ tên và lớp học!');
-                aiConfig.fullName = name;
-                aiConfig.studentClass = cls;
-            } else if (currentWizardStep === 3) {
                 aiConfig.hairColor = document.getElementById('wizard-hair').value;
                 aiConfig.uniformType = document.getElementById('wizard-uniform').value;
-            } else if (currentWizardStep === 4) {
+                currentWizardStep++;
+                renderWizardStep();
+            } else if (currentWizardStep === 2) {
                 const nick = document.getElementById('wizard-nickname').value.trim();
                 if (!nick) return alert('Vui lòng đặt biệt danh cho AI!');
                 aiConfig.nickname = nick;
@@ -588,17 +633,6 @@
                 document.getElementById('setup-wizard-screen').classList.add('hidden');
                 alert(`🎉 Thiết lập thành công! Xin chào mừng bạn đến với trợ lý AI "${aiConfig.nickname}".`);
                 launchApp();
-                return;
-            }
-
-            currentWizardStep++;
-            renderWizardStep();
-        }
-
-        function prevWizardStep() {
-            if (currentWizardStep > 1) {
-                currentWizardStep--;
-                renderWizardStep();
             }
         }
 
@@ -726,7 +760,7 @@
         }
 
         async function callGeminiAI(messages) {
-            const systemInstruction = `Bạn là ${aiConfig.nickname}, trợ lý AI cá nhân cho sinh viên ${aiConfig.fullName} (Lớp ${aiConfig.studentClass}) tại Học viện C500. Bạn giao tiếp chuẩn mực, chuyên nghiệp và hỗ trợ tra cứu quy chế học tập, pháp luật.`;
+            const systemInstruction = `Bạn là ${aiConfig.nickname}, trợ lý AI cá nhân cho sinh viên ${aiConfig.fullName} (Lớp ${aiConfig.studentClass}, chuyên ngành ${aiConfig.major}) tại Học viện C500. Bạn giao tiếp chuẩn mực, chuyên nghiệp và hỗ trợ tra cứu quy chế học tập, pháp luật.`;
             const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${userGeminiApiKey}`;
             const contents = messages.map(m => ({ role: m.role, parts: [{ text: m.content }] }));
 

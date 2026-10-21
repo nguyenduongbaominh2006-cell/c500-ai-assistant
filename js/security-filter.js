@@ -1,5 +1,5 @@
 const sensitiveKeywords = [
-    'gián điệp', 'đặc tình', 'trinh sát', 'tội phạm', 'nghiệp vụ',
+    'gián điệp', 'mật mã', 'trinh sát', 'tội phạm', 'biện pháp nghiệp vụ',
     'biểu tình', 'tụ tập đông người', 'bạo loạn', 'gây rối trật tự',
     'biểu tình 2015', 'biểu tình 2016', 'biểu tình 2017', 'biểu tình 2018', 
     'biểu tình 2019', 'biểu tình 2020', 'biểu tình 2021', 'biểu tình 2022', 

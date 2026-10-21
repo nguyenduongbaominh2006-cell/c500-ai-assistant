@@ -38,7 +38,6 @@
             flex-direction: column;
         }
         
-        /* Hiệu ứng xoay 3D mô phỏng */
         @keyframes floatModel {
             0%, 100% { transform: translateY(0px) rotateY(0deg); }
             50% { transform: translateY(-8px) rotateY(5deg); }
@@ -54,8 +53,8 @@
         <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-green-700/15 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
     </div>
 
-    <!-- 1. MÀN HÌNH ĐĂNG NHẬP GOOGLE THẬT -->
-    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-2xl">
+    <!-- MÀN HÌNH ĐĂNG NHẬP GOOGLE -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-2xl hidden">
         <div class="bg-slate-900/90 border border-emerald-500/40 rounded-3xl max-w-md w-full p-8 shadow-2xl text-center relative overflow-hidden fade-in">
             <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
             <div class="w-20 h-20 bg-gradient-to-tr from-emerald-800 to-emerald-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30 mb-6 text-yellow-400 text-3xl border border-yellow-500/50">
@@ -70,24 +69,19 @@
         </div>
     </div>
 
-    <!-- 2. QUY TRÌNH TẠO AI CÁ NHÂN HÓA TỪNG BƯỚC (WIZARD 4 BƯỚC) -->
+    <!-- QUY TRÌNH TẠO AI CÁ NHÂN HÓA TỪNG BƯỚC (WIZARD 4 BƯỚC) -->
     <div id="setup-wizard-screen" class="fixed inset-0 z-40 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto hidden">
         <div class="bg-slate-900/95 border border-emerald-500/40 rounded-3xl max-w-lg w-full p-8 shadow-2xl relative fade-in">
             <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
             
-            <!-- TIÊU ĐỀ & TIẾN TRÌNH -->
             <div class="text-center mb-6">
                 <span id="wizard-step-indicator" class="px-3 py-1 bg-emerald-950 border border-emerald-700/60 text-emerald-300 rounded-full text-[11px] font-bold uppercase tracking-wider">Bước 1 / 4</span>
                 <h2 id="wizard-title" class="text-2xl font-extrabold text-yellow-400 mt-2 tracking-wide">Nhập Ngày Tháng Năm Sinh</h2>
                 <p id="wizard-desc" class="text-xs text-slate-300 mt-1">Cung cấp thông tin ngày sinh để đồng bộ hồ sơ học tập C500.</p>
             </div>
 
-            <!-- NỘI DUNG TỪNG BƯỚC -->
-            <div id="wizard-step-content" class="space-y-4 mb-6">
-                <!-- Sẽ được render linh hoạt bằng JavaScript -->
-            </div>
+            <div id="wizard-step-content" class="space-y-4 mb-6"></div>
 
-            <!-- NÚT ĐIỀU HƯỚNG BƯỚC -->
             <div class="flex space-x-3">
                 <button id="wizard-prev-btn" onclick="prevWizardStep()" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs transition hidden">Quay lại</button>
                 <button id="wizard-next-btn" onclick="nextWizardStep()" class="flex-1 bg-gradient-to-r from-emerald-700 to-green-600 hover:from-emerald-600 hover:to-green-500 text-white font-bold py-3 rounded-xl shadow-lg transition uppercase tracking-wider text-xs flex items-center justify-center space-x-2">
@@ -98,10 +92,9 @@
         </div>
     </div>
 
-    <!-- 3. GIAO DIỆN CHÍNH (APP & DASHBOARD) -->
+    <!-- GIAO DIỆN CHÍNH (APP & DASHBOARD) -->
     <div id="main-app" class="flex-1 flex overflow-hidden hidden z-10 transition-all duration-300">
         
-        <!-- SIDEBAR -->
         <aside id="app-sidebar" class="w-72 bg-slate-900/95 dark:bg-slate-900/95 border-r border-slate-800 flex flex-col backdrop-blur-md transition-all">
             <div class="p-4 border-b border-slate-800 flex items-center justify-between">
                 <div class="flex items-center space-x-2">
@@ -114,7 +107,6 @@
                 </div>
             </div>
 
-            <!-- TÙY CHỌN SÁNG/TỐI & MÁY TÍNH/ĐIỆN THOẠI -->
             <div class="p-3 bg-slate-950/40 border-b border-slate-800 space-y-2">
                 <div class="grid grid-cols-2 gap-2">
                     <button onclick="toggleTheme()" id="theme-toggle-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl py-2 px-2 text-[11px] font-semibold flex items-center justify-center space-x-1.5 transition">
@@ -132,7 +124,6 @@
                 <button onclick="switchView('chat')" class="w-full bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/50 text-emerald-200 rounded-xl py-2.5 px-4 text-xs font-semibold flex items-center space-x-2.5 transition shadow-sm">
                     <i class="fa-solid fa-comments text-emerald-400"></i><span>Trợ lý AI C500</span>
                 </button>
-                <!-- CHỈ HIỆN KHI ĐĂNG NHẬP BẰNG TÀI KHOẢN QUẢN LÝ -->
                 <button id="admin-nav-btn" onclick="switchView('admin')" class="w-full bg-slate-800/80 hover:bg-slate-800 border border-amber-600/50 text-amber-400 rounded-xl py-2.5 px-4 text-xs font-semibold flex items-center space-x-2.5 transition hidden shadow-sm">
                     <i class="fa-solid fa-gauge-high"></i><span>Dashboard Quản Lý Web</span>
                 </button>
@@ -180,7 +171,7 @@
             </div>
         </main>
 
-        <!-- DASHBOARD QUẢN LÝ WEB (ADMIN) -->
+        <!-- DASHBOARD QUẢN LÝ WEB -->
         <main id="admin-view" class="flex-1 flex flex-col bg-slate-950/90 p-8 overflow-y-auto custom-scrollbar hidden">
             <div class="max-w-5xl w-full mx-auto space-y-6">
                 <div>
@@ -233,7 +224,7 @@
         </main>
     </div>
 
-    <!-- 4. WIDGET NHÂN VẬT AN NINH HOẠT HỌA AI (GÓC TRÁI MÀN HÌNH - MẮT, MŨI, MÔI NHẤP NHÁY) -->
+    <!-- WIDGET NHÂN VẬT AN NINH HOẠT HỌA AI -->
     <div id="ai-widget" class="fixed bottom-4 left-4 z-40 bg-slate-900/90 border border-emerald-500/40 rounded-2xl p-3 shadow-2xl backdrop-blur-xl flex flex-col items-center w-44 select-none hidden">
         <div class="relative w-28 h-32 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex items-center justify-center shadow-inner">
             <canvas id="avatar-canvas" width="112" height="128" class="w-full h-full"></canvas>
@@ -247,7 +238,7 @@
         </div>
     </div>
 
-    <!-- 5. LOGIC JAVASCRIPT ĐẦY ĐỦ (1500+ DÒNG TÍCH HỢP) -->
+    <!-- SCRIPT XỬ LÝ TOÀN DIỆN -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDWeQWEjKh9zXyJhbHRZNe4MH-nEao87mU",
@@ -264,7 +255,6 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // TÀI KHOẢN QUẢN LÝ WEB CỐ ĐỊNH THEO YÊU CẦU
         const MANAGEMENT_EMAIL = "nguyenduongbaominh2006@gmail.com";
 
         let currentUser = null;
@@ -272,13 +262,12 @@
             dob: '',
             fullName: '',
             studentClass: '',
-            hairColor: 'black', // white, black, brown
-            uniformType: 'police', // police, security
+            hairColor: 'black',
+            uniformType: 'police',
             nickname: 'Sĩ quan AI'
         };
 
         let currentWizardStep = 1;
-
         let sensitiveKeywords = [
             'gián điệp', 'mật mã', 'trinh sát', 'tội phạm', 'biện pháp nghiệp vụ',
             'biểu tình', 'tụ tập đông người', 'bạo loạn', 'gây rối trật tự',
@@ -294,7 +283,6 @@
         let isDarkMode = true;
         let isMobileViewMode = false;
 
-        // Quản lý Giao diện Sáng / Tối
         function toggleTheme() {
             isDarkMode = !isDarkMode;
             const body = document.getElementById('body-root');
@@ -314,7 +302,6 @@
             }
         }
 
-        // Quản lý Chế độ Máy tính / Điện thoại
         function toggleDeviceMode() {
             isMobileViewMode = !isMobileViewMode;
             const appMainContainer = document.getElementById('main-app');
@@ -339,7 +326,15 @@
             }
         }
 
-        // Lắng nghe trạng thái xác thực Firebase Auth
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithRedirect(provider).catch(err => alert("Lỗi đăng nhập Google: " + err.message));
+        }
+
+        auth.getRedirectResult().catch(err => {
+            console.error("Lỗi chuyển hướng đăng nhập:", err);
+        });
+
         auth.onAuthStateChanged(async (user) => {
             const loginScreen = document.getElementById('login-screen');
             const mainApp = document.getElementById('main-app');
@@ -354,7 +349,6 @@
                 document.getElementById('user-email').innerText = user.email || '';
                 document.getElementById('user-avatar').src = user.photoURL || '';
 
-                // Kiểm tra xem tài khoản có phải quản lý web không
                 if (user.email === MANAGEMENT_EMAIL) {
                     document.getElementById('admin-nav-btn').classList.remove('hidden');
                     loadAdminDashboardData();
@@ -369,7 +363,6 @@
                         lastLogin: new Date().toISOString()
                     }, { merge: true });
 
-                    // Kiểm tra xem user đã hoàn thành 4 bước tạo AI cá nhân chưa
                     const cfgDoc = await db.collection('users').doc(user.uid).collection('settings').doc('ai_config').get();
                     if (cfgDoc.exists && cfgDoc.data().completed) {
                         aiConfig = cfgDoc.data();
@@ -391,14 +384,8 @@
             }
         });
 
-        function loginWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(err => alert("Lỗi đăng nhập Google: " + err.message));
-        }
-
         function logout() { auth.signOut(); }
 
-        // QUẢN LÝ QUY TRÌNH TẠO AI CÁ NHÂN HÓA 4 BƯỚC
         function renderWizardStep() {
             const container = document.getElementById('wizard-step-content');
             const indicator = document.getElementById('wizard-step-indicator');
@@ -482,7 +469,6 @@
         }
 
         function updateModelPreview() {
-            const hair = document.getElementById('wizard-hair').value;
             const uniform = document.getElementById('wizard-uniform').value;
             const label = document.getElementById('preview-avatar-label');
             label.innerText = uniform === 'police' ? 'Cảnh sát CAND' : 'An ninh Nghi lễ';
@@ -508,7 +494,6 @@
                 aiConfig.nickname = nick;
                 aiConfig.completed = true;
 
-                // Lưu lên Cloud Firestore
                 await db.collection('users').doc(currentUser.uid).collection('settings').doc('ai_config').set(aiConfig);
                 
                 document.getElementById('setup-wizard-screen').classList.add('hidden');
@@ -588,7 +573,6 @@
             renderHistoryList();
         }
 
-        // XỬ LÝ GỬI TIN NHẮN VÀ KIỂM DUYỆT TỪ KHÓA AN NINH CHUẨN XÁC
         document.getElementById('chat-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const inputEl = document.getElementById('user-input');
@@ -602,7 +586,6 @@
             chat.messages.push({ role: 'user', content: text });
             renderMessages();
 
-            // KIỂM DUYỆT TỰ ĐỘNG THEO YÊU CẦU: TRẢ VỀ ĐÚNG CÂU LỆNH TỪ CHỐI
             const lowerText = text.toLowerCase();
             const violation = sensitiveKeywords.find(kw => lowerText.includes(kw));
 
@@ -715,7 +698,6 @@
 
         function setAiStatus(text) { document.getElementById('ai-status-badge').innerText = text; }
 
-        // CANVAS ANIMATION (MẮT CHỚP, MŨI, MIỆNG NHẤP NHÁY THEO MÀU TÓC & TRANG PHỤC)
         let isSpeaking = false;
         let mouthOpen = 0;
         let blinkTimer = 0;
@@ -762,7 +744,6 @@
                 ctx.arc(56, 58, 2, 0, 2 * Math.PI);
                 ctx.fill();
 
-                // Màu tóc theo cấu hình cá nhân hóa (black, brown, white)
                 let hairColorHex = '#1e293b';
                 if (aiConfig.hairColor === 'white') hairColorHex = '#f8fafc';
                 if (aiConfig.hairColor === 'brown') hairColorHex = '#78350f';

@@ -3,121 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cổng Định Danh - Trợ lý AI C500</title>
+    <title>Dashboard Quản Lý Hệ Thống - C500</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
-<body class="h-full bg-slate-950 text-slate-100 flex items-center justify-center p-4">
-    <div class="bg-slate-900/90 border border-emerald-500/40 rounded-3xl max-w-md w-full p-8 shadow-2xl relative">
-        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
+<body class="h-full bg-slate-950 text-slate-100 p-8 overflow-y-auto">
+    <div class="max-w-5xl mx-auto space-y-6">
         
-        <!-- Form Đăng Nhập -->
-        <div id="login-container">
-            <div class="w-16 h-16 bg-emerald-800 rounded-2xl mx-auto flex items-center justify-center text-yellow-400 text-2xl mb-4 border border-yellow-500/40">
-                <i class="fa-solid fa-shield-halved"></i>
+        <!-- Header & Quay lại chat -->
+        <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow">
+            <div>
+                <h1 class="text-xl font-bold text-amber-400"><i class="fa-solid fa-gauge-high mr-2"></i>Dashboard Quản Lý Web Hệ Thống C500</h1>
+                <p class="text-xs text-slate-400 mt-1">Giám sát tài khoản định danh sinh viên, quản lý từ khóa kiểm duyệt & theo dõi nhật ký vi phạm vĩnh viễn.</p>
             </div>
-            <h1 class="text-xl font-bold text-center mb-1 text-white">Đăng Nhập Hệ Thống C500</h1>
-            <p class="text-xs text-slate-400 text-center mb-6">Admin dùng mật khẩu: <code class="text-amber-400 font-bold">minh2302</code></p>
-            
-            <form id="login-form" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-emerald-400 mb-1">Gmail</label>
-                    <input type="email" id="login-email" required placeholder="nhapemail@gmail.com" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-emerald-400 mb-1">Mật khẩu</label>
-                    <input type="password" id="login-password" required placeholder="••••••••" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
-                </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition">Đăng Nhập</button>
-            </form>
-            <div class="text-center mt-4">
-                <button onclick="toggleView('register')" class="text-xs text-emerald-400 hover:underline">Chưa có tài khoản? Đăng ký định danh sinh viên mới</button>
+            <a href="index.html" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow">
+                <i class="fa-solid fa-comments mr-1.5"></i> Về Khung Chat
+            </a>
+        </div>
+
+        <!-- Thống kê nhanh -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow">
+                <span class="text-xs text-slate-400 font-medium">Tổng sinh viên truy cập</span>
+                <h3 id="stat-users-count" class="text-3xl font-extrabold text-emerald-400 mt-2">0</h3>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow">
+                <span class="text-xs text-slate-400 font-medium">Từ khóa kiểm duyệt đang bật</span>
+                <h3 id="stat-keywords-count" class="text-3xl font-extrabold text-amber-400 mt-2">0</h3>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow">
+                <span class="text-xs text-slate-400 font-medium">Số lượt vi phạm bị từ chối</span>
+                <h3 id="stat-violations-count" class="text-3xl font-extrabold text-red-400 mt-2">0</h3>
             </div>
         </div>
 
-        <!-- Form Đăng Ký Riêng Biệt -->
-        <div id="register-container" class="hidden">
-            <h2 class="text-lg font-bold text-center mb-1 text-yellow-400">Đăng Ký Hồ Sơ Sĩ Quan</h2>
-            <p class="text-[11px] text-slate-400 text-center mb-4">Điền đầy đủ thông tin định danh sinh viên C500.</p>
-            
-            <form id="register-form" class="space-y-3">
-                <div>
-                    <label class="block text-[11px] font-semibold text-emerald-400 mb-1">Họ và tên đầy đủ</label>
-                    <input type="text" id="reg-fullname" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-emerald-400 mb-1">Lớp học</label>
-                        <input type="text" id="reg-class" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-emerald-400 mb-1">Chuyên ngành</label>
-                        <input type="text" id="reg-major" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold text-emerald-400 mb-1">Ngày sinh</label>
-                    <input type="text" id="reg-dob" placeholder="DD/MM/YYYY" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold text-emerald-400 mb-1">Gmail</label>
-                    <input type="email" id="reg-email" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold text-emerald-400 mb-1">Mật khẩu</label>
-                    <input type="password" id="reg-password" required minlength="6" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                </div>
-                <div class="flex space-x-2 pt-2">
-                    <button type="button" onclick="toggleView('login')" class="w-1/3 bg-slate-800 text-slate-300 py-2 rounded-xl text-xs">Quay lại</button>
-                    <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-xl text-xs font-bold">Xác Nhận Đăng Ký</button>
-                </div>
+        <!-- Quản lý từ khóa kiểm duyệt -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow">
+            <h3 class="text-sm font-bold text-emerald-400 mb-2"><i class="fa-solid fa-filter mr-1.5"></i> Thêm từ khóa nghiệp vụ hoặc chủ đề biểu tình cần chặn</h3>
+            <form id="add-keyword-form" class="flex space-x-3 mt-3">
+                <input type="text" id="new-keyword" placeholder="Ví dụ: biểu tình 2018, formosa, bạo loạn..." required
+                    class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
+                <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white px-6 py-3 rounded-xl text-xs font-bold transition shadow">Thêm từ khóa</button>
             </form>
+            <div id="keywords-list" class="flex flex-wrap gap-2 mt-4"></div>
         </div>
+
+        <!-- Nhật ký vi phạm -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow">
+            <h3 class="text-sm font-bold text-red-400 mb-3"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Nhật ký vi phạm từ khóa an ninh & biểu tình</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="border-b border-slate-800 text-slate-400 uppercase tracking-wider">
+                        <tr>
+                            <th class="py-3 px-3">Thời gian</th>
+                            <th class="py-3 px-3">Tài khoản User</th>
+                            <th class="py-3 px-3">Từ khóa phát hiện</th>
+                            <th class="py-3 px-3">Nội dung câu hỏi gốc</th>
+                        </tr>
+                    </thead>
+                    <tbody id="violation-logs-table" class="divide-y divide-slate-800/60"></tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
     <script src="js/firebase-config.js"></script>
+    <script src="js/security-filter.js"></script>
     <script>
-        function toggleView(view) {
-            if(view === 'register') {
-                document.getElementById('login-container').classList.add('hidden');
-                document.getElementById('register-container').classList.remove('hidden');
-            } else {
-                document.getElementById('register-container').classList.add('hidden');
-                document.getElementById('login-container').classList.remove('hidden');
+        auth.onAuthStateChanged(async user => {
+            if(!user || user.email !== MANAGEMENT_EMAIL) {
+                alert('Truy cập bị từ chối! Chỉ tài khoản quản lý mới có quyền truy cập.');
+                window.location.href = 'index.html';
+                return;
             }
-        }
-
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            try {
-                const email = document.getElementById('login-email').value.trim();
-                await auth.signInWithEmailAndPassword(email, document.getElementById('login-password').value);
-                if(email === MANAGEMENT_EMAIL) {
-                    window.location.href = 'admin.html';
-                } else {
-                    window.location.href = 'setup.html';
-                }
-            } catch(err) { alert("Lỗi đăng nhập: " + err.message); }
+            await loadAdminData();
         });
 
-        document.getElementById('register-form').addEventListener('submit', async (e) => {
+        async function loadAdminData() {
+            // Lấy tổng số user
+            const usersSnap = await db.collection('users').get();
+            document.getElementById('stat-users-count').innerText = usersSnap.size;
+
+            // Hiển thị từ khóa
+            document.getElementById('stat-keywords-count').innerText = sensitiveKeywords.length;
+            const kwContainer = document.getElementById('keywords-list');
+            kwContainer.innerHTML = sensitiveKeywords.map(k => `<span class="bg-amber-950/80 text-amber-300 border border-amber-700/60 px-3 py-1 rounded-full text-xs font-bold shadow-sm">${k}</span>`).join('');
+
+            // Lấy nhật ký vi phạm
+            const logTable = document.getElementById('violation-logs-table');
+            logTable.innerHTML = '';
+            const violationsSnap = await db.collection('violations').orderBy('timestamp', 'desc').limit(30).get();
+            document.getElementById('stat-violations-count').innerText = violationsSnap.size;
+
+            violationsSnap.forEach(doc => {
+                const d = doc.data();
+                logTable.innerHTML += `
+                    <tr class="hover:bg-slate-950/50 transition">
+                        <td class="py-3 px-3 text-slate-400">${new Date(d.timestamp).toLocaleString()}</td>
+                        <td class="py-3 px-3 font-semibold text-emerald-300">${d.user}</td>
+                        <td class="py-3 px-3 text-red-400 font-bold">${d.keyword}</td>
+                        <td class="py-3 px-3 text-slate-200 truncate max-w-xs">${d.query}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('add-keyword-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            try {
-                const email = document.getElementById('reg-email').value.trim();
-                const cred = await auth.createUserWithEmailAndPassword(email, document.getElementById('reg-password').value);
-                await db.collection('users').doc(cred.user.uid).set({
-                    fullName: document.getElementById('reg-fullname').value,
-                    studentClass: document.getElementById('reg-class').value,
-                    major: document.getElementById('reg-major').value,
-                    dob: document.getElementById('reg-dob').value,
-                    email: email
-                });
-                alert('Đăng ký tài khoản thành công! Chuyển đến cấu hình AI...');
-                window.location.href = 'setup.html';
-            } catch(err) { alert("Lỗi đăng ký: " + err.message); }
+            const kw = document.getElementById('new-keyword').value.trim().toLowerCase();
+            if (kw && !sensitiveKeywords.includes(kw)) {
+                sensitiveKeywords.push(kw);
+                document.getElementById('new-keyword').value = '';
+                await db.collection('settings').doc('security').set({ keywords: sensitiveKeywords });
+                loadAdminData();
+                alert('Đã thêm từ khóa kiểm duyệt thành công!');
+            }
         });
     </script>
 </body>

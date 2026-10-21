@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <title>Cấu Hình Trợ Lý AI C500</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-md w-full p-8 shadow-2xl">
+        <h2 class="text-xl font-bold text-yellow-400 mb-2 text-center">Thiết Lập Trợ Lý AI Cá Nhân</h2>
+        <p class="text-xs text-slate-400 text-center mb-6">Nhập Gemini API Key cá nhân và tùy chỉnh ngoại hình AI.</p>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-emerald-400 mb-1">Gemini API Key của bạn</label>
+                <input type="password" id="api-key-input" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white">
+                <p class="text-[10px] text-slate-400 mt-1">Lấy key miễn phí tại <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-emerald-400 underline">Google AI Studio</a>.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-emerald-400 mb-1">Màu tóc</label>
+                    <select id="hair-color" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+                        <option value="black">Đen</option>
+                        <option value="brown">Nâu</option>
+                        <option value="white">Trắng</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-emerald-400 mb-1">Sắc phục</label>
+                    <select id="uniform-type" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+                        <option value="police">Cảnh sát</option>
+                        <option value="security">An ninh</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-emerald-400 mb-1">Biệt danh AI</label>
+                <input type="text" id="ai-nickname" placeholder="Ví dụ: Sĩ quan Bôm..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white">
+            </div>
+            <button onclick="saveSetup()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition">Hoàn Tất & Vào Chat</button>
+        </div>
+    </div>
+
+    <script src="js/firebase-config.js"></script>
+    <script>
+        auth.onAuthStateChanged(user => { if(!user) window.location.href = 'login.html'; });
+
+        async function saveSetup() {
+            const apiKey = document.getElementById('api-key-input').value.trim();
+            const hair = document.getElementById('hair-color').value;
+            const uniform = document.getElementById('uniform-type').value;
+            const nickname = document.getElementById('ai-nickname').value.trim();
+
+            if(!apiKey || !nickname) return alert('Vui lòng điền đủ API Key và Biệt danh!');
+            
+            const uid = auth.currentUser.uid;
+            await db.collection('users').doc(uid).collection('settings').doc('apikey').set({ key: apiKey });
+            await db.collection('users').doc(uid).collection('settings').doc('ai_config').set({ hairColor: hair, uniformType: uniform, nickname, completed: true });
+            
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

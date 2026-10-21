@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trợ lý AI cá nhân - C500 Hub</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Marked.js cho Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(45, 212, 191, 0.3); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(45, 212, 191, 0.6); }
+    </style>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 font-sans antialiased overflow-hidden flex flex-col relative selection:bg-teal-500 selection:text-slate-950">
+
+    <!-- NỀN ĐỘNG HIỆU ỨNG SÁNG -->
+    <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-teal-600/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+    </div>
+
+    <!-- 1. MÀN HÌNH ĐĂNG NHẬP GOOGLE THẬT -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl">
+        <div class="bg-slate-900/90 border border-teal-500/30 rounded-3xl max-w-md w-full p-8 shadow-2xl text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500 via-indigo-500 to-teal-500"></div>
+            
+            <div class="w-20 h-20 bg-gradient-to-tr from-teal-600 to-teal-500 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-teal-500/30 mb-6 text-white text-3xl">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            
+            <h1 class="text-2xl font-extrabold text-white mb-2 tracking-wide">Trợ Lý AI C500</h1>
+            <p class="text-xs text-slate-400 mb-8 leading-relaxed">Hệ thống trợ lý học tập, tra cứu quy chế và pháp luật thông minh dành riêng cho sinh viên C500. Đăng nhập để tiếp tục.</p>
+            
+            <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3.5 px-6 rounded-xl shadow-lg transition duration-200 flex items-center justify-center space-x-3 group">
+                <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.21 21.32 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.19C.43 8.13 0 9.87 0 11.7s.43 3.57 1.19 5.1l4.08-2.56z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.21 2.68 1.19 6.6l4.08 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+                <span class="text-sm">Đăng nhập với tài khoản Google</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. GIAO DIỆN CHÍNH (APP & DASHBOARD) -->
+    <div id="main-app" class="flex-1 flex overflow-hidden hidden z-10">
+        <!-- Sidebar -->
+        <aside class="w-72 bg-slate-900/90 border-r border-slate-800 flex flex-col backdrop-blur-md">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-teal-600/20 border border-teal-500/40 flex items-center justify-center text-teal-400 font-bold text-xs">C5</div>
+                    <span class="font-bold text-sm text-teal-400 tracking-tight">C500 AI Platform</span>
+                </div>
+                <button onclick="logout()" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800 transition"><i class="fa-solid fa-power-off text-sm"></i></button>
+            </div>
+
+            <div class="p-3 space-y-2">
+                <button onclick="switchView('chat')" class="w-full bg-teal-950/80 hover:bg-teal-900 border border-teal-700/50 text-teal-200 rounded-xl py-2.5 px-4 text-xs font-semibold flex items-center space-x-2.5 transition shadow-sm">
+                    <i class="fa-solid fa-comments text-teal-400"></i><span>Trợ lý AI C500</span>
+                </button>
+                <!-- Nút Quản trị (Chỉ hiện khi là Admin) -->
+                <button id="admin-nav-btn" onclick="switchView('admin')" class="w-full bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-400 rounded-xl py-2.5 px-4 text-xs font-semibold flex items-center space-x-2.5 transition hidden shadow-sm">
+                    <i class="fa-solid fa-gauge-high"></i><span>Dashboard Quản Trị</span>
+                </button>
+            </div>
+
+            <div id="chat-sidebar-section" class="flex-1 flex flex-col overflow-hidden px-3">
+                <button onclick="startNewChat()" class="w-full bg-slate-800/50 hover:bg-slate-800 text-slate-300 rounded-xl py-2.5 px-3 text-xs flex items-center justify-center space-x-2 border border-slate-700/60 transition mb-3">
+                    <i class="fa-solid fa-plus text-teal-400"></i><span>Cuộc trò chuyện mới</span>
+                </button>
+                <div id="chat-history-list" class="flex-1 overflow-y-auto space-y-1.5 text-xs custom-scrollbar pr-1"></div>
+            </div>
+
+            <div class="p-3 border-t border-slate-800 flex items-center space-x-3 bg-slate-950/40">
+                <img id="user-avatar" src="" class="w-9 h-9 rounded-full border border-teal-500/50">
+                <div class="overflow-hidden flex-1">
+                    <h4 class="text-xs font-bold text-white truncate" id="user-name">User</h4>
+                    <p class="text-[10px] text-slate-400 truncate" id="user-email">email@gmail.com</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- KHUNG CHAT CHÍNH -->
+        <main id="chat-view" class="flex-1 flex flex-col bg-slate-950/60 backdrop-blur relative">
+            <header class="h-16 border-b border-slate-800/80 px-6 flex items-center justify-between bg-slate-900/40 backdrop-blur">
+                <div class="flex items-center space-x-3">
+                    <div class="w-2.5 h-2.5 rounded-full bg-teal-500 animate-pulse"></div>
+                    <h3 class="text-sm font-semibold text-slate-200">Trợ Lý AI Cá Nhân - Sinh Viên C500</h3>
+                </div>
+                <div class="text-[11px] text-teal-300 bg-teal-950/80 px-3 py-1 rounded-full border border-teal-800/60 flex items-center space-x-1.5">
+                    <i class="fa-solid fa-shield-halved text-teal-400"></i>
+                    <span>Bộ lọc an ninh & nghiệp vụ: Hoạt động</span>
+                </div>
+            </header>
+
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar"></div>
+
+            <div class="p-4 border-t border-slate-800/80 bg-slate-900/30 backdrop-blur">
+                <form id="chat-form" class="max-w-4xl mx-auto flex items-center space-x-3">
+                    <input type="text" id="user-input" placeholder="Hỏi về quy chế, pháp luật, bài tập hoặc thông tin học tập..." autocomplete="off"
+                        class="flex-1 bg-slate-900/90 border border-slate-700/80 rounded-2xl px-5 py-3.5 text-sm text-white focus:outline-none focus:border-teal-500 transition shadow-inner">
+                    <button type="submit" class="bg-teal-600 hover:bg-teal-500 text-white px-6 py-3.5 rounded-2xl font-bold transition shadow-lg shadow-teal-600/20 flex items-center justify-center">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </main>
+
+        <!-- DASHBOARD QUẢN TRỊ (ADMIN) -->
+        <main id="admin-view" class="flex-1 flex flex-col bg-slate-950/80 p-8 overflow-y-auto custom-scrollbar hidden">
+            <div class="max-w-5xl w-full mx-auto space-y-6">
+                <div>
+                    <h2 class="text-xl font-bold text-amber-400"><i class="fa-solid fa-gauge-high mr-2"></i>Dashboard Quản Trị Hệ Thống C500</h2>
+                    <p class="text-xs text-slate-400 mt-1">Giám sát người dùng, tinh chỉnh danh sách từ khóa kiểm duyệt và kiểm tra nhật ký vi phạm bảo mật.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow">
+                        <span class="text-xs text-slate-400 font-medium">Tổng số sinh viên truy cập</span>
+                        <h3 id="stat-users-count" class="text-3xl font-extrabold text-teal-400 mt-2">0</h3>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow">
+                        <span class="text-xs text-slate-400 font-medium">Từ khóa kiểm duyệt đang bật</span>
+                        <h3 id="stat-keywords-count" class="text-3xl font-extrabold text-amber-400 mt-2">0</h3>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow">
+                        <span class="text-xs text-slate-400 font-medium">Số lượt vi phạm bị chặn</span>
+                        <h3 id="stat-violations-count" class="text-3xl font-extrabold text-red-400 mt-2">0</h3>
+                    </div>
+                </div>
+
+                <!-- Thêm từ khóa chặn -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow">
+                    <h3 class="text-sm font-bold text-teal-400 mb-2"><i class="fa-solid fa-filter mr-1.5"></i> Thêm từ khóa nghiệp vụ cần kiểm duyệt mới</h3>
+                    <p class="text-xs text-slate-400 mb-4">Hệ thống sẽ tự động chặn và ghi log nếu sinh viên nhập các từ khóa này trong khung chat.</p>
+                    <form id="add-keyword-form" class="flex space-x-3">
+                        <input type="text" id="new-keyword" placeholder="Ví dụ: gián điệp, trinh sát, mật mã..." required
+                            class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-teal-500">
+                        <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white px-6 py-3 rounded-xl text-xs font-bold transition shadow">Thêm từ khóa</button>
+                    </form>
+                    <div id="keywords-list" class="flex flex-wrap gap-2 mt-4"></div>
+                </div>
+
+                <!-- Lịch sử vi phạm -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow">
+                    <h3 class="text-sm font-bold text-red-400 mb-3"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Nhật ký vi phạm từ khóa an ninh</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="border-b border-slate-800 text-slate-400 uppercase tracking-wider">
+                                <tr>
+                                    <th class="py-3 px-3">Thời gian</th>
+                                    <th class="py-3 px-3">Tài khoản User</th>
+                                    <th class="py-3 px-3">Từ khóa phát hiện</th>
+                                    <th class="py-3 px-3">Nội dung câu hỏi gốc</th>
+                                </tr>
+                            </thead>
+                            <tbody id="violation-logs-table" class="divide-y divide-slate-800/60"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 3. LOGIC HỆ THỐNG -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDWeQWEjKh9zXyJhbHRZNe4MH-nEao87mU",
+            authDomain: "c500-ai-assistant.firebaseapp.com",
+            databaseURL: "https://c500-ai-assistant-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "c500-ai-assistant",
+            storageBucket: "c500-ai-assistant.appspot.com",
+            messagingSenderId: "1073706440068",
+            appId: "1:1073706440068:web:925e386e20f2acc2aab9d1",
+            measurementId: "G-D4V2Y9Y760"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Thay email của bạn vào đây để mở khóa Dashboard Quản Trị
+        const adminEmails = ["admin@gmail.com", "your-google-email@gmail.com"];
+
+        let currentUser = null;
+        let sensitiveKeywords = ['gián điệp', 'mật mã', 'trinh sát', 'tội phạm'];
+        let chats = [];
+        let currentChatId = null;
+
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                document.getElementById('user-name').innerText = user.displayName;
+                document.getElementById('user-email').innerText = user.email;
+                document.getElementById('user-avatar').src = user.photoURL;
+
+                await db.collection('users').doc(user.uid).set({
+                    name: user.displayName,
+                    email: user.email,
+                    lastLogin: new Date().toISOString()
+                }, { merge: true });
+
+                if (adminEmails.includes(user.email)) {
+                    document.getElementById('admin-nav-btn').classList.remove('hidden');
+                    loadAdminDashboardData();
+                }
+
+                await loadKeywords();
+                await loadUserChats();
+            } else {
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('main-app').classList.add('hidden');
+            }
+        });
+
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(err => alert("Lỗi đăng nhập Google: " + err.message));
+        }
+
+        function logout() { auth.signOut(); }
+
+        function switchView(viewName) {
+            if (viewName === 'chat') {
+                document.getElementById('chat-view').classList.remove('hidden');
+                document.getElementById('admin-view').classList.add('hidden');
+                document.getElementById('chat-sidebar-section').classList.remove('hidden');
+            } else {
+                document.getElementById('chat-view').classList.add('hidden');
+                document.getElementById('admin-view').classList.remove('hidden');
+                document.getElementById('chat-sidebar-section').classList.add('hidden');
+                loadAdminDashboardData();
+            }
+        }
+
+        async function loadKeywords() {
+            try {
+                const doc = await db.collection('settings').doc('security').get();
+                if (doc.exists && doc.data().keywords) sensitiveKeywords = doc.data().keywords;
+            } catch (e) {}
+        }
+
+        async function loadUserChats() {
+            const snapshot = await db.collection('users').doc(currentUser.uid).collection('chats').orderBy('updatedAt', 'desc').get();
+            chats = [];
+            snapshot.forEach(doc => chats.push({ id: doc.id, ...doc.data() }));
+
+            if (chats.length === 0) {
+                await startNewChat();
+            } else {
+                currentChatId = chats[0].id;
+                renderMessages();
+                renderHistoryList();
+            }
+        }
+
+        async function startNewChat() {
+            const newChat = { title: 'Đoạn chat mới', messages: [], updatedAt: new Date().toISOString() };
+            const docRef = await db.collection('users').doc(currentUser.uid).collection('chats').add(newChat);
+            chats.unshift({ id: docRef.id, ...newChat });
+            currentChatId = docRef.id;
+            renderMessages();
+            renderHistoryList();
+        }
+
+        document.getElementById('chat-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const inputEl = document.getElementById('user-input');
+            const text = inputEl.value.trim();
+            if (!text) return;
+            inputEl.value = '';
+
+            const chat = chats.find(c => c.id === currentChatId);
+            if (chat.messages.length === 0) chat.title = text.substring(0, 22) + '...';
+
+            chat.messages.push({ role: 'user', content: text });
+            renderMessages();
+
+            // Kiểm duyệt tự động từ khóa nhạy cảm
+            const lowerText = text.toLowerCase();
+            const violation = sensitiveKeywords.find(kw => lowerText.includes(kw));
+
+            if (violation) {
+                await db.collection('violations').add({
+                    user: currentUser.email,
+                    keyword: violation,
+                    query: text,
+                    timestamp: new Date().toISOString()
+                });
+
+                chat.messages.push({
+                    role: 'model',
+                    content: `⚠️ **[HỆ THỐNG KIỂM DUYỆT C500]**: Nội dung câu hỏi chứa từ khóa nhạy cảm "*${violation}*". Hệ thống tự động từ chối xử lý và đã ghi nhận sự việc vào nhật ký bảo mật.`
+                });
+                await saveCurrentChatToCloud(chat);
+                renderMessages();
+                return;
+            }
+
+            chat.messages.push({ role: 'model', content: 'Đang trả lời...' });
+            renderMessages();
+
+            try {
+                const aiResponse = await callGeminiAI(chat.messages.slice(0, -1));
+                chat.messages[chat.messages.length - 1] = { role: 'model', content: aiResponse };
+            } catch (err) {
+                chat.messages[chat.messages.length - 1] = { role: 'model', content: '❌ Lỗi kết nối AI API.' };
+            }
+
+            await saveCurrentChatToCloud(chat);
+            renderMessages();
+            renderHistoryList();
+        });
+
+        async function saveCurrentChatToCloud(chat) {
+            chat.updatedAt = new Date().toISOString();
+            await db.collection('users').doc(currentUser.uid).collection('chats').doc(chat.id).set({
+                title: chat.title,
+                messages: chat.messages,
+                updatedAt: chat.updatedAt
+            });
+        }
+
+        async function callGeminiAI(messages) {
+            const apiKey = "AIzaSyDWeQWEjKh9zXyJhbHRZNe4MH-nEao87mU";
+            const systemInstruction = "Bạn là Trợ lý AI cá nhân chuyên nghiệp, lịch sự, hỗ trợ sinh viên C500 tra cứu quy chế học tập, pháp luật và giải đáp các bài tập pháp luật.";
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const contents = messages.map(m => ({ role: m.role, parts: [{ text: m.content }] }));
+
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ system_instruction: { parts: [{ text: systemInstruction }] }, contents })
+            });
+            const data = await res.json();
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('chat-messages');
+            const chat = chats.find(c => c.id === currentChatId);
+            if (!chat) return;
+            container.innerHTML = '';
+
+            if (chat.messages.length === 0) {
+                container.innerHTML = `
+                    <div class="flex items-start space-x-4 max-w-2xl mx-auto mt-10">
+                        <div class="w-10 h-10 rounded-2xl bg-teal-600 flex items-center justify-center text-white font-bold shadow-lg"><i class="fa-solid fa-graduation-cap"></i></div>
+                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-sm text-slate-200 shadow-xl leading-relaxed">
+                            <p class="font-bold text-teal-400 mb-1">Xin chào đồng chí / sinh viên C500!</p>
+                            <p>Tôi là Trợ lý AI cá nhân của bạn. Hãy đặt câu hỏi về quy chế học tập, văn bản pháp luật hoặc các bài tập chuyên ngành nhé.</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            chat.messages.forEach(m => {
+                const isUser = m.role === 'user';
+                container.innerHTML += `
+                    <div class="flex items-start space-x-3 max-w-3xl ${isUser ? 'ml-auto flex-row-reverse space-x-reverse' : ''}">
+                        <div class="w-9 h-9 rounded-2xl ${isUser ? 'bg-slate-700' : 'bg-teal-700'} flex items-center justify-center text-xs font-bold text-white shadow">${isUser ? 'U' : 'AI'}</div>
+                        <div class="${isUser ? 'bg-teal-950/90 text-teal-100 border-teal-800/60' : 'bg-slate-900 text-slate-200 border-slate-800'} border rounded-2xl p-4 text-sm leading-relaxed shadow-md">
+                            ${isUser ? escapeHtml(m.content) : marked.parse(m.content)}
+                        </div>
+                    </div>
+                `;
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        function renderHistoryList() {
+            const list = document.getElementById('chat-history-list');
+            list.innerHTML = '';
+            chats.forEach(c => {
+                list.innerHTML += `<div onclick="currentChatId='${c.id}'; renderMessages();" class="p-2.5 rounded-xl cursor-pointer truncate transition ${c.id===currentChatId?'bg-teal-950 text-teal-300 font-semibold border border-teal-800/50':'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'}"><i class="fa-regular fa-comment mr-2"></i>${c.title}</div>`;
+            });
+        }
+
+        async function loadAdminDashboardData() {
+            const usersSnap = await db.collection('users').get();
+            document.getElementById('stat-users-count').innerText = usersSnap.size;
+            document.getElementById('stat-keywords-count').innerText = sensitiveKeywords.length;
+
+            const kwContainer = document.getElementById('keywords-list');
+            kwContainer.innerHTML = sensitiveKeywords.map(k => `<span class="bg-amber-950/80 text-amber-300 border border-amber-700/60 px-3 py-1 rounded-full text-xs font-bold shadow-sm">${k}</span>`).join('');
+
+            const logTable = document.getElementById('violation-logs-table');
+            logTable.innerHTML = '';
+            const violationsSnap = await db.collection('violations').orderBy('timestamp', 'desc').limit(15).get();
+            document.getElementById('stat-violations-count').innerText = violationsSnap.size;
+
+            violationsSnap.forEach(doc => {
+                const d = doc.data();
+                logTable.innerHTML += `
+                    <tr class="hover:bg-slate-900/50 transition">
+                        <td class="py-3 px-3 text-slate-400">${new Date(d.timestamp).toLocaleString()}</td>
+                        <td class="py-3 px-3 font-semibold text-teal-300">${d.user}</td>
+                        <td class="py-3 px-3 text-red-400 font-bold">${d.keyword}</td>
+                        <td class="py-3 px-3 truncate max-w-xs">${d.query}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('add-keyword-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const kw = document.getElementById('new-keyword').value.trim();
+            if (kw && !sensitiveKeywords.includes(kw)) {
+                sensitiveKeywords.push(kw);
+                document.getElementById('new-keyword').value = '';
+                await db.collection('settings').doc('security').set({ keywords: sensitiveKeywords });
+                loadAdminDashboardData();
+                alert('Đã thêm từ khóa kiểm duyệt thành công!');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -14,7 +14,6 @@ const db = firebase.firestore();
 const MANAGEMENT_EMAIL = "nguyenduongbaominh2006@gmail.com";
 const ADMIN_DEFAULT_PASSWORD = "minh2302";
 
-// Tự động khởi tạo tài khoản Admin với mật khẩu minh2302 nếu chưa có trên hệ thống
 auth.fetchSignInMethodsForEmail(MANAGEMENT_EMAIL).then(async (methods) => {
     if (methods.length === 0) {
         try {
@@ -26,7 +25,6 @@ auth.fetchSignInMethodsForEmail(MANAGEMENT_EMAIL).then(async (methods) => {
                 dob: "01/01/2006",
                 email: MANAGEMENT_EMAIL
             });
-            console.log("Đã khởi tạo sẵn tài khoản Admin thành công!");
-        } catch(e) { console.error(e); }
+        } catch(e) {}
     }
-}).catch(err => console.log(err));
+}).catch(err => {});

@@ -1,0 +1,19 @@
+
+{
+  "name": "c500-ai-functions",
+  "private": true,
+  "description": "Server-side OpenAI backend for C500 AI Assistant",
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0",
+    "firebase-functions": "^6.0.0",
+    "openai": "^5.0.0"
+  }
+}

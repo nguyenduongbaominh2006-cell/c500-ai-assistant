@@ -1,64 +1,74 @@
 
-/*
- * Frontend adapter for Firebase Callable Cloud Function.
- * Include firebase-functions-compat.js before this file.
- *
- * Usage:
- *   const result = await requestOpenAI(messages);
- *   const answerText = result.text;
- */
 (function () {
   "use strict";
 
-  window.requestOpenAI = async function requestOpenAI(chat) {
-    if (!window.firebase || typeof firebase.functions !== "function") {
-      throw new Error(
-        "Firebase Functions chưa được tải. Kiểm tra firebase-functions-compat.js."
-      );
+  const WORKER_URL =
+    "https://c500-ai-api.nguyenduongbaominh2006.workers.dev/";
+
+  window.requestOpenAI = async function requestOpenAI(messages) {
+    if (!window.firebase || typeof firebase.auth !== "function") {
+      throw new Error("Firebase chưa được tải. Hãy kiểm tra cấu hình đăng nhập.");
     }
 
-    let functions;
+    const user = firebase.auth().currentUser;
 
-    try {
-      functions = firebase.app().functions("asia-southeast1");
-    } catch (error) {
-      throw new Error(
-        "Không khởi tạo được Firebase Functions ở vùng asia-southeast1: " +
-        (error.message || error)
-      );
+    if (!user) {
+      throw new Error("Bạn cần đăng nhập lại trước khi sử dụng trợ lý AI.");
     }
 
-    const callable = functions.httpsCallable("chatWithAI", {
-      timeout: 120000
+    if (!Array.isArray(messages) || messages.length === 0) {
+      throw new Error("Không có tin nhắn để gửi.");
+    }
+
+    const idToken = await user.getIdToken();
+
+    const safeMessages = messages
+      .filter(message =>
+        message &&
+        ["user", "assistant", "model"].includes(message.role) &&
+        typeof message.content === "string" &&
+        !message.error
+      )
+      .map(message => ({
+        role: message.role,
+        content: message.content
+      }));
+
+    const response = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + idToken
+      },
+      body: JSON.stringify({
+        messages: safeMessages
+      })
     });
 
-    let result;
+    let data;
 
     try {
-      result = await callable({ messages: chat });
-    } catch (error) {
-      const code = error && error.code ? error.code : "unknown";
-      const message = error && error.message
-        ? error.message
-        : "Không rõ nguyên nhân";
+      data = await response.json();
+    } catch (_) {
+      throw new Error("Máy chủ AI trả về phản hồi không hợp lệ.");
+    }
 
-      const wrapped = new Error(
-        String(code).includes("not-found")
-          ? "Không tìm thấy Cloud Function chatWithAI ở vùng asia-southeast1. " +
-            "Hãy kiểm tra firebase functions:list và deploy Functions. "
-          : "Firebase Function lỗi (" + code + "): " + message
+    if (!response.ok) {
+      const error = new Error(
+        data && data.error
+          ? data.error
+          : "Yêu cầu AI thất bại (HTTP " + response.status + ")."
       );
-
-      wrapped.code = code;
-      throw wrapped;
+      error.code = response.status === 429
+        ? "resource-exhausted"
+        : "worker-error";
+      throw error;
     }
 
-    const data = result && result.data ? result.data : {};
-
-    if (!data.text || typeof data.text !== "string") {
-      throw new Error("Máy chủ AI trả về dữ liệu không hợp lệ.");
+    if (!data || typeof data.text !== "string" || !data.text.trim()) {
+      throw new Error("Máy chủ AI chưa trả về nội dung hợp lệ.");
     }
 
-    return data;
+    return { text: data.text };
   };
 })();

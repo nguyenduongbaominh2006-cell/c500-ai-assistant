@@ -1,124 +1,822 @@
+
 <!DOCTYPE html>
 <html lang="vi" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cổng Định Danh - Trợ lý AI C500</title>
+    <meta name="theme-color" content="#020617">
+    <meta name="description" content="Cổng đăng nhập và đăng ký tài khoản Trợ lý AI C500">
+    <title>Cổng Định Danh | Trợ lý AI C500</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            min-height: 100%;
+            background:
+                radial-gradient(ellipse at top, rgba(6, 95, 70, .22), transparent 55%),
+                #020617;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, .94);
+            border: 1px solid rgba(16, 185, 129, .28);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, .42);
+            backdrop-filter: blur(16px);
+        }
+
+        .field {
+            width: 100%;
+            background: #020617;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 12px 14px;
+            color: #f8fafc;
+            font-size: 14px;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .field:focus {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, .12);
+        }
+
+        .field::placeholder { color: #64748b; }
+
+        .primary-button {
+            background: #059669;
+            transition: background .2s, transform .2s;
+        }
+
+        .primary-button:hover { background: #10b981; }
+        .primary-button:active { transform: scale(.99); }
+
+        .primary-button:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        .hidden-view { display: none !important; }
+
+        .status-message {
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.55;
+            overflow-wrap: anywhere;
+        }
+
+        .status-error {
+            color: #fecaca;
+            background: rgba(127, 29, 29, .28);
+            border: 1px solid rgba(248, 113, 113, .35);
+        }
+
+        .status-success {
+            color: #bbf7d0;
+            background: rgba(6, 78, 59, .32);
+            border: 1px solid rgba(52, 211, 153, .35);
+        }
+
+        .status-info {
+            color: #bae6fd;
+            background: rgba(12, 74, 110, .28);
+            border: 1px solid rgba(56, 189, 248, .3);
+        }
+
+        .gold-line {
+            background: linear-gradient(
+                90deg,
+                #047857,
+                #facc15,
+                #047857
+            );
+        }
+
+        button:focus-visible,
+        a:focus-visible {
+            outline: 2px solid #facc15;
+            outline-offset: 3px;
+        }
+    </style>
 </head>
-<body class="h-full bg-slate-950 text-slate-100 flex items-center justify-center p-4">
-    <div class="bg-slate-900/90 border border-emerald-500/40 rounded-3xl max-w-md w-full p-8 shadow-2xl relative">
-        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
-        
-        <!-- Form Đăng Nhập -->
-        <div id="login-container">
-            <div class="w-16 h-16 bg-emerald-800 rounded-2xl mx-auto flex items-center justify-center text-yellow-400 text-2xl mb-4 border border-yellow-500/40">
-                <i class="fa-solid fa-shield-halved"></i>
-            </div>
-            <h1 class="text-xl font-bold text-center mb-1 text-white">Đăng Nhập Hệ Thống C500</h1>
-            <p class="text-xs text-slate-400 text-center mb-6">Admin dùng mật khẩu: <code class="text-amber-400 font-bold">minh2302</code></p>
-            
-            <form id="login-form" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-emerald-400 mb-1">Gmail</label>
-                    <input type="email" id="login-email" required placeholder="nhapemail@gmail.com" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-emerald-400 mb-1">Mật khẩu</label>
-                    <input type="password" id="login-password" required placeholder="••••••••" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
-                </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition">Đăng Nhập</button>
-            </form>
-            <div class="text-center mt-4">
-                <button onclick="toggleView('register')" class="text-xs text-emerald-400 hover:underline">Chưa có tài khoản? Đăng ký định danh sinh viên mới</button>
-            </div>
-        </div>
 
-        <!-- Form Đăng Ký Riêng Biệt -->
-        <div id="register-container" class="hidden">
-            <h2 class="text-lg font-bold text-center mb-1 text-yellow-400">Đăng Ký Hồ Sơ Sĩ Quan</h2>
-            <p class="text-[11px] text-slate-400 text-center mb-4">Điền đầy đủ thông tin định danh sinh viên C500.</p>
-            
-            <form id="register-form" class="space-y-3">
-                <div>
-                    <label class="block text-[11px] font-semibold text-emerald-400 mb-1">Họ và tên đầy đủ</label>
-                    <input type="text" id="reg-fullname" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-emerald-400 mb-1">Lớp học</label>
-                        <input type="text" id="reg-class" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-emerald-400 mb-1">Chuyên ngành</label>
-                        <input type="text" id="reg-major" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold text-emerald-400 mb-1">Ngày sinh</label>
-                    <input type="text" id="reg-dob" placeholder="DD/MM/YYYY" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold text-emerald-400 mb-1">Gmail</label>
-                    <input type="email" id="reg-email" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold text-emerald-400 mb-1">Mật khẩu</label>
-                    <input type="password" id="reg-password" required minlength="6" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                </div>
-                <div class="flex space-x-2 pt-2">
-                    <button type="button" onclick="toggleView('login')" class="w-1/3 bg-slate-800 text-slate-300 py-2 rounded-xl text-xs">Quay lại</button>
-                    <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-xl text-xs font-bold">Xác Nhận Đăng Ký</button>
-                </div>
-            </form>
-        </div>
-    </div>
+<body class="min-h-screen flex items-center justify-center px-4 py-8 text-slate-100">
 
+    <main class="w-full max-w-md">
+        <section class="glass-card relative overflow-hidden rounded-3xl p-6 sm:p-8">
+
+            <div class="absolute inset-x-0 top-0 h-1.5 gold-line"></div>
+
+            <!-- Thương hiệu -->
+            <header class="mb-7 text-center">
+                <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center
+                            rounded-2xl border border-yellow-500/40 bg-emerald-900/70
+                            text-2xl text-yellow-400">
+                    <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                </div>
+
+                <p class="mb-1 text-[10px] font-bold uppercase tracking-[.3em] text-emerald-400">
+                    C500 • AI Assistant
+                </p>
+
+                <h1 class="text-xl font-extrabold tracking-wide text-white sm:text-2xl">
+                    CỔNG ĐỊNH DANH
+                </h1>
+
+                <p class="mt-2 text-xs leading-5 text-slate-400">
+                    Đăng nhập hoặc đăng ký tài khoản để sử dụng hệ thống.
+                </p>
+            </header>
+
+            <!-- Thông báo dùng chung -->
+            <div id="status-message"
+                 class="status-message mb-4 hidden-view"
+                 role="status"
+                 aria-live="polite"></div>
+
+            <!-- ================= ĐĂNG NHẬP ================= -->
+            <section id="login-container">
+                <h2 class="mb-5 text-sm font-bold text-emerald-300">
+                    <i class="fa-solid fa-right-to-bracket mr-2" aria-hidden="true"></i>
+                    ĐĂNG NHẬP HỆ THỐNG
+                </h2>
+
+                <form id="login-form" class="space-y-4" novalidate>
+                    <div>
+                        <label for="login-email"
+                               class="mb-2 block text-xs font-semibold text-slate-300">
+                            Địa chỉ Gmail
+                        </label>
+
+                        <div class="relative">
+                            <i class="fa-regular fa-envelope absolute left-4 top-1/2
+                                      -translate-y-1/2 text-slate-500"
+                               aria-hidden="true"></i>
+
+                            <input
+                                type="email"
+                                id="login-email"
+                                name="email"
+                                class="field pl-11"
+                                placeholder="ban@gmail.com"
+                                autocomplete="username"
+                                maxlength="254"
+                                required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="login-password"
+                               class="mb-2 block text-xs font-semibold text-slate-300">
+                            Mật khẩu
+                        </label>
+
+                        <div class="relative">
+                            <i class="fa-solid fa-lock absolute left-4 top-1/2
+                                      -translate-y-1/2 text-slate-500"
+                               aria-hidden="true"></i>
+
+                            <input
+                                type="password"
+                                id="login-password"
+                                name="password"
+                                class="field pl-11 pr-12"
+                                placeholder="Nhập mật khẩu"
+                                autocomplete="current-password"
+                                required>
+
+                            <button
+                                type="button"
+                                id="toggle-login-password"
+                                class="absolute right-3 top-1/2 -translate-y-1/2
+                                       px-2 py-1 text-slate-400 hover:text-white"
+                                aria-label="Hiện hoặc ẩn mật khẩu"
+                                aria-pressed="false">
+                                <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="button"
+                                id="forgot-password-button"
+                                class="text-xs text-emerald-400 hover:text-emerald-300 hover:underline">
+                            Quên mật khẩu?
+                        </button>
+                    </div>
+
+                    <button
+                        type="submit"
+                        id="login-submit"
+                        class="primary-button flex w-full items-center justify-center
+                               gap-2 rounded-xl py-3.5 text-xs font-extrabold
+                               uppercase tracking-widest text-white">
+                        <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+                        <span>Đăng nhập</span>
+                    </button>
+                </form>
+
+                <div class="my-6 flex items-center gap-3">
+                    <div class="h-px flex-1 bg-slate-800"></div>
+                    <span class="text-[10px] uppercase tracking-wider text-slate-500">
+                        Tài khoản mới
+                    </span>
+                    <div class="h-px flex-1 bg-slate-800"></div>
+                </div>
+
+                <button type="button"
+                        id="show-register"
+                        class="w-full rounded-xl border border-emerald-700/60
+                               bg-emerald-950/30 px-4 py-3 text-xs font-semibold
+                               text-emerald-300 transition hover:bg-emerald-900/40">
+                    <i class="fa-solid fa-user-plus mr-2" aria-hidden="true"></i>
+                    Đăng ký định danh sinh viên
+                </button>
+            </section>
+
+            <!-- ================= ĐĂNG KÝ ================= -->
+            <section id="register-container" class="hidden-view">
+                <h2 class="mb-1 text-center text-lg font-extrabold text-yellow-400">
+                    ĐĂNG KÝ TÀI KHOẢN
+                </h2>
+
+                <p class="mb-5 text-center text-xs leading-5 text-slate-400">
+                    Nhập chính xác thông tin hồ sơ của bạn.
+                </p>
+
+                <form id="register-form" class="space-y-3" novalidate>
+                    <div>
+                        <label for="reg-fullname"
+                               class="mb-1.5 block text-xs font-semibold text-emerald-300">
+                            Họ và tên đầy đủ
+                        </label>
+
+                        <input
+                            type="text"
+                            id="reg-fullname"
+                            class="field"
+                            placeholder="Nguyễn Văn A"
+                            autocomplete="name"
+                            maxlength="100"
+                            required>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div>
+                            <label for="reg-class"
+                                   class="mb-1.5 block text-xs font-semibold text-emerald-300">
+                                Lớp học
+                            </label>
+
+                            <input
+                                type="text"
+                                id="reg-class"
+                                class="field"
+                                placeholder="Ví dụ: D..."
+                                maxlength="80"
+                                required>
+                        </div>
+
+                        <div>
+                            <label for="reg-major"
+                                   class="mb-1.5 block text-xs font-semibold text-emerald-300">
+                                Chuyên ngành
+                            </label>
+
+                            <input
+                                type="text"
+                                id="reg-major"
+                                class="field"
+                                placeholder="Chuyên ngành"
+                                maxlength="120"
+                                required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="reg-dob"
+                               class="mb-1.5 block text-xs font-semibold text-emerald-300">
+                            Ngày sinh
+                        </label>
+
+                        <input
+                            type="text"
+                            id="reg-dob"
+                            class="field"
+                            placeholder="DD/MM/YYYY"
+                            inputmode="numeric"
+                            autocomplete="bday"
+                            maxlength="10"
+                            pattern="(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/[0-9]{4}"
+                            aria-describedby="dob-help"
+                            required>
+
+                        <p id="dob-help" class="mt-1.5 text-[10px] text-slate-500">
+                            Ví dụ: 05/09/2006
+                        </p>
+                    </div>
+
+                    <div>
+                        <label for="reg-email"
+                               class="mb-1.5 block text-xs font-semibold text-emerald-300">
+                            Địa chỉ Gmail
+                        </label>
+
+                        <input
+                            type="email"
+                            id="reg-email"
+                            class="field"
+                            placeholder="ban@gmail.com"
+                            autocomplete="email"
+                            maxlength="254"
+                            required>
+                    </div>
+
+                    <div>
+                        <label for="reg-password"
+                               class="mb-1.5 block text-xs font-semibold text-emerald-300">
+                            Tạo mật khẩu
+                        </label>
+
+                        <div class="relative">
+                            <input
+                                type="password"
+                                id="reg-password"
+                                class="field pr-12"
+                                placeholder="Tối thiểu 8 ký tự"
+                                autocomplete="new-password"
+                                minlength="8"
+                                maxlength="128"
+                                aria-describedby="password-help"
+                                required>
+
+                            <button
+                                type="button"
+                                id="toggle-register-password"
+                                class="absolute right-3 top-1/2 -translate-y-1/2
+                                       px-2 py-1 text-slate-400 hover:text-white"
+                                aria-label="Hiện hoặc ẩn mật khẩu"
+                                aria-pressed="false">
+                                <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                            </button>
+                        </div>
+
+                        <p id="password-help" class="mt-1.5 text-[10px] text-slate-500">
+                            Nên dùng mật khẩu riêng, khó đoán và không dùng lại mật khẩu của tài khoản khác.
+                        </p>
+                    </div>
+
+                    <div class="flex gap-2 pt-3">
+                        <button
+                            type="button"
+                            id="back-to-login"
+                            class="w-1/3 rounded-xl border border-slate-700
+                                   bg-slate-800 px-2 py-3 text-xs text-slate-300
+                                   transition hover:bg-slate-700">
+                            Quay lại
+                        </button>
+
+                        <button
+                            type="submit"
+                            id="register-submit"
+                            class="primary-button flex flex-1 items-center
+                                   justify-center gap-2 rounded-xl py-3 text-xs
+                                   font-extrabold text-white">
+                            <i class="fa-solid fa-user-check" aria-hidden="true"></i>
+                            <span>Tạo tài khoản</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- ================= QUÊN MẬT KHẨU ================= -->
+            <section id="reset-container" class="hidden-view">
+                <h2 class="mb-2 text-lg font-extrabold text-yellow-400">
+                    KHÔI PHỤC MẬT KHẨU
+                </h2>
+
+                <p class="mb-5 text-xs leading-5 text-slate-400">
+                    Nhập email đã đăng ký. Nếu tài khoản đủ điều kiện nhận thư,
+                    Firebase sẽ gửi hướng dẫn đặt lại mật khẩu.
+                </p>
+
+                <form id="reset-form" class="space-y-4" novalidate>
+                    <div>
+                        <label for="reset-email"
+                               class="mb-2 block text-xs font-semibold text-emerald-300">
+                            Địa chỉ email
+                        </label>
+
+                        <input
+                            type="email"
+                            id="reset-email"
+                            class="field"
+                            autocomplete="email"
+                            maxlength="254"
+                            placeholder="ban@gmail.com"
+                            required>
+                    </div>
+
+                    <button
+                        type="submit"
+                        id="reset-submit"
+                        class="primary-button flex w-full items-center
+                               justify-center gap-2 rounded-xl py-3.5
+                               text-xs font-extrabold text-white">
+                        <i class="fa-regular fa-paper-plane" aria-hidden="true"></i>
+                        <span>Gửi hướng dẫn đặt lại</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        id="back-from-reset"
+                        class="w-full rounded-xl border border-slate-700
+                               bg-slate-800 py-3 text-xs text-slate-300
+                               hover:bg-slate-700">
+                        Quay lại đăng nhập
+                    </button>
+                </form>
+            </section>
+
+            <footer class="mt-7 border-t border-slate-800 pt-4 text-center">
+                <p class="text-[10px] leading-5 text-slate-500">
+                    C500 AI Assistant · Cổng xác thực tài khoản
+                </p>
+                <p class="mt-1 text-[10px] text-slate-600">
+                    Không chia sẻ mật khẩu hoặc khóa API cho người khác.
+                </p>
+            </footer>
+        </section>
+    </main>
+
+    <!-- Cấu hình Firebase hiện có của dự án -->
     <script src="js/firebase-config.js"></script>
+
     <script>
-        function toggleView(view) {
-            if(view === 'register') {
-                document.getElementById('login-container').classList.add('hidden');
-                document.getElementById('register-container').classList.remove('hidden');
+    (() => {
+        "use strict";
+
+        const $ = (id) => document.getElementById(id);
+
+        const views = {
+            login: $("login-container"),
+            register: $("register-container"),
+            reset: $("reset-container")
+        };
+
+        const statusBox = $("status-message");
+
+        let busy = false;
+        let authReady = false;
+        let redirecting = false;
+
+        function showStatus(message, type = "info") {
+            statusBox.textContent = message;
+            statusBox.className = "status-message mb-4";
+
+            if (type === "error") {
+                statusBox.classList.add("status-error");
+            } else if (type === "success") {
+                statusBox.classList.add("status-success");
             } else {
-                document.getElementById('register-container').classList.add('hidden');
-                document.getElementById('login-container').classList.remove('hidden');
+                statusBox.classList.add("status-info");
             }
         }
 
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            try {
-                const email = document.getElementById('login-email').value.trim();
-                await auth.signInWithEmailAndPassword(email, document.getElementById('login-password').value);
-                if(email === MANAGEMENT_EMAIL) {
-                    window.location.href = 'admin.html';
-                } else {
-                    window.location.href = 'setup.html';
-                }
-            } catch(err) { alert("Lỗi đăng nhập: " + err.message); }
+        function clearStatus() {
+            statusBox.textContent = "";
+            statusBox.className = "status-message mb-4 hidden-view";
+        }
+
+        function showView(name) {
+            Object.entries(views).forEach(([key, element]) => {
+                element.classList.toggle("hidden-view", key !== name);
+            });
+
+            clearStatus();
+
+            const firstInput = views[name].querySelector("input");
+            if (firstInput) firstInput.focus();
+        }
+
+        function setBusy(button, isBusy, busyText, normalText) {
+            button.disabled = isBusy;
+            const span = button.querySelector("span");
+
+            if (span) {
+                span.textContent = isBusy ? busyText : normalText;
+            }
+        }
+
+        function getFriendlyError(error, operation) {
+            const code = error && error.code ? error.code : "";
+
+            const messages = {
+                "auth/invalid-email": "Địa chỉ email không đúng định dạng.",
+                "auth/user-disabled": "Tài khoản này hiện đã bị vô hiệu hóa.",
+                "auth/invalid-credential": "Email hoặc mật khẩu không chính xác.",
+                "auth/wrong-password": "Email hoặc mật khẩu không chính xác.",
+                "auth/user-not-found": "Không thể xác thực tài khoản với thông tin đã nhập.",
+                "auth/email-already-in-use": "Email này đã được đăng ký. Hãy đăng nhập hoặc khôi phục mật khẩu.",
+                "auth/weak-password": "Mật khẩu chưa đủ mạnh. Hãy sử dụng ít nhất 8 ký tự.",
+                "auth/too-many-requests": "Có quá nhiều lần thử. Hãy chờ một lúc rồi thử lại.",
+                "auth/network-request-failed": "Không thể kết nối mạng. Hãy kiểm tra kết nối rồi thử lại.",
+                "auth/operation-not-allowed": "Phương thức xác thực này chưa được bật trong Firebase.",
+                "auth/requires-recent-login": "Bạn cần đăng nhập lại trước khi thực hiện thao tác này.",
+                "permission-denied": "Firebase từ chối quyền truy cập. Hãy kiểm tra Firestore Security Rules.",
+                "unavailable": "Dịch vụ tạm thời không khả dụng. Hãy thử lại sau."
+            };
+
+            if (messages[code]) return messages[code];
+
+            if (operation === "register-profile") {
+                return "Tài khoản xác thực có thể đã được tạo, nhưng chưa lưu được hồ sơ. Đừng đăng ký liên tục bằng email khác; hãy kiểm tra kết nối và Firestore Security Rules.";
+            }
+
+            if (operation === "reset") {
+                return "Chưa gửi được hướng dẫn. Hãy kiểm tra kết nối và thử lại sau.";
+            }
+
+            return "Không thể hoàn thành yêu cầu. Hãy thử lại; nếu lỗi tiếp diễn, kiểm tra Console và Firebase.";
+        }
+
+        function isValidEmail(value) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        }
+
+        function normaliseText(id) {
+            return $(id).value.trim().replace(/\s+/g, " ");
+        }
+
+        function validDateOfBirth(value) {
+            const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+            if (!match) return false;
+
+            const day = Number(match[1]);
+            const month = Number(match[2]);
+            const year = Number(match[3]);
+
+            if (year < 1900 || year > new Date().getFullYear()) return false;
+
+            const date = new Date(year, month - 1, day);
+
+            return date.getFullYear() === year
+                && date.getMonth() === month - 1
+                && date.getDate() === day;
+        }
+
+        function setPasswordVisibility(inputId, buttonId) {
+            const input = $(inputId);
+            const button = $(buttonId);
+            const icon = button.querySelector("i");
+
+            button.addEventListener("click", () => {
+                const show = input.type === "password";
+                input.type = show ? "text" : "password";
+                button.setAttribute("aria-pressed", String(show));
+                icon.className = show
+                    ? "fa-regular fa-eye-slash"
+                    : "fa-regular fa-eye";
+            });
+        }
+
+        function getDestination(user) {
+            // Chỉ dùng email để điều hướng giao diện.
+            // Đây KHÔNG phải cơ chế phân quyền quản trị.
+            return user.email &&
+                typeof MANAGEMENT_EMAIL !== "undefined" &&
+                user.email.toLowerCase() === MANAGEMENT_EMAIL.toLowerCase()
+                ? "admin.html"
+                : "setup.html";
+        }
+
+        function safeRedirect(url) {
+            if (redirecting) return;
+            redirecting = true;
+            window.location.replace(url);
+        }
+
+        $("show-register").addEventListener("click", () => showView("register"));
+        $("back-to-login").addEventListener("click", () => showView("login"));
+        $("forgot-password-button").addEventListener("click", () => {
+            $("reset-email").value = $("login-email").value.trim();
+            showView("reset");
+        });
+        $("back-from-reset").addEventListener("click", () => showView("login"));
+
+        setPasswordVisibility("login-password", "toggle-login-password");
+        setPasswordVisibility("reg-password", "toggle-register-password");
+
+        // Nếu đã đăng nhập từ trước, chuyển tới trang tương ứng.
+        // Bỏ qua sự kiện trong lúc người dùng đang đăng nhập/đăng ký.
+        auth.onAuthStateChanged((user) => {
+            authReady = true;
+
+            if (busy || redirecting) return;
+
+            if (user) {
+                safeRedirect(getDestination(user));
+            }
         });
 
-        document.getElementById('register-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // ---------------- ĐĂNG NHẬP ----------------
+        $("login-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (busy || redirecting) return;
+
+            clearStatus();
+
+            const email = $("login-email").value.trim();
+            const password = $("login-password").value;
+
+            if (!isValidEmail(email)) {
+                showStatus("Vui lòng nhập địa chỉ email hợp lệ.", "error");
+                return;
+            }
+
+            if (!password) {
+                showStatus("Vui lòng nhập mật khẩu.", "error");
+                return;
+            }
+
+            busy = true;
+            setBusy($("login-submit"), true, "Đang xác thực...", "Đăng nhập");
+
             try {
-                const email = document.getElementById('reg-email').value.trim();
-                const cred = await auth.createUserWithEmailAndPassword(email, document.getElementById('reg-password').value);
-                await db.collection('users').doc(cred.user.uid).set({
-                    fullName: document.getElementById('reg-fullname').value,
-                    studentClass: document.getElementById('reg-class').value,
-                    major: document.getElementById('reg-major').value,
-                    dob: document.getElementById('reg-dob').value,
-                    email: email
-                });
-                alert('Đăng ký tài khoản thành công! Chuyển đến cấu hình AI...');
-                window.location.href = 'setup.html';
-            } catch(err) { alert("Lỗi đăng ký: " + err.message); }
+                const credential = await auth.signInWithEmailAndPassword(email, password);
+                safeRedirect(getDestination(credential.user));
+            } catch (error) {
+                console.error("Login failed:", error.code || "unknown");
+                showStatus(getFriendlyError(error, "login"), "error");
+            } finally {
+                busy = false;
+                if (!redirecting) {
+                    setBusy($("login-submit"), false, "", "Đăng nhập");
+                }
+            }
         });
+
+        // ---------------- ĐĂNG KÝ ----------------
+        $("register-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (busy || redirecting) return;
+
+            clearStatus();
+
+            const fullName = normaliseText("reg-fullname");
+            const studentClass = normaliseText("reg-class");
+            const major = normaliseText("reg-major");
+            const dob = $("reg-dob").value.trim();
+            const email = $("reg-email").value.trim();
+            const password = $("reg-password").value;
+
+            if (fullName.length < 2 || fullName.length > 100) {
+                showStatus("Họ tên phải có từ 2 đến 100 ký tự.", "error");
+                return;
+            }
+
+            if (!studentClass || studentClass.length > 80) {
+                showStatus("Vui lòng nhập lớp học hợp lệ.", "error");
+                return;
+            }
+
+            if (!major || major.length > 120) {
+                showStatus("Vui lòng nhập chuyên ngành hợp lệ.", "error");
+                return;
+            }
+
+            if (!validDateOfBirth(dob)) {
+                showStatus("Ngày sinh không hợp lệ. Hãy nhập đúng định dạng DD/MM/YYYY.", "error");
+                return;
+            }
+
+            if (!isValidEmail(email)) {
+                showStatus("Vui lòng nhập địa chỉ email hợp lệ.", "error");
+                return;
+            }
+
+            if (password.length < 8) {
+                showStatus("Mật khẩu cần có ít nhất 8 ký tự.", "error");
+                return;
+            }
+
+            busy = true;
+            setBusy($("register-submit"), true, "Đang tạo tài khoản...", "Tạo tài khoản");
+
+            let createdUser = null;
+            let profileSaved = false;
+
+            try {
+                const credential = await auth.createUserWithEmailAndPassword(email, password);
+                createdUser = credential.user;
+
+                // Hồ sơ được gắn với UID xác thực của chính tài khoản.
+                // Không ghi đè hồ sơ có sẵn.
+                const profileRef = db.collection("users").doc(createdUser.uid);
+                const existingProfile = await profileRef.get();
+
+                if (existingProfile.exists) {
+                    profileSaved = true;
+                } else {
+                    await profileRef.set({
+                        fullName: fullName,
+                        studentClass: studentClass,
+                        major: major,
+                        dob: dob,
+                        email: email,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    profileSaved = true;
+                }
+
+                showStatus("Đăng ký thành công. Đang chuyển đến trang cấu hình AI...", "success");
+                safeRedirect("setup.html");
+            } catch (error) {
+                console.error("Registration failed:", error.code || "unknown");
+
+                if (createdUser && !profileSaved) {
+                    // Tránh giữ phiên đăng nhập trong trạng thái hồ sơ chưa hoàn chỉnh.
+                    try {
+                        await auth.signOut();
+                    } catch (signOutError) {
+                        console.error("Sign-out after registration error failed.");
+                    }
+
+                    showStatus(getFriendlyError(error, "register-profile"), "error");
+                } else {
+                    showStatus(getFriendlyError(error, "register"), "error");
+                }
+            } finally {
+                busy = false;
+                if (!redirecting) {
+                    setBusy($("register-submit"), false, "", "Tạo tài khoản");
+                }
+            }
+        });
+
+        // ---------------- KHÔI PHỤC MẬT KHẨU ----------------
+        $("reset-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (busy || redirecting) return;
+
+            clearStatus();
+
+            const email = $("reset-email").value.trim();
+
+            if (!isValidEmail(email)) {
+                showStatus("Vui lòng nhập địa chỉ email hợp lệ.", "error");
+                return;
+            }
+
+            busy = true;
+            setBusy(
+                $("reset-submit"),
+                true,
+                "Đang gửi...",
+                "Gửi hướng dẫn đặt lại"
+            );
+
+            try {
+                await auth.sendPasswordResetEmail(email);
+
+                // Thông báo trung tính, không tiết lộ email có đăng ký hay không.
+                showStatus(
+                    "Nếu địa chỉ này có tài khoản hợp lệ, email hướng dẫn đặt lại mật khẩu sẽ được gửi. Hãy kiểm tra cả thư mục Spam.",
+                    "success"
+                );
+            } catch (error) {
+                console.error("Password reset failed:", error.code || "unknown");
+                showStatus(getFriendlyError(error, "reset"), "error");
+            } finally {
+                busy = false;
+                setBusy(
+                    $("reset-submit"),
+                    false,
+                    "",
+                    "Gửi hướng dẫn đặt lại"
+                );
+            }
+        });
+
+        // Tránh cảnh báo giả nếu Firebase chưa khởi tạo đúng.
+        if (typeof firebase === "undefined" || !firebase.apps || !firebase.apps.length) {
+            showStatus(
+                "Không thể khởi tạo Firebase. Hãy kiểm tra file js/firebase-config.js và kết nối mạng.",
+                "error"
+            );
+        }
+    })();
     </script>
 </body>
 </html>

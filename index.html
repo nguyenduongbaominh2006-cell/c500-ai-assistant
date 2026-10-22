@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi" class="h-full">
 <head>
@@ -79,7 +78,6 @@
         }
         #chat-input { resize: none; max-height: 180px; }
         .safe-link { color: #6ee7b7; }
-
         @media (max-width: 767px) {
             #sidebar {
                 position: fixed; z-index: 40; inset: 0 auto 0 0;
@@ -519,47 +517,61 @@
         }, { merge: true });
     }
 
+    // Tạo chat ngay trên giao diện trước, không chờ Firestore phản hồi.
+    // Nhờ vậy currentChatId luôn có giá trị kể cả khi lịch sử đang lỗi/offline.
+    function createLocalChat() {
+        if (!currentUser) throw new Error("Chưa có người dùng đăng nhập.");
+        const ref = userChatsRef().doc(); // Sinh ID hợp lệ từ Firestore SDK ở phía client.
+        const newChat = {
+            id: ref.id,
+            title: "Cuộc trò chuyện mới",
+            messages: [],
+            updatedAt: new Date().toISOString(),
+            localOnly: true
+        };
+        chats.unshift(newChat);
+        currentChatId = newChat.id;
+        renderHistory();
+        renderMessages();
+        closeMobileSidebar();
+        return newChat;
+    }
+
     async function startNewChat() {
         if (!currentUser || isGenerating) return;
-
         hideStatus();
-
+        let newChat;
         try {
-            const newChat = {
-                title: "Cuộc trò chuyện mới",
-                messages: [],
-                updatedAt: new Date().toISOString()
-            };
-
-            const ref = await userChatsRef().add(newChat);
-            const savedChat = { id: ref.id, ...newChat };
-
-            chats.unshift(savedChat);
-            currentChatId = ref.id;
-
-            renderHistory();
-            renderMessages();
-            closeMobileSidebar();
+            newChat = createLocalChat();
             input.focus();
         } catch (error) {
-            console.error("Create chat failed:", error);
+            console.error("Create local chat failed:", error);
             showStatus(getErrorMessage(error), "error");
+            return;
+        }
+
+        // Lưu nền; lỗi lưu không được xóa chat hoặc chặn người dùng gửi câu hỏi.
+        try {
+            await saveChat(newChat);
+            newChat.localOnly = false;
+            renderHistory();
+        } catch (error) {
+            console.error("Create chat save failed:", error);
+            showStatus("Đã tạo khung chat trên giao diện nhưng chưa lưu được lịch sử. " + getErrorMessage(error), "error");
         }
     }
 
     async function loadChats() {
         const snapshot = await userChatsRef().orderBy("updatedAt", "desc").get();
-
         chats = [];
         snapshot.forEach(documentSnapshot => {
             const data = documentSnapshot.data() || {};
             chats.push({
                 id: documentSnapshot.id,
-                title: typeof data.title === "string"
-                    ? data.title.slice(0, 120)
-                    : "Cuộc trò chuyện",
+                title: typeof data.title === "string" ? data.title.slice(0, 120) : "Cuộc trò chuyện",
                 messages: Array.isArray(data.messages) ? data.messages : [],
-                updatedAt: data.updatedAt || ""
+                updatedAt: data.updatedAt || "",
+                localOnly: false
             });
         });
 
@@ -567,7 +579,6 @@
             await startNewChat();
             return;
         }
-
         currentChatId = chats[0].id;
         renderHistory();
         renderMessages();
@@ -598,9 +609,7 @@
             console.error("Could not write violation log:", error);
         }
     }
-</script>
 
-<script>
     function setGenerating(value) {
         isGenerating = value;
         sendButton.disabled = value;
@@ -644,10 +653,15 @@
         const text = input.value.trim();
         if (!text || isGenerating || !currentUser) return;
 
-        const chat = getCurrentChat();
+        let chat = getCurrentChat();
         if (!chat) {
-            showStatus("Không tìm thấy cuộc trò chuyện hiện tại. Hãy tạo chat mới.", "error");
-            return;
+            // Tự khôi phục chat thay vì bắt người dùng bấm đi bấm lại.
+            try {
+                chat = createLocalChat();
+            } catch (error) {
+                showStatus("Không thể tạo khung chat. " + getErrorMessage(error), "error");
+                return;
+            }
         }
 
         hideStatus();
@@ -665,8 +679,15 @@
         setGenerating(true);
 
         try {
-            // Persist the user message first so it is not lost if the AI request fails.
-            await saveChat(chat);
+            // Cố lưu trước, nhưng không để lỗi Firestore chặn yêu cầu gửi tới AI.
+            try {
+                await saveChat(chat);
+                chat.localOnly = false;
+            } catch (saveError) {
+                chat.localOnly = true;
+                console.error("Could not save user message before AI call:", saveError);
+                showStatus("Câu hỏi đang được giữ trên giao diện, nhưng lịch sử chưa lưu được. AI vẫn sẽ được gọi. " + getErrorMessage(saveError), "error");
+            }
 
             const violation = getSecurityViolation(text);
 
@@ -678,7 +699,8 @@
                         "Mình không thể xử lý yêu cầu này theo bộ lọc hiện tại. " +
                         "Bạn có thể đặt lại câu hỏi với mục tiêu học tập hoặc tra cứu rõ ràng hơn."
                 });
-                await saveChat(chat);
+                try { await saveChat(chat); chat.localOnly = false; }
+                catch (saveError) { console.error("Could not save refusal response:", saveError); }
                 renderMessages();
                 renderHistory();
                 return;
@@ -687,9 +709,19 @@
             const answer = await requestGemini(chat);
             chat.messages.push({ role: "model", content: answer });
 
-            await saveChat(chat);
-            renderMessages();
-            renderHistory();
+            try {
+                await saveChat(chat);
+                chat.localOnly = false;
+                hideStatus();
+                renderMessages();
+                renderHistory();
+            } catch (saveError) {
+                chat.localOnly = true;
+                console.error("AI answered but chat history could not be saved:", saveError);
+                renderMessages();
+                renderHistory();
+                showStatus("AI đã trả lời, nhưng chưa lưu được lịch sử chat. " + getErrorMessage(saveError), "error");
+            }
         } catch (error) {
             console.error("Chat request failed:", error);
 
@@ -705,16 +737,21 @@
 
             try {
                 await saveChat(chat);
+                chat.localOnly = false;
             } catch (saveError) {
+                chat.localOnly = true;
                 console.error("Save failed after chat error:", saveError);
             }
 
             renderMessages();
             renderHistory();
-            showStatus(
-                "Yêu cầu gặp lỗi. Hãy kiểm tra Firebase Cloud Functions, quyền đăng nhập, hạn mức OpenAI và kết nối mạng.",
-                "error"
-            );
+            const code = error && error.code ? String(error.code) : "";
+            let nextStep = "Kiểm tra Firebase Cloud Functions, quyền đăng nhập và hạn mức OpenAI.";
+            if (code.includes("not-found")) nextStep = "Chưa tìm thấy Cloud Function chatWithAI. Hãy deploy Functions.";
+            else if (code.includes("unauthenticated")) nextStep = "Phiên đăng nhập hết hạn. Hãy đăng xuất rồi đăng nhập lại.";
+            else if (code.includes("failed-precondition")) nextStep = "Kiểm tra OPENAI_API_KEY và quyền truy cập model trong Cloud Functions.";
+            else if (code.includes("resource-exhausted")) nextStep = "Kiểm tra hạn mức hoặc ngân sách OpenAI API.";
+            showStatus("Không gọi được AI. " + nextStep + " Chi tiết: " + (error && error.message ? error.message : "không rõ"), "error");
         } finally {
             setGenerating(false);
             input.focus();
@@ -774,8 +811,16 @@
                 "Không tải được lịch sử hội thoại. " + getErrorMessage(error),
                 "error"
             );
-            // Keep the app available so the user can retry instead of redirecting to setup.
-            showWelcome();
+            // Vẫn dựng chat cục bộ để câu hỏi không bị chặn khi lịch sử chưa tải được.
+            try {
+                chats = [];
+                const localChat = createLocalChat();
+                showStatus("Không tải được lịch sử cũ; đã mở một chat mới trên giao diện. " + getErrorMessage(error), "error");
+                renderMessages();
+            } catch (localError) {
+                console.error("Could not create fallback local chat:", localError);
+                showWelcome();
+            }
         }
     }
 

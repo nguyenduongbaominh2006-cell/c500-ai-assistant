@@ -249,11 +249,10 @@
         </div>
     </main>
 </div>
-
+    
 <script src="js/firebase-config.js"></script>
 <script src="js/security-filter.js"></script>
 <script src="js/chat-client.js"></script>
-
 <script>
 (() => {
     "use strict";
@@ -521,7 +520,7 @@
     // Nhờ vậy currentChatId luôn có giá trị kể cả khi lịch sử đang lỗi/offline.
     function createLocalChat() {
         if (!currentUser) throw new Error("Chưa có người dùng đăng nhập.");
-        const ref = userChatsRef().doc(); // Sinh ID hợp lệ từ Firestore SDK ở phía client.
+        const ref = userChatsRef().doc();
         const newChat = {
             id: ref.id,
             title: "Cuộc trò chuyện mới",
@@ -623,28 +622,69 @@
     }
 
     async function requestGemini(chat) {
-        // Giữ tên hàm để không phải thay đổi luồng sendMessage hiện có.
-        // Nội dung được gửi tới Firebase Cloud Function, không gọi Gemini trực tiếp.
-        if (!window.requestOpenAI) {
-            throw new Error(
-                "Chưa tải được bộ kết nối OpenAI. Hãy kiểm tra js/chat-client.js."
-            );
+        // Gọi Cloudflare Worker, không gọi Firebase Cloud Functions hoặc OpenAI.
+        const workerUrl =
+            "https://c500-ai-api.nguyenduongbaominh2006.workers.dev/";
+
+        if (!currentUser) {
+            throw new Error("Bạn chưa đăng nhập. Hãy đăng nhập lại rồi thử tiếp.");
         }
 
+        const idToken = await currentUser.getIdToken();
         const messages = (Array.isArray(chat.messages) ? chat.messages : [])
             .filter(message =>
                 message &&
                 ["user", "model", "assistant"].includes(message.role) &&
                 typeof message.content === "string" &&
-                !message.error
+                message.content.trim().length > 0 &&
+                !message.error &&
+                !message.pending
             )
             .map(message => ({
-                role: message.role === "model" ? "assistant" : message.role,
-                content: message.content
+                role: message.role === "user" ? "user" : "assistant",
+                content: message.content.trim()
             }));
 
-        const result = await window.requestOpenAI(messages);
-        return result.text;
+        if (!messages.some(message => message.role === "user")) {
+            throw new Error("Không tìm thấy câu hỏi hợp lệ để gửi tới AI.");
+        }
+
+        let response;
+        try {
+            response = await fetch(workerUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + idToken
+                },
+                body: JSON.stringify({ messages })
+            });
+        } catch (networkError) {
+            throw new Error(
+                "Không kết nối được Cloudflare Worker. Kiểm tra URL Worker và CORS. " +
+                (networkError && networkError.message ? networkError.message : "")
+            );
+        }
+
+        let data;
+        try {
+            data = await response.json();
+        } catch (_) {
+            throw new Error("Worker trả về phản hồi không phải JSON (HTTP " + response.status + ").");
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                (data && data.error ? data.error : "Cloudflare Worker trả về HTTP " + response.status) +
+                " [HTTP " + response.status + "]"
+            );
+        }
+
+        if (!data || typeof data.text !== "string" || !data.text.trim()) {
+            throw new Error("Worker không trả về nội dung câu trả lời hợp lệ.");
+        }
+
+        return data.text.trim();
     }
 
     async function sendMessage(event) {
@@ -746,11 +786,9 @@
             renderMessages();
             renderHistory();
             const code = error && error.code ? String(error.code) : "";
-            let nextStep = "Kiểm tra Firebase Cloud Functions, quyền đăng nhập và hạn mức OpenAI.";
-            if (code.includes("not-found")) nextStep = "Chưa tìm thấy Cloud Function chatWithAI. Hãy deploy Functions.";
-            else if (code.includes("unauthenticated")) nextStep = "Phiên đăng nhập hết hạn. Hãy đăng xuất rồi đăng nhập lại.";
-            else if (code.includes("failed-precondition")) nextStep = "Kiểm tra OPENAI_API_KEY và quyền truy cập model trong Cloud Functions.";
-            else if (code.includes("resource-exhausted")) nextStep = "Kiểm tra hạn mức hoặc ngân sách OpenAI API.";
+            let nextStep = "Kiểm tra kết nối Cloudflare Worker và cấu hình Gemini.";
+            if (code.includes("unauthenticated")) nextStep = "Phiên đăng nhập hết hạn. Hãy đăng xuất rồi đăng nhập lại.";
+            else if (code.includes("resource-exhausted")) nextStep = "Dịch vụ AI đã vượt hạn mức; kiểm tra hạn mức Gemini.";
             showStatus("Không gọi được AI. " + nextStep + " Chi tiết: " + (error && error.message ? error.message : "không rõ"), "error");
         } finally {
             setGenerating(false);
@@ -758,7 +796,7 @@
         }
     }
 
-    async function initialiseUser(user) {
+     async function initialiseUser(user) {
         currentUser = user;
 
         $("user-email").textContent = user.email || "";

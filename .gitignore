@@ -1,26 +1,7 @@
-
-# Dependencies
 node_modules/
 functions/node_modules/
-
-# Firebase local files
 .firebase/
-firebase-debug.log
-firestore-debug.log
-ui-debug.log
-
-# Environment variables and secrets
 .env
 .env.*
 !.env.example
-
-# Private keys and service-account credentials
-service-account*.json
-*-service-account*.json
-firebase-adminsdk-*.json
-*.pem
-*.key
-
-# Operating system files
 .DS_Store
-Thumbs.db

@@ -1,7 +1,8 @@
+
 {
   "name": "c500-ai-functions",
   "private": true,
-  "description": "Server-side OpenAI backend for C500 AI Assistant",
+  "description": "Server-side OpenAI proxy for C500 AI Assistant",
   "main": "index.js",
   "engines": {
     "node": "20"

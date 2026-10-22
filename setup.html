@@ -2,281 +2,214 @@
 <!DOCTYPE html>
 <html lang="vi" class="h-full">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#020617">
-    <title>Cấu Hình Trợ Lý AI C500</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#020617">
+  <title>Cấu Hình Trợ Lý AI C500</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-        body {
-            min-height: 100%;
-            background:
-                radial-gradient(
-                    ellipse at top,
-                    rgba(6, 95, 70, 0.2),
-                    transparent 55%
-                ),
-                #020617;
-        }
+    body {
+      min-height: 100%;
+      background:
+        radial-gradient(
+          ellipse at top,
+          rgba(6, 95, 70, .2),
+          transparent 55%
+        ),
+        #020617;
+    }
 
-        .field {
-            width: 100%;
-            background: #020617;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 11px 13px;
-            color: white;
-            font-size: 13px;
-            outline: none;
-        }
+    .field {
+      width: 100%;
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 11px 13px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+    }
 
-        .field:focus {
-            border-color: #10b981;
-        }
-
-        .field:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-    </style>
+    .field:focus {
+      border-color: #10b981;
+    }
+  </style>
 </head>
 
 <body class="min-h-full text-slate-100 flex items-center justify-center p-4">
+  <main class="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-md w-full p-7 shadow-2xl">
+    <div class="text-center mb-6">
+      <p class="text-[10px] uppercase tracking-[.3em] text-emerald-400 font-bold">
+        C500 • AI Assistant
+      </p>
 
-    <main class="bg-slate-900 border border-emerald-500/40
-                 rounded-3xl max-w-md w-full p-7 shadow-2xl">
+      <h1 class="text-xl font-extrabold text-yellow-400 mt-2">
+        Thiết lập trợ lý AI cá nhân
+      </h1>
 
-        <header class="text-center mb-6">
-            <p class="text-[10px] uppercase tracking-[.3em]
-                      text-emerald-400 font-bold">
-                C500 • AI ASSISTANT
-            </p>
+      <p class="text-xs leading-5 text-slate-400 mt-2">
+        Tùy chỉnh hồ sơ hiển thị. Bạn không cần tự tạo hoặc nhập API key.
+      </p>
+    </div>
 
-            <h1 class="text-xl font-extrabold text-yellow-400 mt-2">
-                Thiết Lập Trợ Lý AI Cá Nhân
-            </h1>
+    <div class="rounded-xl border border-emerald-800 bg-emerald-950/40 p-3 mb-5 text-xs leading-5 text-emerald-200">
+      <strong>AI dùng chung của hệ thống</strong><br>
+      Khóa AI được quản lý ở máy chủ; không lưu trong tài khoản cá nhân hoặc trình duyệt.
+    </div>
 
-            <p class="text-xs leading-5 text-slate-400 mt-2">
-                Tùy chỉnh hồ sơ trợ lý của bạn.
-                Không cần nhập API key cá nhân.
-            </p>
-        </header>
+    <form id="setup-form" class="space-y-4">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label for="hair-color" class="block text-xs font-semibold text-emerald-300 mb-1">
+            Màu tóc
+          </label>
 
-        <section class="rounded-xl border border-emerald-800
-                        bg-emerald-950/40 p-3 mb-5">
-            <p class="text-xs leading-5 text-emerald-200">
-                <strong>AI dùng chung của hệ thống</strong><br>
-                Khóa truy cập AI được quản lý ở máy chủ.
-                Thành viên sử dụng tài khoản đăng nhập hiện có.
-            </p>
-        </section>
+          <select id="hair-color" class="field">
+            <option value="black">Đen</option>
+            <option value="brown">Nâu</option>
+            <option value="white">Trắng</option>
+          </select>
+        </div>
 
-        <form id="setup-form" class="space-y-4">
+        <div>
+          <label for="uniform-type" class="block text-xs font-semibold text-emerald-300 mb-1">
+            Sắc phục
+          </label>
 
-            <div class="grid grid-cols-2 gap-3">
+          <select id="uniform-type" class="field">
+            <option value="police">Cảnh sát</option>
+            <option value="security">An ninh</option>
+          </select>
+        </div>
+      </div>
 
-                <div>
-                    <label for="hair-color"
-                           class="block text-xs font-semibold
-                                  text-emerald-400 mb-1">
-                        Màu tóc
-                    </label>
+      <div>
+        <label for="ai-nickname" class="block text-xs font-semibold text-emerald-300 mb-1">
+          Biệt danh AI
+        </label>
 
-                    <select id="hair-color" class="field">
-                        <option value="black">Đen</option>
-                        <option value="brown">Nâu</option>
-                        <option value="white">Trắng</option>
-                    </select>
-                </div>
+        <input
+          type="text"
+          id="ai-nickname"
+          maxlength="60"
+          placeholder="Ví dụ: Sĩ quan Bôm..."
+          required
+          class="field"
+        >
+      </div>
 
-                <div>
-                    <label for="uniform-type"
-                           class="block text-xs font-semibold
-                                  text-emerald-400 mb-1">
-                        Sắc phục
-                    </label>
+      <p id="status" class="hidden text-xs leading-5" role="status" aria-live="polite"></p>
 
-                    <select id="uniform-type" class="field">
-                        <option value="police">Cảnh sát</option>
-                        <option value="security">An ninh</option>
-                    </select>
-                </div>
+      <button
+        type="submit"
+        id="submit-btn"
+        class="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition"
+      >
+        Lưu cấu hình & vào chat
+      </button>
+    </form>
+  </main>
 
-            </div>
+  <script src="js/firebase-config.js"></script>
 
-            <div>
-                <label for="ai-nickname"
-                       class="block text-xs font-semibold
-                              text-emerald-400 mb-1">
-                    Biệt danh AI
-                </label>
+  <script>
+    "use strict";
 
-                <input
-                    type="text"
-                    id="ai-nickname"
-                    maxlength="60"
-                    placeholder="Ví dụ: Sĩ quan Bôm..."
-                    required
-                    class="field"
-                >
-            </div>
+    let activeUser = null;
 
-            <p id="status"
-               class="hidden text-xs leading-5"
-               role="status"
-               aria-live="polite"></p>
+    const form = document.getElementById("setup-form");
+    const button = document.getElementById("submit-btn");
+    const statusBox = document.getElementById("status");
 
-            <button
-                type="submit"
-                id="submit-btn"
-                class="w-full bg-emerald-600 hover:bg-emerald-500
-                       disabled:opacity-50 text-white font-bold
-                       py-3 rounded-xl text-xs uppercase
-                       tracking-wider transition">
-                Lưu cấu hình &amp; vào Chat
-            </button>
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
 
-        </form>
-    </main>
+      activeUser = user;
 
-    <script src="js/firebase-config.js"></script>
+      db.collection("users")
+        .doc(user.uid)
+        .collection("settings")
+        .doc("ai_config")
+        .get()
+        .then(snap => {
+          if (!snap.exists) return;
 
-    <script>
-        "use strict";
+          const config = snap.data() || {};
 
-        let activeUser = null;
+          if (config.hairColor) {
+            document.getElementById("hair-color").value = config.hairColor;
+          }
 
-        const form = document.getElementById("setup-form");
-        const button = document.getElementById("submit-btn");
-        const statusBox = document.getElementById("status");
+          if (config.uniformType) {
+            document.getElementById("uniform-type").value = config.uniformType;
+          }
 
-        function showStatus(message, type = "error") {
-            statusBox.textContent = message;
-            statusBox.className =
-                "text-xs leading-5 " +
-                (type === "success"
-                    ? "text-emerald-300"
-                    : "text-red-300");
-        }
-
-        // Chỉ cho phép người đã đăng nhập thiết lập hồ sơ.
-        auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                window.location.href = "login.html";
-                return;
-            }
-
-            activeUser = user;
-
-            try {
-                const configRef = db
-                    .collection("users")
-                    .doc(user.uid)
-                    .collection("settings")
-                    .doc("ai_config");
-
-                const snapshot = await configRef.get();
-
-                if (!snapshot.exists) return;
-
-                const config = snapshot.data() || {};
-
-                if (config.hairColor) {
-                    document.getElementById("hair-color").value =
-                        config.hairColor;
-                }
-
-                if (config.uniformType) {
-                    document.getElementById("uniform-type").value =
-                        config.uniformType;
-                }
-
-                if (config.nickname) {
-                    document.getElementById("ai-nickname").value =
-                        config.nickname;
-                }
-
-            } catch (error) {
-                console.error("Không tải được cấu hình:", error);
-                showStatus(
-                    "Không tải được cấu hình cũ. Bạn vẫn có thể thử lưu lại."
-                );
-            }
+          if (config.nickname) {
+            document.getElementById("ai-nickname").value = config.nickname;
+          }
+        })
+        .catch(err => {
+          console.warn("Không tải được cấu hình cũ:", err);
         });
+    });
 
-        form.addEventListener("submit", async (event) => {
-            event.preventDefault();
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
 
-            if (!activeUser) {
-                showStatus(
-                    "Phiên đăng nhập chưa sẵn sàng. Vui lòng tải lại trang."
-                );
-                return;
-            }
+      if (!activeUser) {
+        statusBox.textContent =
+          "Phiên đăng nhập chưa sẵn sàng. Vui lòng tải lại trang.";
+        statusBox.className = "text-xs leading-5 text-red-300";
+        return;
+      }
 
-            const nickname = document
-                .getElementById("ai-nickname")
-                .value.trim();
+      const nickname = document.getElementById("ai-nickname").value.trim();
 
-            if (!nickname) {
-                showStatus("Vui lòng nhập biệt danh AI.");
-                return;
-            }
+      if (!nickname) return;
 
-            button.disabled = true;
-            button.textContent = "Đang lưu cấu hình...";
+      button.disabled = true;
+      button.textContent = "Đang lưu...";
+      statusBox.className = "hidden text-xs leading-5";
 
-            try {
-                const configRef = db
-                    .collection("users")
-                    .doc(activeUser.uid)
-                    .collection("settings")
-                    .doc("ai_config");
+      try {
+        await db.collection("users")
+          .doc(activeUser.uid)
+          .collection("settings")
+          .doc("ai_config")
+          .set({
+            hairColor: document.getElementById("hair-color").value,
+            uniformType: document.getElementById("uniform-type").value,
+            nickname,
+            completed: true,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
 
-                await configRef.set({
-                    hairColor:
-                        document.getElementById("hair-color").value,
+        // Không còn đọc hoặc ghi API key cá nhân.
+        window.location.href = "index.html";
+      } catch (error) {
+        console.error("Không lưu được cấu hình:", error);
 
-                    uniformType:
-                        document.getElementById("uniform-type").value,
+        statusBox.textContent =
+          "Không lưu được cấu hình: " +
+          (error.message || "Lỗi không xác định");
 
-                    nickname: nickname,
-                    completed: true,
-
-                    updatedAt:
-                        firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-
-                // Không còn lưu hoặc yêu cầu API key cá nhân.
-                showStatus(
-                    "Lưu thành công. Đang chuyển đến khung chat...",
-                    "success"
-                );
-
-                window.location.href = "index.html";
-
-            } catch (error) {
-                console.error("Lỗi lưu cấu hình:", error);
-
-                showStatus(
-                    "Không lưu được cấu hình: " +
-                    (error.message || "Lỗi không xác định")
-                );
-
-                button.disabled = false;
-                button.textContent = "Lưu cấu hình & vào Chat";
-            }
-        });
-    </script>
-
+        statusBox.className = "text-xs leading-5 text-red-300";
+        button.disabled = false;
+        button.textContent = "Lưu cấu hình & vào chat";
+      }
+    });
+  </script>
 </body>
 </html>

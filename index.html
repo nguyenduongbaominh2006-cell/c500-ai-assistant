@@ -1,1 +1,1202 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>C500 AI Assistant | Welcome</title><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><style>body{background:radial-gradient(ellipse at top,#14532d 0%,#07130e 48%,#020617 100%);min-height:100vh}.glass{background:rgba(15,23,42,.72);backdrop-filter:blur(18px);border:1px solid rgba(52,211,153,.25)}</style></head><body class="text-slate-100 flex items-center justify-center p-5"><main class="max-w-5xl w-full grid md:grid-cols-2 gap-8 items-center"><section><div class="inline-flex items-center gap-3 rounded-full border border-emerald-700 bg-emerald-950/70 px-4 py-2 text-sm text-emerald-200"><i class="fa-solid fa-shield-halved text-yellow-400"></i> C500 SECURITY HUB</div><h1 class="text-4xl md:text-6xl font-black leading-tight mt-6">Trợ lý AI <span class="text-emerald-400">C500</span></h1><p class="text-slate-300 mt-5 leading-7">Không gian hỗ trợ học tập, tra cứu và quản lý hồ sơ cá nhân dành cho cộng đồng người dùng C500.</p><div class="flex flex-wrap gap-3 mt-8"><a href="login.html" class="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-6 py-3 font-bold"><i class="fa-solid fa-arrow-right-to-bracket mr-2"></i>Bắt đầu</a><a href="#features" class="rounded-xl border border-slate-600 hover:bg-slate-800 px-6 py-3">Khám phá</a></div><p class="text-xs text-slate-500 mt-5">Vui lòng đăng nhập để sử dụng các chức năng cá nhân.</p></section><section class="glass rounded-3xl p-6 md:p-8 shadow-2xl"><div class="grid grid-cols-2 gap-4"><div class="rounded-2xl bg-slate-900/80 p-5"><i class="fa-solid fa-comments text-2xl text-emerald-400"></i><h2 class="font-bold mt-4">Trợ lý AI</h2><p class="text-sm text-slate-400 mt-2">Trao đổi và lưu lịch sử trò chuyện.</p></div><div class="rounded-2xl bg-slate-900/80 p-5"><i class="fa-solid fa-id-card text-2xl text-yellow-400"></i><h2 class="font-bold mt-4">Hồ sơ cá nhân</h2><p class="text-sm text-slate-400 mt-2">Quản lý tên hiển thị và thông tin cá nhân.</p></div><div class="rounded-2xl bg-slate-900/80 p-5"><i class="fa-solid fa-bell text-2xl text-sky-400"></i><h2 class="font-bold mt-4">Thông báo</h2><p class="text-sm text-slate-400 mt-2">Nhận phản hồi từ ban quản trị.</p></div><div class="rounded-2xl bg-slate-900/80 p-5"><i class="fa-solid fa-clipboard-check text-2xl text-rose-400"></i><h2 class="font-bold mt-4">Báo cáo</h2><p class="text-sm text-slate-400 mt-2">Gửi phản hồi về câu trả lời chưa chính xác.</p></div></div><div id="features" class="mt-6 border-t border-slate-700 pt-5 text-sm text-slate-400">Bảo vệ tài khoản của bạn và chỉ chia sẻ thông tin cần thiết.</div></section></main></body></html>
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#082b26">
+<meta name="description" content="C500 AI Assistant - Không gian học tập số dành cho học viên Học viện An ninh Nhân dân.">
+<title>C500 AI Assistant | Học viện An ninh Nhân dân</title>
+
+<style>
+:root {
+  --green: #082b26;
+  --green-light: #10463b;
+  --gold: #e5bd66;
+  --gold-light: #ffe7a2;
+  --red: #a91e2b;
+  --cream: #f5efdf;
+  --white: #fffdf6;
+  --text-muted: #c6d6ce;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 85px;
+}
+
+body {
+  margin: 0;
+  background: var(--green);
+  color: var(--white);
+  font-family: "Segoe UI", Arial, sans-serif;
+  line-height: 1.7;
+}
+
+a { color: inherit; text-decoration: none; }
+
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--gold-light);
+  outline-offset: 4px;
+}
+
+/* =========================
+   HIỆU ỨNG KÉO RÈM MỞ MÀN
+========================= */
+
+.curtain {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: flex;
+  pointer-events: none;
+  animation: curtainFade 1.9s 0.15s forwards;
+}
+
+.curtain-panel {
+  position: relative;
+  width: 50%;
+  height: 100%;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #650e18 0%,
+      #a51d2a 12%,
+      #74101c 22%,
+      #c32e37 29%,
+      #72101b 40%
+    );
+  box-shadow: inset -18px 0 35px #28040a70;
+}
+
+.curtain-panel:first-child {
+  border-right: 2px solid var(--gold);
+  animation: curtainLeft 1.5s cubic-bezier(.75, 0, .2, 1) .2s forwards;
+}
+
+.curtain-panel:last-child {
+  border-left: 2px solid var(--gold);
+  animation: curtainRight 1.5s cubic-bezier(.75, 0, .2, 1) .2s forwards;
+}
+
+.curtain-title {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: var(--gold-light);
+  padding: 20px;
+  animation: titleFade .7s 1s forwards;
+}
+
+.curtain-title img {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  margin-bottom: 22px;
+  filter: drop-shadow(0 5px 18px #0006);
+}
+
+.curtain-title strong {
+  font-family: Georgia, serif;
+  font-size: clamp(16px, 3vw, 28px);
+  letter-spacing: 2px;
+}
+
+.curtain-title span {
+  margin-top: 8px;
+  font-size: 11px;
+  letter-spacing: 3px;
+}
+
+@keyframes curtainLeft {
+  to { transform: translateX(-101%); }
+}
+
+@keyframes curtainRight {
+  to { transform: translateX(101%); }
+}
+
+@keyframes curtainFade {
+  0%, 75% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+@keyframes titleFade {
+  to { opacity: 0; }
+}
+
+/* =========================
+   THANH ĐIỀU HƯỚNG
+========================= */
+
+.header {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 78px;
+  padding: 12px clamp(18px, 5vw, 76px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 22px;
+  background: linear-gradient(
+    180deg,
+    rgba(3, 24, 21, .96),
+    rgba(3, 24, 21, .72)
+  );
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid #e5bd6635;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.brand img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.brand strong {
+  display: block;
+  color: var(--gold-light);
+  font-size: 12px;
+  letter-spacing: .8px;
+}
+
+.brand small {
+  display: block;
+  color: #d0ded6;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 28px);
+  font-size: 13px;
+}
+
+.nav a:not(.nav-button) {
+  color: #e2ebe5;
+  transition: color .2s;
+}
+
+.nav a:hover { color: var(--gold-light); }
+
+.nav-button,
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 23px;
+  border: 1px solid var(--gold-light);
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--gold-light), #d8a843);
+  color: #172b20;
+  font-weight: 800;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.nav-button:hover,
+.button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px #e5bd6635;
+}
+
+.menu-toggle {
+  display: none;
+  border: 1px solid #ffffff50;
+  background: transparent;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 9px;
+  font-size: 21px;
+}
+
+/* =========================
+   HERO - ẢNH NỀN MỜ
+========================= */
+
+.hero {
+  min-height: 100svh;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding: 145px clamp(24px, 9vw, 130px) 100px;
+}
+
+.hero-background {
+  position: absolute;
+  z-index: -3;
+  inset: -15px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(3, 30, 26, .97) 0%,
+      rgba(3, 30, 26, .83) 40%,
+      rgba(3, 30, 26, .38) 75%,
+      rgba(3, 30, 26, .55) 100%
+    ),
+    url("assets/academy-campus.jpg") center 45% / cover no-repeat;
+  filter: blur(2px);
+  transform: scale(1.04);
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse at 75% 35%,
+      transparent,
+      rgba(2, 22, 20, .48) 75%
+    ),
+    linear-gradient(0deg, var(--green), transparent 28%);
+}
+
+.hero-content {
+  max-width: 790px;
+  animation: heroEnter 1s 1.5s both;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--gold-light);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 36px;
+  height: 1px;
+  background: var(--gold);
+}
+
+.hero-logo {
+  width: 92px;
+  height: 92px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 50%;
+  margin: 28px 0 18px;
+  box-shadow: 0 0 30px #e5bd6635;
+}
+
+.hero h1 {
+  max-width: 850px;
+  margin: 0 0 22px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(39px, 6vw, 76px);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -1.5px;
+}
+
+.hero h1 span { color: var(--gold-light); }
+
+.hero p {
+  max-width: 620px;
+  color: #e0e9e3;
+  font-size: clamp(15px, 1.4vw, 18px);
+  margin-bottom: 32px;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.button-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 22px;
+  border: 1px solid #f3d48b;
+  border-radius: 999px;
+  font-weight: 700;
+  transition: background .2s;
+}
+
+.button-outline:hover { background: #ffffff18; }
+
+.hero-caption {
+  margin-top: 32px;
+  color: #d5e0d9;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.scroll-cue {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  color: var(--gold-light);
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+}
+
+.scroll-cue span {
+  display: block;
+  font-size: 24px;
+  animation: bob 1.6s infinite;
+}
+
+@keyframes heroEnter {
+  from { opacity: 0; transform: translateY(25px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(7px); }
+}
+
+/* =========================
+   CẤU TRÚC CÁC PHẦN
+========================= */
+
+.section {
+  padding: 100px clamp(24px, 8vw, 115px);
+}
+
+.section-heading {
+  max-width: 780px;
+  margin-bottom: 44px;
+}
+
+.kicker {
+  color: #ad8138;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+}
+
+.section h2 {
+  margin: 12px 0 18px;
+  font: 600 clamp(31px, 4vw, 50px)/1.17 Georgia, serif;
+  letter-spacing: -.5px;
+}
+
+.section-heading p {
+  font-size: 15px;
+  color: #63736b;
+}
+
+/* =========================
+   GIỚI THIỆU HỌC VIỆN
+========================= */
+
+.about {
+  position: relative;
+  overflow: hidden;
+  background: var(--cream);
+  color: #17372e;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  align-items: center;
+  gap: clamp(32px, 6vw, 85px);
+}
+
+.about-copy p { color: #53665e; }
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 28px 0;
+}
+
+.fact {
+  padding: 16px 12px;
+  background: #fffaf0;
+  border-top: 2px solid #d4ad59;
+}
+
+.fact strong {
+  display: block;
+  color: #8b6124;
+  font-size: 18px;
+}
+
+.fact span {
+  display: block;
+  color: #66746d;
+  font-size: 11px;
+}
+
+.official-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 17px;
+  border: 1px solid #9b7537;
+  border-radius: 999px;
+  color: #79551e;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.official-link:hover { background: #e8dcc0; }
+
+.photo-frame {
+  padding: 12px;
+  background: #fffdf7;
+  border: 1px solid #d2b66e;
+  box-shadow: 0 20px 55px #163d2b20;
+  transform: rotate(1deg);
+}
+
+.photo-frame img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.photo-caption {
+  padding: 14px 8px 5px;
+  color: #785b2d;
+  font: italic 16px Georgia, serif;
+}
+
+/* =========================
+   DÒNG THỜI GIAN LỊCH SỬ
+========================= */
+
+.history {
+  background: #f1e7d2;
+  color: #18372e;
+}
+
+.timeline {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+  margin-top: 52px;
+  position: relative;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 1%;
+  right: 1%;
+  top: 12px;
+  height: 2px;
+  background: linear-gradient(90deg, #875a28, #e5c97f, #875a28);
+}
+
+.milestone {
+  position: relative;
+  padding-top: 42px;
+}
+
+.milestone::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 0;
+  width: 17px;
+  height: 17px;
+  border: 4px solid #f1e7d2;
+  border-radius: 50%;
+  background: #94642d;
+  box-shadow: 0 0 0 1px #94642d;
+}
+
+.milestone time {
+  font: 700 25px Georgia, serif;
+  color: #895a24;
+}
+
+.milestone h3 { font-size: 15px; }
+
+.milestone p {
+  font-size: 13px;
+  color: #5c6b63;
+}
+
+/* =========================
+   TÍNH NĂNG AI
+========================= */
+
+.features {
+  background:
+    radial-gradient(ellipse at 100% 0%, #12604b55, transparent 50%),
+    linear-gradient(145deg, #061f1e, #0b4038 65%, #082b26);
+}
+
+.features .section-heading p { color: #c2d2ca; }
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.feature-card {
+  min-height: 220px;
+  padding: 25px 23px;
+  border: 1px solid #e5bd6638;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #ffffff10, #ffffff04);
+  transition: transform .25s, border-color .25s, background .25s;
+}
+
+.feature-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--gold);
+  background: #ffffff12;
+}
+
+.feature-icon {
+  display: grid;
+  place-items: center;
+  width: 47px;
+  height: 47px;
+  margin-bottom: 21px;
+  border: 1px solid #e5bd6670;
+  border-radius: 12px;
+  color: var(--gold-light);
+  background: #e5bd6610;
+  font-size: 23px;
+}
+
+.feature-card h3 {
+  margin: 0 0 10px;
+  color: var(--gold-light);
+  font: 600 20px Georgia, serif;
+}
+
+.feature-card p {
+  margin: 0;
+  color: #c6d7ce;
+  font-size: 13px;
+}
+
+.feature-card small {
+  display: block;
+  margin-top: 17px;
+  color: #8eb0a0;
+  font-size: 10px;
+  letter-spacing: 1.4px;
+}
+
+/* =========================
+   HƯỚNG DẪN SỬ DỤNG
+========================= */
+
+.how {
+  background: #fffaf0;
+  color: #18372e;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  counter-reset: step;
+}
+
+.step {
+  padding: 24px 0;
+  border-top: 1px solid #d4c5a4;
+  counter-increment: step;
+}
+
+.step::before {
+  content: "0" counter(step);
+  display: block;
+  margin-bottom: 15px;
+  color: #b08b43;
+  font: italic 35px Georgia, serif;
+}
+
+.step h3 {
+  font: 600 21px Georgia, serif;
+}
+
+.step p {
+  color: #63736b;
+  font-size: 14px;
+}
+
+/* =========================
+   LỜI KẾT VÀ CHÂN TRANG
+========================= */
+
+.quote-band {
+  padding: 78px 24px;
+  text-align: center;
+  background:
+    linear-gradient(90deg, #061e1deb, #0b3933e8),
+    url("assets/academy-campus.jpg") center / cover;
+  border-top: 1px solid #e5bd6655;
+}
+
+.quote-band blockquote {
+  max-width: 850px;
+  margin: 0 auto 20px;
+  color: var(--gold-light);
+  font: italic clamp(23px, 3.4vw, 38px)/1.4 Georgia, serif;
+}
+
+.quote-band p {
+  color: #c6d8ce;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 22px;
+  padding: 35px clamp(24px, 8vw, 115px);
+  background: #041b19;
+  border-top: 1px solid #e5bd6635;
+  color: #9fb5aa;
+  font-size: 12px;
+}
+
+.footer strong { color: var(--gold-light); }
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.footer a:hover { color: white; }
+
+/* Hiệu ứng cuộn vào màn hình */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* =========================
+   GIAO DIỆN DI ĐỘNG
+========================= */
+
+@media (max-width: 900px) {
+  .about-grid { grid-template-columns: 1fr; }
+  .photo-frame { max-width: 700px; }
+  .feature-grid { grid-template-columns: repeat(2, 1fr); }
+  .nav { gap: 12px; }
+}
+
+@media (max-width: 680px) {
+  .header { padding: 10px 15px; }
+  .brand img { width: 42px; height: 42px; }
+  .brand strong { font-size: 10px; }
+  .brand small { font-size: 9px; }
+
+  .menu-toggle { display: block; }
+
+  .nav {
+    display: none;
+    position: absolute;
+    top: 68px;
+    left: 12px;
+    right: 12px;
+    padding: 17px;
+    border: 1px solid #e5bd6640;
+    border-radius: 14px;
+    background: #062723f7;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nav.open { display: flex; }
+  .nav a { padding: 8px; }
+
+  .hero {
+    min-height: 94svh;
+    padding: 125px 23px 105px;
+  }
+
+  .hero-background { background-position: 58% center; }
+  .hero h1 { font-size: clamp(37px, 10vw, 55px); }
+  .hero-logo { width: 74px; height: 74px; }
+
+  .section { padding: 75px 22px; }
+  .facts { grid-template-columns: 1fr; }
+
+  .fact {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .timeline {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px 16px;
+  }
+
+  .timeline::before { display: none; }
+
+  .milestone {
+    padding-top: 23px;
+    border-top: 1px solid #b18a3c70;
+  }
+
+  .milestone::before { top: -9px; }
+  .feature-grid, .steps { grid-template-columns: 1fr; }
+  .feature-card { min-height: 0; }
+  .footer { flex-direction: column; align-items: flex-start; }
+  .curtain-title img { width: 70px; height: 70px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .reveal { opacity: 1; transform: none; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- MÀN KÉO RÈM -->
+<div class="curtain" aria-hidden="true">
+  <div class="curtain-panel"></div>
+  <div class="curtain-panel"></div>
+  <div class="curtain-title">
+    <img src="assets/academy-logo.png" alt="">
+    <strong>HỌC VIỆN AN NINH NHÂN DÂN</strong>
+    <span>C500 AI ASSISTANT</span>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="header">
+  <a class="brand" href="#top" aria-label="C500 AI Assistant - Trang chủ">
+    <img src="assets/academy-logo.png" alt="Logo Học viện An ninh Nhân dân">
+    <span>
+      <strong>HỌC VIỆN AN NINH NHÂN DÂN</strong>
+      <small>C500 AI ASSISTANT</small>
+    </span>
+  </a>
+
+  <button class="menu-toggle" id="menuToggle"
+          aria-label="Mở menu" aria-expanded="false">☰</button>
+
+  <nav class="nav" id="siteNav" aria-label="Điều hướng">
+    <a href="#top">Trang chủ</a>
+    <a href="#academy">Về Học viện</a>
+    <a href="#history">Lịch sử</a>
+    <a href="#features">Tính năng AI</a>
+    <a href="#how">Hướng dẫn</a>
+    <a class="nav-button" href="login.html">Bắt đầu ngay →</a>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-background" aria-hidden="true"></div>
+
+    <div class="hero-content">
+      <div class="eyebrow">Tri thức · Kỷ luật · Phụng sự</div>
+
+      <img class="hero-logo"
+           src="assets/academy-logo.png"
+           alt="Logo Học viện An ninh Nhân dân">
+
+      <h1>Trí tuệ vững vàng.<br>
+        <span>Bản lĩnh phụng sự.</span>
+      </h1>
+
+      <p>
+        C500 AI Assistant — trợ lý AI đồng hành trong học tập,
+        tra cứu kiến thức, hệ thống hóa thông tin và quản lý hồ sơ
+        trên một không gian số hiện đại, thuận tiện.
+      </p>
+
+      <div class="hero-actions">
+        <a class="button" href="login.html">
+          ✦ Bắt đầu ngay <span aria-hidden="true">→</span>
+        </a>
+
+        <a class="button-outline" href="#academy">
+          Khám phá Học viện ↓
+        </a>
+      </div>
+
+      <div class="hero-caption">
+        Một không gian học tập số · Tri thức và trách nhiệm
+      </div>
+    </div>
+
+    <a class="scroll-cue" href="#academy">
+      <span>⌄</span>
+      CUỘN XUỐNG ĐỂ KHÁM PHÁ
+    </a>
+  </section>
+
+  <!-- GIỚI THIỆU -->
+  <section class="section about" id="academy">
+    <div class="about-grid">
+
+      <div class="about-copy reveal">
+        <div class="kicker">Về Học viện</div>
+
+        <h2>Học viện An ninh Nhân dân</h2>
+
+        <p>
+          Học viện An ninh Nhân dân là cơ sở đào tạo và nghiên cứu
+          khoa học của lực lượng Công an nhân dân Việt Nam.
+          Truyền thống, tri thức, kỷ luật và tinh thần phụng sự
+          là những giá trị quan trọng của môi trường học tập này.
+        </p>
+
+        <p>
+          C500 AI Assistant hướng tới việc hỗ trợ học viên tiếp cận
+          kiến thức, tổ chức thông tin và sử dụng công cụ số một cách
+          thuận tiện, có trách nhiệm.
+        </p>
+
+        <div class="facts">
+          <div class="fact">
+            <strong>1956</strong>
+            <span>Mốc thành lập thường được ghi nhận</span>
+          </div>
+
+          <div class="fact">
+            <strong>C500</strong>
+            <span>Tên gọi quen thuộc của Học viện</span>
+          </div>
+
+          <div class="fact">
+            <strong>AI</strong>
+            <span>Trợ lý số hỗ trợ học tập</span>
+          </div>
+        </div>
+
+        <a class="official-link"
+           href="https://hvannd.edu.vn/gioi-thieu-chung"
+           target="_blank"
+           rel="noopener noreferrer">
+          Website chính thức của Học viện ↗
+        </a>
+
+        <p style="font-size:12px">
+          Thông tin lịch sử chi tiết cần được đối chiếu với nguồn
+          chính thức của Học viện trước khi công bố.
+        </p>
+      </div>
+
+      <div class="photo-frame reveal">
+        <img src="assets/academy-campus.jpg"
+             alt="Khuôn viên Học viện An ninh Nhân dân"
+             loading="lazy">
+        <div class="photo-caption">
+          Nơi hun đúc tri thức, ý chí và trách nhiệm.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- LỊCH SỬ -->
+  <section class="section history" id="history">
+    <div class="section-heading reveal">
+      <div class="kicker">Truyền thống và phát triển</div>
+      <h2>Dòng chảy lịch sử</h2>
+      <p>
+        Hành trình đào tạo, nghiên cứu và phát triển qua các giai đoạn.
+        Các nội dung dưới đây là khung giới thiệu; hãy bổ sung những
+        mốc chính thức đã được xác minh từ tư liệu của Học viện.
+      </p>
+    </div>
+
+    <div class="timeline">
+      <article class="milestone reveal">
+        <time>1956</time>
+        <h3>Khởi nguồn đào tạo</h3>
+        <p>
+          Mốc thành lập thường được ghi nhận trong các tài liệu
+          giới thiệu lịch sử nhà trường.
+        </p>
+      </article>
+
+      <article class="milestone reveal">
+        <time>Phát triển</time>
+        <h3>Mở rộng đào tạo</h3>
+        <p>
+          Phát triển chương trình, đội ngũ và hoạt động nghiên cứu
+          phục vụ yêu cầu thực tiễn.
+        </p>
+      </article>
+
+      <article class="milestone reveal">
+        <time>Đổi mới</time>
+        <h3>Nâng cao chất lượng</h3>
+        <p>
+          Đổi mới phương pháp dạy và học, gắn kiến thức với thực tiễn.
+        </p>
+      </article>
+
+      <article class="milestone reveal">
+        <time>Hôm nay</time>
+        <h3>Chuyển đổi số</h3>
+        <p>
+          Khai thác công nghệ phù hợp để hỗ trợ học tập và tổ chức thông tin.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- TÍNH NĂNG AI -->
+  <section class="section features" id="features">
+    <div class="section-heading reveal">
+      <div class="kicker">C500 AI Assistant</div>
+      <h2>Một trợ lý. Nhiều cách hỗ trợ.</h2>
+      <p>
+        Không gian hỗ trợ học tập và quản lý thông tin cá nhân.
+        Các tính năng thực tế phụ thuộc vào phiên bản ứng dụng đã triển khai.
+      </p>
+    </div>
+
+    <div class="feature-grid">
+
+      <article class="feature-card reveal">
+        <div class="feature-icon">✧</div>
+        <h3>Trợ lý AI thông minh</h3>
+        <p>
+          Đặt câu hỏi, yêu cầu giải thích và phát triển ý tưởng
+          học tập qua giao diện hội thoại.
+        </p>
+        <small>01 · AI CHAT</small>
+      </article>
+
+      <article class="feature-card reveal">
+        <div class="feature-icon">▤</div>
+        <h3>Tra cứu kiến thức</h3>
+        <p>
+          Hỗ trợ tổng hợp thông tin, hệ thống hóa nội dung
+          và xây dựng dàn ý ôn tập.
+        </p>
+        <small>02 · KNOWLEDGE</small>
+      </article>
+
+      <article class="feature-card reveal">
+        <div class="feature-icon">◉</div>
+        <h3>Hồ sơ cá nhân</h3>
+        <p>
+          Không gian quản lý thông tin và tùy chỉnh trải nghiệm
+          theo tài khoản.
+        </p>
+        <small>03 · PROFILE</small>
+      </article>
+
+      <article class="feature-card reveal">
+        <div class="feature-icon">▣</div>
+        <h3>Lịch sử hội thoại</h3>
+        <p>
+          Hỗ trợ xem lại và tiếp tục các cuộc trò chuyện
+          khi chức năng được bật.
+        </p>
+        <small>04 · CHAT HISTORY</small>
+      </article>
+
+      <article class="feature-card reveal">
+        <div class="feature-icon">⚑</div>
+        <h3>Góp ý và báo cáo</h3>
+        <p>
+          Gửi phản hồi về câu trả lời để hỗ trợ rà soát
+          và cải thiện chất lượng.
+        </p>
+        <small>05 · FEEDBACK</small>
+      </article>
+
+      <article class="feature-card reveal">
+        <div class="feature-icon">♧</div>
+        <h3>Thông báo hệ thống</h3>
+        <p>
+          Cập nhật phản hồi và thông tin liên quan đến tài khoản
+          trong ứng dụng.
+        </p>
+        <small>06 · NOTIFICATIONS</small>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- HƯỚNG DẪN -->
+  <section class="section how" id="how">
+    <div class="section-heading reveal">
+      <div class="kicker">Bắt đầu sử dụng</div>
+      <h2>Ba bước để bắt đầu</h2>
+      <p>
+        Thiết kế dễ sử dụng trên cả máy tính và thiết bị di động.
+      </p>
+    </div>
+
+    <div class="steps">
+      <article class="step reveal">
+        <h3>Đăng nhập hoặc đăng ký</h3>
+        <p>
+          Sử dụng tài khoản được hệ thống hỗ trợ để truy cập
+          không gian cá nhân.
+        </p>
+      </article>
+
+      <article class="step reveal">
+        <h3>Hoàn thiện thiết lập</h3>
+        <p>
+          Kiểm tra hồ sơ và các tùy chọn cần thiết theo hướng dẫn.
+        </p>
+      </article>
+
+      <article class="step reveal">
+        <h3>Khám phá trợ lý AI</h3>
+        <p>
+          Đặt câu hỏi rõ ràng, kiểm tra thông tin quan trọng
+          và gửi phản hồi khi cần.
+        </p>
+      </article>
+    </div>
+
+    <div class="reveal" style="margin-top:30px">
+      <a class="button" href="login.html">
+        Vào C500 AI Assistant →
+      </a>
+    </div>
+  </section>
+
+  <!-- LỜI KẾT -->
+  <section class="quote-band">
+    <blockquote>
+      “Tri thức là nền tảng. Bản lĩnh là hành trang.
+      Trách nhiệm là đích đến.”
+    </blockquote>
+    <p>C500 AI Assistant · Không gian học tập số</p>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div>
+    <strong>C500 AI ASSISTANT</strong><br>
+    Giao diện giới thiệu · Học viện An ninh Nhân dân
+  </div>
+
+  <div class="footer-links">
+    <a href="#top">Lên đầu trang ↑</a>
+    <a href="#features">Tính năng</a>
+    <a href="https://hvannd.edu.vn/gioi-thieu-chung"
+       target="_blank" rel="noopener noreferrer">
+      Website Học viện ↗
+    </a>
+    <a href="login.html">Đăng nhập</a>
+  </div>
+
+  <div>© <span id="currentYear"></span> · C500 AI Assistant</div>
+</footer>
+
+<script>
+(() => {
+  "use strict";
+
+  // Menu điều hướng trên điện thoại
+  const toggle = document.getElementById("menuToggle");
+  const nav = document.getElementById("siteNav");
+
+  toggle.addEventListener("click", () => {
+    const isOpen = nav.classList.toggle("open");
+    toggle.setAttribute("aria-expanded", String(isOpen));
+    toggle.setAttribute("aria-label", isOpen ? "Đóng menu" : "Mở menu");
+    toggle.textContent = isOpen ? "×" : "☰";
+  });
+
+  nav.querySelectorAll("a").forEach(link => {
+    link.addEventListener("click", () => {
+      nav.classList.remove("open");
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.textContent = "☰";
+    });
+  });
+
+  // Năm hiện tại ở chân trang
+  document.getElementById("currentYear").textContent =
+    new Date().getFullYear();
+
+  // Hiệu ứng xuất hiện khi cuộn tới từng phần
+  const revealItems = document.querySelectorAll(".reveal");
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  ).matches;
+
+  if ("IntersectionObserver" in window && !reduceMotion) {
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    revealItems.forEach(item => observer.observe(item));
+  } else {
+    revealItems.forEach(item => item.classList.add("visible"));
+  }
+})();
+</script>
+
+</body>
+</html>

@@ -1,4 +1,3 @@
-
 /* C500 3D avatar preview — procedural Asian student character.
    Uses Three.js. Illustrative model, not an official uniform model. */
 (function () {

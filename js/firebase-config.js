@@ -1,3 +1,16 @@
+
+/**
+ * C500 AI Assistant — Firebase Configuration
+ *
+ * Lưu ý bảo mật:
+ * - Không lưu mật khẩu quản trị trong mã nguồn.
+ * - Không tự động tạo tài khoản quản trị từ trình duyệt.
+ * - Phân quyền thực tế phải được thực thi bằng Firestore Security Rules
+ *   hoặc backend đáng tin cậy, không chỉ bằng kiểm tra ở giao diện.
+ */
+
+// ==================== FIREBASE CONFIGURATION ====================
+
 const firebaseConfig = {
     apiKey: "AIzaSyDWeQWEjKh9zXyJhbHRZNe4MH-nEao87mU",
     authDomain: "c500-ai-assistant.firebaseapp.com",
@@ -8,23 +21,41 @@ const firebaseConfig = {
     appId: "1:1073706440068:web:925e386e20f2acc2aab9d1"
 };
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-const MANAGEMENT_EMAIL = "nguyenduongbaominh2006@gmail.com";
-const ADMIN_DEFAULT_PASSWORD = "minh2302";
+// ==================== INITIALIZE FIREBASE ====================
 
-auth.fetchSignInMethodsForEmail(MANAGEMENT_EMAIL).then(async (methods) => {
-    if (methods.length === 0) {
-        try {
-            await auth.createUserWithEmailAndPassword(MANAGEMENT_EMAIL, ADMIN_DEFAULT_PASSWORD);
-            await db.collection('users').doc("admin_system_id").set({
-                fullName: "Quản trị viên C500",
-                studentClass: "Ban Quản Trị",
-                major: "Quản lý An ninh mạng",
-                dob: "01/01/2006",
-                email: MANAGEMENT_EMAIL
-            });
-        } catch(e) {}
-    }
-}).catch(err => {});
+// Tránh khởi tạo lại ứng dụng nếu Firebase đã được khởi tạo.
+if (typeof firebase === "undefined") {
+    throw new Error(
+        "Firebase SDK chưa được tải. Hãy kiểm tra các thẻ script Firebase trong HTML."
+    );
+}
+
+const firebaseApp = firebase.apps.length > 0
+    ? firebase.app()
+    : firebase.initializeApp(firebaseConfig);
+
+// Các biến này được sử dụng bởi login.html, setup.html,
+// index.html và những trang khác trong dự án.
+const auth = firebaseApp.auth();
+const db = firebaseApp.firestore();
+
+// Email quản trị dùng cho điều hướng giao diện hiện tại.
+// Đây KHÔNG phải cơ chế xác thực quyền quản trị ở phía máy chủ.
+const MANAGEMENT_EMAIL = "nguyenduongbaominh2006@gmail.com";
+
+// ==================== CONFIGURATION CHECK ====================
+
+if (
+    !firebaseConfig.projectId ||
+    !firebaseConfig.authDomain ||
+    !firebaseConfig.apiKey
+) {
+    throw new Error(
+        "Cấu hình Firebase chưa đầy đủ. Hãy kiểm tra firebase-config.js."
+    );
+}
+
+// Không đặt mật khẩu quản trị trong file này.
+// Không tự động tạo tài khoản quản trị.
+// Không tự động ghi hồ sơ quản trị vào Firestore.
+// Không bỏ qua lỗi xác thực hoặc lỗi cơ sở dữ liệu một cách im lặng.

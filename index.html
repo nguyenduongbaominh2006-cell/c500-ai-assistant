@@ -3,941 +3,969 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
-    <meta name="referrer" content="no-referrer">
-    <title>C500 AI Assistant</title>
-
+    <title>C500 Security Hub - Trợ lý AI</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-functions-compat.js"></script>
+    
+    <!-- Marked.js cho Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-
     <style>
-        :root { color-scheme: dark; }
-        * { box-sizing: border-box; }
-        body {
-            font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-            background: #020617;
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.2); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(22, 163, 74, 0.4); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(22, 163, 74, 0.7); }
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        
+        .mobile-device-container {
+            max-width: 420px !important;
+            height: 88vh !important;
+            border: 14px solid #0f172a;
+            border-radius: 40px;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+            margin: auto;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
-        .scrollbar-thin { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
-        .message-content { overflow-wrap: anywhere; }
-        .message-content p { margin: .35rem 0 .8rem; }
-        .message-content p:last-child { margin-bottom: 0; }
-        .message-content h1, .message-content h2, .message-content h3 {
-            font-weight: 700; margin: 1rem 0 .5rem;
+        
+        @keyframes floatModel {
+            0%, 100% { transform: translateY(0px) rotateY(0deg); }
+            50% { transform: translateY(-8px) rotateY(5deg); }
         }
-        .message-content h1 { font-size: 1.2rem; }
-        .message-content h2 { font-size: 1.1rem; }
-        .message-content h3 { font-size: 1rem; }
-        .message-content ul, .message-content ol {
-            padding-left: 1.5rem; margin: .6rem 0;
-        }
-        .message-content ul { list-style: disc; }
-        .message-content ol { list-style: decimal; }
-        .message-content blockquote {
-            border-left: 3px solid #10b981;
-            padding-left: .8rem; color: #cbd5e1; margin: .7rem 0;
-        }
-        .message-content pre {
-            background: #020617; padding: 1rem; border-radius: .7rem;
-            overflow-x: auto; margin: .7rem 0; white-space: pre;
-        }
-        .message-content code {
-            font-family: ui-monospace, monospace;
-            background: rgba(2,6,23,.7); border-radius: 4px;
-            padding: .12rem .25rem; font-size: .9em;
-        }
-        .message-content pre code { background: transparent; padding: 0; }
-        .message-content a { color: #6ee7b7; text-decoration: underline; }
-        .message-content table {
-            display: block; overflow-x: auto; border-collapse: collapse;
-            max-width: 100%; margin: .8rem 0;
-        }
-        .message-content th, .message-content td {
-            border: 1px solid #334155; padding: .45rem .65rem;
-        }
-        .history-item {
-            display: flex; align-items: center; gap: .6rem;
-            width: 100%; text-align: left; border-radius: .7rem;
-            padding: .7rem .75rem; font-size: .8rem;
-            color: #cbd5e1; transition: background .15s;
-        }
-        .history-item:hover { background: #1e293b; }
-        .history-item.active {
-            background: #064e3b; color: #a7f3d0;
-            border: 1px solid rgba(16,185,129,.3);
-        }
-        .history-title {
-            min-width: 0; flex: 1; overflow: hidden;
-            text-overflow: ellipsis; white-space: nowrap;
-        }
-        #chat-input { resize: none; max-height: 180px; }
-        .safe-link { color: #6ee7b7; }
-        @media (max-width: 767px) {
-            #sidebar {
-                position: fixed; z-index: 40; inset: 0 auto 0 0;
-                width: min(86vw, 320px);
-                transform: translateX(-105%);
-                transition: transform .2s ease;
-                box-shadow: 15px 0 50px rgba(0,0,0,.4);
-            }
-            #sidebar.mobile-open { transform: translateX(0); }
-            #sidebar-backdrop.visible {
-                display: block;
-                position: fixed; inset: 0; z-index: 30;
-                background: rgba(0,0,0,.65);
-            }
-        }
+        .model-3d-preview { animation: floatModel 4s ease-in-out infinite; }
     </style>
 </head>
+<body class="h-full bg-slate-950 dark:bg-slate-950 text-slate-100 font-sans antialiased overflow-hidden flex flex-col relative selection:bg-emerald-500 selection:text-slate-950 transition-colors duration-300" id="body-root">
 
-<body class="h-full text-slate-100 overflow-hidden">
-<div id="app-loading"
-     class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6">
-    <div class="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-    <p class="text-sm text-slate-300 mt-5">Đang khởi tạo C500 AI Assistant...</p>
-    <p id="loading-detail" class="text-xs text-slate-500 mt-2 text-center">
-        Đang xác minh phiên đăng nhập
-    </p>
-</div>
+    <!-- LOADER BAN ĐẦU -->
+    <div id="app-loading" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center space-y-4">
+        <div class="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-xs text-slate-400 font-medium">Đang khởi tạo hệ thống định danh C500...</p>
+    </div>
 
-<div id="sidebar-backdrop" class="hidden" aria-hidden="true"></div>
+    <!-- HIỆU ỨNG NỀN ÁNH SÁNG AN NINH -->
+    <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-emerald-600/15 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-green-700/15 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+    </div>
 
-<div id="main-app" class="h-full flex hidden">
-    <!-- Sidebar -->
-    <aside id="sidebar"
-           class="w-72 shrink-0 bg-slate-900 border-r border-slate-800 flex flex-col h-full">
-        <div class="p-4 border-b border-slate-800 flex items-center justify-between gap-3">
-            <div class="flex items-center gap-3 min-w-0">
-                <div class="w-10 h-10 shrink-0 rounded-xl bg-emerald-950
-                            border border-amber-500/50 flex items-center justify-center">
-                    <span class="font-extrabold text-amber-300">C5</span>
-                </div>
-                <div class="min-w-0">
-                    <h1 class="font-bold text-sm text-emerald-300">C500 AI Assistant</h1>
-                    <p class="text-[10px] text-slate-500">Security Hub</p>
-                </div>
+    <!-- 1. MÀN HÌNH ĐĂNG NHẬP (LOGIN SCREEN) -->
+    <div id="login-screen" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-2xl hidden">
+        <div class="bg-slate-900/90 border border-emerald-500/40 rounded-3xl max-w-md w-full p-8 shadow-2xl relative overflow-hidden fade-in">
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
+            <div class="w-20 h-20 bg-gradient-to-tr from-emerald-800 to-emerald-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30 mb-5 text-yellow-400 text-3xl border border-yellow-500/50">
+                <i class="fa-solid fa-shield-halved"></i>
             </div>
-            <button id="close-sidebar" type="button"
-                    class="md:hidden p-2 text-slate-400 hover:text-white"
-                    aria-label="Đóng thanh bên">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-
-        <div class="p-3 space-y-2">
-            <button id="new-chat-btn" type="button"
-                    class="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500
-                           px-4 py-3 text-sm font-bold text-white text-left">
-                <i class="fa-solid fa-plus mr-2"></i>Cuộc trò chuyện mới
-            </button>
-
-            <a href="setup.html"
-               class="block rounded-xl border border-slate-700 bg-slate-800
-                      hover:bg-slate-700 px-4 py-3 text-sm text-slate-200">
-                <i class="fa-solid fa-sliders mr-2 text-amber-400"></i>
-                Cấu hình trợ lý AI
-            </a>
-
-            <a id="admin-link" href="admin.html"
-               class="hidden rounded-xl border border-amber-700/50 bg-amber-950/40
-                      hover:bg-amber-950 px-4 py-3 text-sm text-amber-300">
-                <i class="fa-solid fa-gauge-high mr-2"></i>Dashboard quản trị
-            </a>
-        </div>
-
-        <div class="px-4 pt-2 pb-2 flex items-center justify-between">
-            <span class="text-[10px] uppercase tracking-[.18em] text-slate-500 font-bold">
-                Lịch sử hội thoại
-            </span>
-            <span id="history-count" class="text-[10px] text-slate-500">0</span>
-        </div>
-
-        <nav id="chat-history-list"
-             class="flex-1 min-h-0 overflow-y-auto scrollbar-thin px-3 pb-3 space-y-1"
-             aria-label="Lịch sử hội thoại"></nav>
-
-        <div class="p-4 border-t border-slate-800 bg-slate-950/50">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-emerald-950 border
-                            border-emerald-700 flex items-center justify-center shrink-0">
-                    <i class="fa-solid fa-user text-emerald-300"></i>
+            <h1 class="text-2xl font-extrabold text-white mb-1 tracking-wide text-center">Đăng Nhập Hệ Thống C500</h1>
+            <p class="text-xs text-slate-300 mb-6 text-center leading-relaxed">Nhập Gmail và mật khẩu định danh của đồng chí để tiếp tục.</p>
+            
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Gmail</label>
+                    <input type="email" id="login-email" placeholder="example@gmail.com" required
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
                 </div>
-                <div class="min-w-0 flex-1">
-                    <p id="user-name" class="text-sm font-semibold truncate">Người dùng</p>
-                    <p id="user-email" class="text-[11px] text-slate-500 truncate"></p>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Mật khẩu</label>
+                    <input type="password" id="login-password" placeholder="••••••••" required
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
                 </div>
-                <button id="logout-btn" type="button"
-                        class="p-2 text-slate-400 hover:text-red-300"
-                        title="Đăng xuất" aria-label="Đăng xuất">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                </button>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider transition shadow-lg mt-2">Đăng Nhập</button>
+            </form>
+
+            <div class="mt-6 text-center border-t border-slate-800 pt-4">
+                <p class="text-xs text-slate-400">Chưa có tài khoản định danh?</p>
+                <button onclick="showRegisterScreen()" class="mt-2 text-emerald-400 hover:text-emerald-300 text-xs font-bold underline cursor-pointer">Bấm vào đây để tạo tài khoản mới</button>
             </div>
         </div>
-    </aside>
+    </div>
 
-    <!-- Main chat -->
-    <main class="flex-1 min-w-0 flex flex-col h-full relative">
-        <header class="min-h-16 shrink-0 border-b border-slate-800
-                       bg-slate-900/80 flex items-center justify-between gap-3 px-3 sm:px-6">
-            <div class="flex items-center gap-3 min-w-0">
-                <button id="open-sidebar" type="button"
-                        class="md:hidden p-2 rounded-lg text-slate-300 hover:bg-slate-800"
-                        aria-label="Mở lịch sử hội thoại">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
-                <div class="min-w-0">
-                    <h2 id="ai-nickname-header"
-                        class="text-sm sm:text-base font-bold truncate">Trợ lý AI C500</h2>
-                    <p class="text-[10px] text-slate-500 mt-1">
-                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1"></span>
-                        Trợ lý cá nhân
-                    </p>
-                </div>
+    <!-- 2. MÀN HÌNH TẠO TÀI KHOẢN MỚI (FORM ĐĂNG KÝ RIÊNG BIỆT) -->
+    <div id="register-screen" class="fixed inset-0 z-40 bg-slate-950/95 backdrop-blur-2xl flex items-center justify-center p-4 overflow-y-auto hidden">
+        <div class="bg-slate-900/90 border border-emerald-500/40 rounded-3xl max-w-md w-full p-8 shadow-2xl relative overflow-hidden fade-in my-auto">
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
+            <div class="text-center mb-6">
+                <span class="px-3 py-1 bg-emerald-950 border border-emerald-700/60 text-emerald-300 rounded-full text-[11px] font-bold uppercase tracking-wider">Đăng ký định danh</span>
+                <h2 class="text-xl font-extrabold text-yellow-400 mt-2 tracking-wide">Tạo Tài Khoản Sĩ Quan C500</h2>
+                <p class="text-xs text-slate-300 mt-1">Điền đầy đủ thông tin hồ sơ học tập bên dưới.</p>
             </div>
 
-            <button id="header-new-chat" type="button"
-                    class="shrink-0 border border-slate-700 bg-slate-800
-                           hover:bg-slate-700 rounded-xl px-3 py-2 text-xs
-                           font-semibold text-emerald-300">
-                <i class="fa-solid fa-plus sm:mr-1"></i>
-                <span class="hidden sm:inline">Chat mới</span>
-            </button>
-        </header>
-
-        <div id="app-status" role="status" aria-live="polite"
-             class="hidden mx-3 sm:mx-6 mt-3 rounded-xl border p-3 text-sm break-words"></div>
-
-        <section id="chat-messages"
-                 class="flex-1 min-h-0 overflow-y-auto scrollbar-thin px-3 sm:px-6 py-6"
-                 aria-label="Tin nhắn">
-        </section>
-
-        <div class="shrink-0 border-t border-slate-800 bg-slate-900/60 p-3 sm:p-5">
-            <form id="chat-form" class="max-w-4xl mx-auto">
-                <div class="flex items-end gap-2 sm:gap-3 rounded-2xl
-                            border border-slate-700 bg-slate-900 p-2
-                            focus-within:border-emerald-600 transition">
-                    <textarea id="chat-input" rows="1" maxlength="12000"
-                              class="flex-1 min-w-0 bg-transparent text-sm text-white
-                                     placeholder:text-slate-500 px-3 py-2.5 outline-none"
-                              placeholder="Nhập câu hỏi của bạn..."
-                              aria-label="Tin nhắn của bạn"></textarea>
-
-                    <button id="send-btn" type="submit"
-                            class="shrink-0 w-11 h-11 rounded-xl bg-emerald-600
-                                   hover:bg-emerald-500 text-white flex items-center
-                                   justify-center transition"
-                            aria-label="Gửi tin nhắn">
-                        <i class="fa-solid fa-paper-plane"></i>
-                    </button>
+            <form id="register-form" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Họ và tên đầy đủ</label>
+                    <input type="text" id="reg-fullname" placeholder="Ví dụ: Nguyễn Văn A" required
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
                 </div>
-                <div class="flex flex-wrap justify-between gap-2 mt-2 px-1">
-                    <p class="text-[10px] text-slate-500">
-                        Không gửi mật khẩu hoặc dữ liệu nhạy cảm vào cuộc trò chuyện.
-                    </p>
-                    <p class="text-[10px] text-slate-600">
-                        AI có thể trả lời chưa chính xác.
-                    </p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Lớp học</label>
+                        <input type="text" id="reg-class" placeholder="Ví dụ: B1D48" required
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Chuyên ngành</label>
+                        <input type="text" id="reg-major" placeholder="Ví dụ: Quản lý nhà nước" required
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Ngày tháng năm sinh</label>
+                    <input type="text" id="reg-dob" placeholder="Ví dụ: 15/08/2006" required
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Gmail cá nhân</label>
+                    <input type="email" id="reg-email" placeholder="example@gmail.com" required
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Mật khẩu</label>
+                    <input type="password" id="reg-password" placeholder="••••••••" required minlength="6"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="pt-2 flex space-x-3">
+                    <button type="button" onclick="showLoginScreen()" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs uppercase transition">Quay lại</button>
+                    <button type="submit" class="flex-1 bg-gradient-to-r from-emerald-700 to-green-600 hover:from-emerald-600 hover:to-green-500 text-white font-bold py-3 rounded-xl shadow-lg transition uppercase tracking-wider text-xs">Đăng Ký Ngay</button>
                 </div>
             </form>
         </div>
-    </main>
-</div>
-    
-<script src="js/firebase-config.js"></script>
-<script src="js/security-filter.js"></script>
-<script src="js/chat-client.js"></script>
-<script>
-(() => {
-    "use strict";
+    </div>
 
-    const $ = id => document.getElementById(id);
+    <!-- 3. MÀN HÌNH NHẬP GEMINI API KEY CÁ NHÂN -->
+    <div id="api-key-screen" class="fixed inset-0 z-40 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto hidden">
+        <div class="bg-slate-900/95 border border-emerald-500/40 rounded-3xl max-w-md w-full p-8 shadow-2xl relative fade-in">
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
+            <div class="text-center mb-6">
+                <span class="px-3 py-1 bg-emerald-950 border border-emerald-700/60 text-emerald-300 rounded-full text-[11px] font-bold uppercase tracking-wider">Cấu hình API Key cá nhân</span>
+                <h2 class="text-xl font-extrabold text-yellow-400 mt-2 tracking-wide">Nhập Google Gemini API Key</h2>
+                <p class="text-xs text-slate-300 mt-1">Mỗi sinh viên sử dụng API Key riêng của mình để chatbot hoạt động ổn định và không bị quá tải hệ thống chung.</p>
+            </div>
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Gemini API Key của bạn</label>
+                    <input type="password" id="user-gemini-apikey" placeholder="Dán API Key (AIzaSy...)" required
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    <p class="text-[11px] text-slate-400 mt-2">Chưa có key? Lấy miễn phí tại <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-emerald-400 underline font-semibold">Google AI Studio</a>.</p>
+                </div>
+            </div>
+            <button onclick="saveUserApiKey()" class="w-full bg-gradient-to-r from-emerald-700 to-green-600 hover:from-emerald-600 hover:to-green-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition uppercase tracking-wider text-xs flex items-center justify-center space-x-2">
+                <span>Xác nhận & Tiếp tục</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
 
-    let currentUser = null;
-    let aiConfig = {};
-    let chats = [];
-    let currentChatId = null;
-    let isGenerating = false;
-    let authReady = false;
-    let authHandling = false;
+    <!-- 4. QUY TRÌNH TÙY CHỈNH AI 3D (BƯỚC 3 & 4) -->
+    <div id="setup-wizard-screen" class="fixed inset-0 z-40 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto hidden">
+        <div class="bg-slate-900/95 border border-emerald-500/40 rounded-3xl max-w-lg w-full p-8 shadow-2xl relative fade-in">
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
+            
+            <div class="text-center mb-6">
+                <span id="wizard-step-indicator" class="px-3 py-1 bg-emerald-950 border border-emerald-700/60 text-emerald-300 rounded-full text-[11px] font-bold uppercase tracking-wider">Bước 1 / 2</span>
+                <h2 id="wizard-title" class="text-2xl font-extrabold text-yellow-400 mt-2 tracking-wide">Tùy Chỉnh Hình Thể 3D & Sắc Phục</h2>
+                <p id="wizard-desc" class="text-xs text-slate-300 mt-1">Thiết kế màu tóc, trang phục và mũ trên mô hình nhân vật đang xoay.</p>
+            </div>
 
-    const loading = $("app-loading");
-    const loadingDetail = $("loading-detail");
-    const app = $("main-app");
-    const messagesContainer = $("chat-messages");
-    const input = $("chat-input");
-    const sendButton = $("send-btn");
-    const statusBox = $("app-status");
-    const sidebar = $("sidebar");
-    const backdrop = $("sidebar-backdrop");
+            <div id="wizard-step-content" class="space-y-4 mb-6"></div>
 
-    const adminEmail =
-        typeof MANAGEMENT_EMAIL !== "undefined"
-            ? String(MANAGEMENT_EMAIL).trim().toLowerCase()
-            : "";
+            <button id="wizard-next-btn" onclick="nextWizardStep()" class="w-full bg-gradient-to-r from-emerald-700 to-green-600 hover:from-emerald-600 hover:to-green-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition uppercase tracking-wider text-xs flex items-center justify-center space-x-2">
+                <span>Tiếp tục</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
 
-    function showStatus(message, type = "info") {
-        statusBox.classList.remove("hidden");
-        statusBox.className = "mx-3 sm:mx-6 mt-3 rounded-xl border p-3 text-sm break-words " +
-            (type === "error"
-                ? "border-red-800 bg-red-950 text-red-200"
-                : type === "success"
-                ? "border-emerald-800 bg-emerald-950 text-emerald-200"
-                : "border-sky-800 bg-sky-950 text-sky-200");
-        statusBox.textContent = message;
-    }
+    <!-- 5. GIAO DIỆN CHÍNH (APP & DASHBOARD) -->
+    <div id="main-app" class="flex-1 flex overflow-hidden hidden z-10 transition-all duration-300">
+        
+        <aside id="app-sidebar" class="w-72 bg-slate-900/95 dark:bg-slate-900/95 border-r border-slate-800 flex flex-col backdrop-blur-md transition-all">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-900 border border-yellow-500 flex items-center justify-center text-yellow-400 font-bold text-xs">C5</div>
+                    <span class="font-bold text-sm text-emerald-400 tracking-tight">C500 Security Hub</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <button onclick="restartWizard()" title="Cấu hình lại AI" class="text-slate-400 hover:text-emerald-400 p-2 rounded-lg hover:bg-slate-800 transition"><i class="fa-solid fa-wand-magic-sparkles text-sm"></i></button>
+                    <button onclick="logout()" title="Đăng xuất" class="text-slate-400 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800 transition"><i class="fa-solid fa-power-off text-sm"></i></button>
+                </div>
+            </div>
 
-    function hideStatus() {
-        statusBox.classList.add("hidden");
-        statusBox.textContent = "";
-    }
+            <div class="p-3 bg-slate-950/40 border-b border-slate-800 space-y-2">
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="toggleTheme()" id="theme-toggle-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl py-2 px-2 text-[11px] font-semibold flex items-center justify-center space-x-1.5 transition">
+                        <i class="fa-solid fa-moon text-yellow-400" id="theme-icon"></i>
+                        <span id="theme-text">Giao diện Tối</span>
+                    </button>
+                    <button onclick="toggleDeviceMode()" id="device-mode-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl py-2 px-2 text-[11px] font-semibold flex items-center justify-center space-x-1.5 transition">
+                        <i class="fa-solid fa-desktop text-emerald-400" id="device-icon"></i>
+                        <span id="device-text">Máy Tính</span>
+                    </button>
+                </div>
+            </div>
 
-    function getErrorMessage(error) {
-        const code = error && error.code ? error.code : "unknown";
-        const map = {
-            "permission-denied": "Firebase từ chối quyền truy cập. Hãy kiểm tra Firestore Security Rules.",
-            "unauthenticated": "Phiên đăng nhập không hợp lệ. Hãy đăng nhập lại.",
-            "unavailable": "Firebase tạm thời không khả dụng. Kiểm tra kết nối mạng.",
-            "network-request-failed": "Không có kết nối mạng hoặc yêu cầu đã bị chặn.",
-            "resource-exhausted": "Đã vượt hạn mức sử dụng dịch vụ.",
-            "failed-precondition": "Điều kiện truy vấn Firestore chưa đáp ứng."
+            <div class="p-3 space-y-2">
+                <button onclick="switchView('chat')" class="w-full bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/50 text-emerald-200 rounded-xl py-2.5 px-4 text-xs font-semibold flex items-center space-x-2.5 transition shadow-sm">
+                    <i class="fa-solid fa-comments text-emerald-400"></i><span>Trợ lý AI C500</span>
+                </button>
+                <button onclick="openProfileModal()" class="w-full bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-slate-200 rounded-xl py-2.5 px-4 text-xs font-semibold flex items-center space-x-2.5 transition">
+                    <i class="fa-solid fa-id-card text-emerald-400"></i><span>Hồ sơ của bạn</span>
+                </button>
+                <button id="admin-nav-btn" onclick="switchView('admin')" class="w-full bg-slate-800/80 hover:bg-slate-800 border border-amber-600/50 text-amber-400 rounded-xl py-2.5 px-4 text-xs font-semibold flex items-center space-x-2.5 transition hidden shadow-sm">
+                    <i class="fa-solid fa-gauge-high"></i><span>Dashboard Quản Lý Web</span>
+                </button>
+            </div>
+
+            <div id="chat-sidebar-section" class="flex-1 flex flex-col overflow-hidden px-3">
+                <button onclick="startNewChat()" class="w-full bg-slate-800/50 hover:bg-slate-800 text-slate-300 rounded-xl py-2.5 px-3 text-xs flex items-center justify-center space-x-2 border border-slate-700/60 transition mb-3">
+                    <i class="fa-solid fa-plus text-emerald-400"></i><span>Cuộc trò chuyện mới</span>
+                </button>
+                <div id="chat-history-list" class="flex-1 overflow-y-auto space-y-1.5 text-xs custom-scrollbar pr-1"></div>
+            </div>
+
+            <div class="p-3 border-t border-slate-800 flex items-center space-x-3 bg-slate-950/40">
+                <div class="w-9 h-9 rounded-full bg-emerald-900 border border-emerald-500/50 flex items-center justify-center text-emerald-300 font-bold text-xs"><i class="fa-solid fa-user"></i></div>
+                <div class="overflow-hidden flex-1">
+                    <h4 class="text-xs font-bold text-white truncate" id="user-name">User</h4>
+                    <p class="text-[10px] text-slate-400 truncate" id="user-email">email@gmail.com</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- KHUNG CHAT CHÍNH -->
+        <main id="chat-view" class="flex-1 flex flex-col bg-slate-950/60 backdrop-blur relative">
+            <header class="h-16 border-b border-slate-800/80 px-6 flex items-center justify-between bg-slate-900/40 backdrop-blur">
+                <div class="flex items-center space-x-3">
+                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <h3 class="text-sm font-semibold text-slate-200" id="current-chat-header-title">Trợ Lý Pháp Luật & Quy Chế C500</h3>
+                </div>
+                <div class="text-[11px] text-emerald-300 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-800/60 flex items-center space-x-1.5">
+                    <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                    <span id="header-ai-nickname-badge">Biệt danh: Sĩ quan AI</span>
+                </div>
+            </header>
+
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar"></div>
+
+            <div class="p-4 border-t border-slate-800/80 bg-slate-900/30 backdrop-blur">
+                <form id="chat-form" class="max-w-4xl mx-auto flex items-center space-x-3">
+                    <input type="text" id="user-input" placeholder="Hỏi về quy chế, pháp luật, bài tập hoặc thông tin học tập C500..." autocomplete="off"
+                        class="flex-1 bg-slate-900/90 border border-slate-700/80 rounded-2xl px-5 py-3.5 text-sm text-white focus:outline-none focus:border-emerald-500 transition shadow-inner">
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3.5 rounded-2xl font-bold transition shadow-lg shadow-emerald-600/20 flex items-center justify-center">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </main>
+
+        <!-- DASHBOARD QUẢN LÝ WEB -->
+        <main id="admin-view" class="flex-1 flex flex-col bg-slate-950/90 p-8 overflow-y-auto custom-scrollbar hidden">
+            <div class="max-w-5xl w-full mx-auto space-y-6">
+                <div>
+                    <h2 class="text-xl font-bold text-amber-400"><i class="fa-solid fa-gauge-high mr-2"></i>Dashboard Quản Lý Web Hệ Thống C500</h2>
+                    <p class="text-xs text-slate-400 mt-1">Giám sát tài khoản định danh sinh viên, quản lý từ khóa kiểm duyệt an ninh tự động & theo dõi nhật ký vi phạm vĩnh viễn.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow">
+                        <span class="text-xs text-slate-400 font-medium">Tổng sinh viên truy cập</span>
+                        <h3 id="stat-users-count" class="text-3xl font-extrabold text-emerald-400 mt-2">0</h3>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow">
+                        <span class="text-xs text-slate-400 font-medium">Từ khóa kiểm duyệt đang bật</span>
+                        <h3 id="stat-keywords-count" class="text-3xl font-extrabold text-amber-400 mt-2">0</h3>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow">
+                        <span class="text-xs text-slate-400 font-medium">Số lượt vi phạm bị từ chối</span>
+                        <h3 id="stat-violations-count" class="text-3xl font-extrabold text-red-400 mt-2">0</h3>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow">
+                    <h3 class="text-sm font-bold text-emerald-400 mb-2"><i class="fa-solid fa-filter mr-1.5"></i> Thêm từ khóa nghiệp vụ hoặc chủ đề biểu tình cần chặn</h3>
+                    <form id="add-keyword-form" class="flex space-x-3 mt-3">
+                        <input type="text" id="new-keyword" placeholder="Ví dụ: biểu tình 2018, formosa, bạo loạn..." required
+                            class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white px-6 py-3 rounded-xl text-xs font-bold transition shadow">Thêm từ khóa</button>
+                    </form>
+                    <div id="keywords-list" class="flex flex-wrap gap-2 mt-4"></div>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow">
+                    <h3 class="text-sm font-bold text-red-400 mb-3"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Nhật ký vi phạm từ khóa an ninh & biểu tình</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="border-b border-slate-800 text-slate-400 uppercase tracking-wider">
+                                <tr>
+                                    <th class="py-3 px-3">Thời gian</th>
+                                    <th class="py-3 px-3">Tài khoản User</th>
+                                    <th class="py-3 px-3">Từ khóa phát hiện</th>
+                                    <th class="py-3 px-3">Nội dung câu hỏi gốc</th>
+                                </tr>
+                            </thead>
+                            <tbody id="violation-logs-table" class="divide-y divide-slate-800/60"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- HỒ SƠ NGƯỜI DÙNG -->
+    <div id="profile-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
+        <section class="w-full max-w-lg bg-slate-900 border border-emerald-700/60 rounded-2xl shadow-2xl p-6 my-auto">
+            <div class="flex items-center justify-between mb-5">
+                <div><h2 class="text-lg font-extrabold text-emerald-300"><i class="fa-solid fa-id-card mr-2"></i>Hồ sơ của bạn</h2><p class="text-xs text-slate-400 mt-1">Thông tin hồ sơ cá nhân</p></div>
+                <button type="button" onclick="closeProfileModal()" class="p-2 text-slate-400 hover:text-white" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="profile-form" class="space-y-4">
+                <div><label class="block text-xs text-emerald-300 mb-1">Họ và tên</label><input id="profile-fullname" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm" /></div>
+                <div><label class="block text-xs text-emerald-300 mb-1">Tên hiển thị / tên người dùng</label><input id="profile-username" placeholder="Tên bạn muốn hiển thị" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm" /></div>
+                <div><label class="block text-xs text-emerald-300 mb-1">Địa chỉ email</label><input id="profile-email" type="email" readonly class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-slate-400" /><p class="text-[10px] text-slate-500 mt-1">Email đăng nhập được hiển thị ở chế độ chỉ đọc.</p></div>
+                <div><label class="block text-xs text-emerald-300 mb-1">Địa chỉ</label><input id="profile-address" placeholder="Địa chỉ (không bắt buộc)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm" /></div>
+                <div><label class="block text-xs text-emerald-300 mb-1">Số điện thoại <span class="text-slate-500 normal-case">(không bắt buộc)</span></label><input id="profile-phone" type="tel" autocomplete="tel" placeholder="Ví dụ: 09xxxxxxxx" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm" /></div>
+                <div class="grid grid-cols-2 gap-3"><div><label class="block text-xs text-emerald-300 mb-1">Ngày sinh</label><input id="profile-dob" type="date" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm" /></div><div><label class="block text-xs text-emerald-300 mb-1">Quốc tịch</label><select id="profile-nationality" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm"><option value="Việt Nam">Việt Nam</option><option value="Trung Quốc">Trung Quốc</option><option value="Cuba">Cuba</option><option value="Lào">Lào</option></select></div></div>
+                <p id="profile-message" class="hidden text-xs rounded-lg p-3"></p>
+                <div class="flex gap-3"><button type="button" onclick="closeProfileModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 rounded-xl py-3 text-sm">Đóng</button><button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-500 rounded-xl py-3 text-sm font-bold">Lưu hồ sơ</button></div>
+            </form>
+        </section>
+    </div>
+
+    <!-- WIDGET NHÂN VẬT AN NINH HOẠT HỌA AI -->
+    <div id="ai-widget" class="fixed bottom-4 left-4 z-40 bg-slate-900/90 border border-emerald-500/40 rounded-2xl p-3 shadow-2xl backdrop-blur-xl flex flex-col items-center w-44 select-none hidden">
+        <div class="relative w-28 h-32 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex items-center justify-center shadow-inner">
+            <canvas id="avatar-canvas" width="112" height="128" class="w-full h-full"></canvas>
+            <div id="ai-status-badge" class="absolute bottom-1 px-2 py-0.5 rounded text-[9px] font-bold tracking-tight bg-slate-900/90 text-emerald-400 border border-emerald-700/50 shadow">
+                Sẵn sàng
+            </div>
+        </div>
+        <div class="mt-2 text-center">
+            <h5 class="text-xs font-bold text-yellow-400 truncate w-36" id="widget-ai-nickname">Sĩ quan AI</h5>
+            <p class="text-[10px] text-slate-400" id="widget-student-info">C500 Hub</p>
+        </div>
+    </div>
+
+    <!-- SCRIPT LOGIC HOÀN CHỈNH -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDWeQWEjKh9zXyJhbHRZNe4MH-nEao87mU",
+            authDomain: "c500-ai-assistant.firebaseapp.com",
+            databaseURL: "https://c500-ai-assistant-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "c500-ai-assistant",
+            storageBucket: "c500-ai-assistant.appspot.com",
+            messagingSenderId: "1073706440068",
+            appId: "1:1073706440068:web:925e386e20f2acc2aab9d1",
+            measurementId: "G-D4V2Y9Y760"
         };
-        return (map[code] || "Thao tác không thành công.")
-            + " Mã lỗi: " + code
-            + (error && error.message ? " — " + error.message : "");
-    }
 
-    function firebaseReady() {
-        if (typeof firebase === "undefined" ||
-            typeof auth === "undefined" ||
-            typeof db === "undefined") {
-            throw new Error("Không tải được Firebase. Kiểm tra js/firebase-config.js.");
-        }
-    }
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-    function userChatsRef() {
-        if (!currentUser) throw new Error("Chưa có người dùng đăng nhập.");
-        return db.collection("users").doc(currentUser.uid).collection("chats");
-    }
+        const MANAGEMENT_EMAIL = "nguyenduongbaominh2006@gmail.com";
 
-    function getCurrentChat() {
-        return chats.find(chat => chat.id === currentChatId) || null;
-    }
-
-    function closeMobileSidebar() {
-        sidebar.classList.remove("mobile-open");
-        backdrop.classList.remove("visible");
-    }
-
-    function openMobileSidebar() {
-        sidebar.classList.add("mobile-open");
-        backdrop.classList.add("visible");
-    }
-
-    function showWelcome() {
-        const wrapper = document.createElement("div");
-        wrapper.className = "max-w-3xl mx-auto min-h-full flex flex-col justify-center py-10";
-
-        const iconBox = document.createElement("div");
-        iconBox.className = "w-14 h-14 rounded-2xl bg-emerald-950 border border-emerald-800 flex items-center justify-center mb-5";
-        iconBox.innerHTML = '<i class="fa-solid fa-shield-halved text-2xl text-emerald-400"></i>';
-
-        const heading = document.createElement("h2");
-        heading.className = "text-2xl sm:text-3xl font-extrabold text-white";
-        heading.textContent = "Xin chào, " + (aiConfig.nickname || "bạn") + ".";
-
-        const description = document.createElement("p");
-        description.className = "text-sm text-slate-400 mt-3 max-w-xl leading-6";
-        description.textContent =
-            "Bạn có thể đặt câu hỏi, yêu cầu giải thích kiến thức hoặc hỗ trợ học tập. Hãy nêu rõ mục tiêu để nhận được câu trả lời hữu ích hơn.";
-
-        const hint = document.createElement("div");
-        hint.className = "mt-6 rounded-xl border border-slate-800 bg-slate-900/70 p-4 text-sm text-slate-400";
-        hint.textContent = "Gợi ý: hãy nêu chủ đề, bối cảnh và dạng câu trả lời bạn mong muốn.";
-
-        wrapper.append(iconBox, heading, description, hint);
-        messagesContainer.replaceChildren(wrapper);
-    }
-
-    function sanitiseMarkdown(markdown) {
-        const raw = typeof marked !== "undefined"
-            ? marked.parse(String(markdown || ""), { breaks: true, gfm: true })
-            : String(markdown || "").replace(/[&<>"]/g, ch => ({
-                "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"
-            })[ch]);
-
-        if (typeof DOMPurify === "undefined") {
-            // Fail closed: do not render unsanitized model HTML.
-            const safeText = document.createElement("div");
-            safeText.textContent = String(markdown || "");
-            return safeText.innerHTML.replace(/\n/g, "<br>");
-        }
-
-        return DOMPurify.sanitize(raw, {
-            USE_PROFILES: { html: true },
-            FORBID_TAGS: ["style", "script", "iframe", "form", "input", "object", "embed"],
-            FORBID_ATTR: ["style", "onerror", "onclick", "onload"]
-        });
-    }
-
-    function renderMessage(message) {
-        const isUser = message.role === "user";
-
-        const row = document.createElement("article");
-        row.className = "max-w-4xl mx-auto flex items-start gap-3 mb-6 " +
-            (isUser ? "flex-row-reverse" : "");
-
-        const avatar = document.createElement("div");
-        avatar.className = "w-9 h-9 shrink-0 rounded-xl flex items-center justify-center text-xs font-bold " +
-            (isUser
-                ? "bg-slate-700 text-white"
-                : "bg-emerald-950 border border-emerald-800 text-emerald-300");
-        avatar.textContent = isUser ? "BẠN" : "AI";
-
-        const column = document.createElement("div");
-        column.className = "min-w-0 max-w-[88%] sm:max-w-[85%]";
-
-        const label = document.createElement("p");
-        label.className = "text-[10px] text-slate-500 mb-1.5 " +
-            (isUser ? "text-right" : "");
-        label.textContent = isUser ? "Bạn" : (aiConfig.nickname || "Trợ lý C500");
-
-        const bubble = document.createElement("div");
-        bubble.className = "message-content rounded-2xl border px-4 py-3 text-sm leading-7 " +
-            (isUser
-                ? "bg-emerald-950/80 border-emerald-900 text-emerald-50"
-                : "bg-slate-900 border-slate-800 text-slate-200");
-
-        if (message.pending) {
-            bubble.textContent = "Đang suy nghĩ...";
-            bubble.classList.add("text-slate-400");
-        } else if (message.error) {
-            bubble.textContent = String(message.content || "Đã xảy ra lỗi.");
-            bubble.classList.add("text-red-200");
-        } else {
-            bubble.innerHTML = isUser
-                ? escapeHtml(message.content)
-                : sanitiseMarkdown(message.content);
-        }
-
-        column.append(label, bubble);
-        row.append(avatar, column);
-        return row;
-    }
-
-    function escapeHtml(value) {
-        return String(value || "").replace(/[&<>"']/g, ch => ({
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#39;"
-        })[ch]);
-    }
-
-    function renderMessages() {
-        const chat = getCurrentChat();
-
-        if (!chat) {
-            showWelcome();
-            return;
-        }
-
-        if (!Array.isArray(chat.messages) || chat.messages.length === 0) {
-            showWelcome();
-            return;
-        }
-
-        const fragment = document.createDocumentFragment();
-
-        chat.messages.forEach(message => {
-            if (!message || !["user", "model"].includes(message.role)) return;
-            fragment.appendChild(renderMessage(message));
-        });
-
-        messagesContainer.replaceChildren(fragment);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-
-    function renderHistory() {
-        const list = $("chat-history-list");
-        list.replaceChildren();
-
-        const sortedChats = [...chats].sort((a, b) =>
-            String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""))
-        );
-
-        $("history-count").textContent = String(chats.length);
-
-        sortedChats.forEach(chat => {
-            const button = document.createElement("button");
-            button.type = "button";
-            button.className = "history-item " +
-                (chat.id === currentChatId ? "active" : "");
-            button.title = chat.title || "Cuộc trò chuyện mới";
-
-            const icon = document.createElement("i");
-            icon.className = "fa-regular fa-message text-xs shrink-0";
-
-            const title = document.createElement("span");
-            title.className = "history-title";
-            title.textContent = chat.title || "Cuộc trò chuyện mới";
-
-            button.append(icon, title);
-            button.addEventListener("click", () => {
-                if (isGenerating) return;
-                currentChatId = chat.id;
-                renderHistory();
-                renderMessages();
-                closeMobileSidebar();
-            });
-
-            list.appendChild(button);
-        });
-    }
-
-    async function saveChat(chat) {
-        if (!chat || !chat.id || !currentUser) {
-            throw new Error("Không xác định được cuộc trò chuyện cần lưu.");
-        }
-
-        chat.updatedAt = new Date().toISOString();
-
-        await userChatsRef().doc(chat.id).set({
-            title: String(chat.title || "Cuộc trò chuyện mới").slice(0, 120),
-            messages: Array.isArray(chat.messages) ? chat.messages : [],
-            updatedAt: chat.updatedAt
-        }, { merge: true });
-    }
-
-    // Tạo chat ngay trên giao diện trước, không chờ Firestore phản hồi.
-    // Nhờ vậy currentChatId luôn có giá trị kể cả khi lịch sử đang lỗi/offline.
-    function createLocalChat() {
-        if (!currentUser) throw new Error("Chưa có người dùng đăng nhập.");
-        const ref = userChatsRef().doc();
-        const newChat = {
-            id: ref.id,
-            title: "Cuộc trò chuyện mới",
-            messages: [],
-            updatedAt: new Date().toISOString(),
-            localOnly: true
+        let currentUser = null;
+        let userGeminiApiKey = '';
+        let aiConfig = {
+            dob: '',
+            nationality: 'Việt Nam',
+            address: '',
+            phone: '',
+            username: '',
+            fullName: '',
+            studentClass: '',
+            major: '',
+            hairColor: 'black',
+            uniformType: 'police',
+            nickname: 'Sĩ quan AI'
         };
-        chats.unshift(newChat);
-        currentChatId = newChat.id;
-        renderHistory();
-        renderMessages();
-        closeMobileSidebar();
-        return newChat;
-    }
 
-    async function startNewChat() {
-        if (!currentUser || isGenerating) return;
-        hideStatus();
-        let newChat;
-        try {
-            newChat = createLocalChat();
-            input.focus();
-        } catch (error) {
-            console.error("Create local chat failed:", error);
-            showStatus(getErrorMessage(error), "error");
-            return;
-        }
+        let currentWizardStep = 1;
+        const WORKER_URL = "https://c500-ai-api.nguyenduongbaominh2006.workers.dev/";
+        let sensitiveKeywords = [
+            'gián điệp', 'mật mã', 'trinh sát', 'tội phạm', 'biện pháp nghiệp vụ',
+            'biểu tình', 'tụ tập đông người', 'bạo loạn', 'gây rối trật tự',
+            'biểu tình 2015', 'biểu tình 2016', 'biểu tình 2017', 'biểu tình 2018', 
+            'biểu tình 2019', 'biểu tình 2020', 'biểu tình 2021', 'biểu tình 2022', 
+            'biểu tình 2023', 'biểu tình 2024', 'biểu tình 2025', 'biểu tình 2026',
+            'formosa', 'luật đặc khu', 'an ninh mạng biểu tình', 'kích động'
+        ];
 
-        // Lưu nền; lỗi lưu không được xóa chat hoặc chặn người dùng gửi câu hỏi.
-        try {
-            await saveChat(newChat);
-            newChat.localOnly = false;
-            renderHistory();
-        } catch (error) {
-            console.error("Create chat save failed:", error);
-            showStatus("Đã tạo khung chat trên giao diện nhưng chưa lưu được lịch sử. " + getErrorMessage(error), "error");
-        }
-    }
+        let chats = [];
+        let currentChatId = null;
+        let isGenerating = false;
+        let isDarkMode = true;
+        let isMobileViewMode = false;
 
-    async function loadChats() {
-        const snapshot = await userChatsRef().orderBy("updatedAt", "desc").get();
-        chats = [];
-        snapshot.forEach(documentSnapshot => {
-            const data = documentSnapshot.data() || {};
-            chats.push({
-                id: documentSnapshot.id,
-                title: typeof data.title === "string" ? data.title.slice(0, 120) : "Cuộc trò chuyện",
-                messages: Array.isArray(data.messages) ? data.messages : [],
-                updatedAt: data.updatedAt || "",
-                localOnly: false
-            });
-        });
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            const body = document.getElementById('body-root');
+            const icon = document.getElementById('theme-icon');
+            const text = document.getElementById('theme-text');
 
-        if (chats.length === 0) {
-            await startNewChat();
-            return;
-        }
-        currentChatId = chats[0].id;
-        renderHistory();
-        renderMessages();
-    }
-
-    function getSecurityViolation(text) {
-        if (typeof checkSecurityViolation !== "function") return null;
-
-        try {
-            return checkSecurityViolation(text);
-        } catch (error) {
-            console.error("Security filter failed:", error);
-            // A broken client-side filter must not be treated as a secure server-side block.
-            return null;
-        }
-    }
-
-    async function logViolation(keyword, query) {
-        try {
-            await db.collection("violations").add({
-                user: currentUser.email || currentUser.uid,
-                keyword: String(keyword).slice(0, 200),
-                query: String(query).slice(0, 12000),
-                timestamp: new Date().toISOString()
-            });
-        } catch (error) {
-            // Keep the refusal response even if logging permissions are unavailable.
-            console.error("Could not write violation log:", error);
-        }
-    }
-
-    function setGenerating(value) {
-        isGenerating = value;
-        sendButton.disabled = value;
-        input.disabled = value;
-        $("new-chat-btn").disabled = value;
-        $("header-new-chat").disabled = value;
-
-        sendButton.innerHTML = value
-            ? '<i class="fa-solid fa-circle-notch fa-spin"></i>'
-            : '<i class="fa-solid fa-paper-plane"></i>';
-    }
-
-    async function requestGemini(chat) {
-        // Gọi Cloudflare Worker, không gọi Firebase Cloud Functions hoặc OpenAI.
-        const workerUrl =
-            "https://c500-ai-api.nguyenduongbaominh2006.workers.dev/";
-
-        if (!currentUser) {
-            throw new Error("Bạn chưa đăng nhập. Hãy đăng nhập lại rồi thử tiếp.");
-        }
-
-        const idToken = await currentUser.getIdToken();
-        const messages = (Array.isArray(chat.messages) ? chat.messages : [])
-            .filter(message =>
-                message &&
-                ["user", "model", "assistant"].includes(message.role) &&
-                typeof message.content === "string" &&
-                message.content.trim().length > 0 &&
-                !message.error &&
-                !message.pending
-            )
-            .map(message => ({
-                role: message.role === "user" ? "user" : "assistant",
-                content: message.content.trim()
-            }));
-
-        if (!messages.some(message => message.role === "user")) {
-            throw new Error("Không tìm thấy câu hỏi hợp lệ để gửi tới AI.");
-        }
-
-        let response;
-        try {
-            response = await fetch(workerUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + idToken
-                },
-                body: JSON.stringify({ messages })
-            });
-        } catch (networkError) {
-            throw new Error(
-                "Không kết nối được Cloudflare Worker. Kiểm tra URL Worker và CORS. " +
-                (networkError && networkError.message ? networkError.message : "")
-            );
-        }
-
-        let data;
-        try {
-            data = await response.json();
-        } catch (_) {
-            throw new Error("Worker trả về phản hồi không phải JSON (HTTP " + response.status + ").");
-        }
-
-        if (!response.ok) {
-            throw new Error(
-                (data && data.error ? data.error : "Cloudflare Worker trả về HTTP " + response.status) +
-                " [HTTP " + response.status + "]"
-            );
-        }
-
-        if (!data || typeof data.text !== "string" || !data.text.trim()) {
-            throw new Error("Worker không trả về nội dung câu trả lời hợp lệ.");
-        }
-
-        return data.text.trim();
-    }
-
-    async function sendMessage(event) {
-        event.preventDefault();
-
-        const text = input.value.trim();
-        if (!text || isGenerating || !currentUser) return;
-
-        let chat = getCurrentChat();
-        if (!chat) {
-            // Tự khôi phục chat thay vì bắt người dùng bấm đi bấm lại.
-            try {
-                chat = createLocalChat();
-            } catch (error) {
-                showStatus("Không thể tạo khung chat. " + getErrorMessage(error), "error");
-                return;
+            if (isDarkMode) {
+                body.classList.add('dark', 'bg-slate-950', 'text-slate-100');
+                body.classList.remove('bg-slate-100', 'text-slate-900');
+                icon.className = "fa-solid fa-moon text-yellow-400";
+                text.innerText = "Giao diện Tối";
+            } else {
+                body.classList.remove('dark', 'bg-slate-950', 'text-slate-100');
+                body.classList.add('bg-slate-100', 'text-slate-900');
+                icon.className = "fa-solid fa-sun text-amber-500";
+                text.innerText = "Giao diện Sáng";
             }
         }
 
-        hideStatus();
-        input.value = "";
-        input.style.height = "auto";
+        function toggleDeviceMode() {
+            isMobileViewMode = !isMobileViewMode;
+            const appMainContainer = document.getElementById('main-app');
+            const sidebar = document.getElementById('app-sidebar');
+            const deviceIcon = document.getElementById('device-icon');
+            const deviceText = document.getElementById('device-text');
 
-        const isFirstMessage = chat.messages.length === 0;
-        if (isFirstMessage) {
-            chat.title = text.length > 42 ? text.slice(0, 42) + "…" : text;
+            if (isMobileViewMode) {
+                appMainContainer.classList.add('mobile-device-container', 'my-auto');
+                sidebar.classList.remove('w-72', 'flex-col', 'border-r');
+                sidebar.classList.add('w-full', 'order-last', 'flex-row', 'border-t', 'h-20', 'overflow-x-auto');
+                document.getElementById('chat-sidebar-section').style.display = 'none';
+                deviceIcon.className = "fa-solid fa-mobile-screen text-emerald-400";
+                deviceText.innerText = "Điện Thoại";
+            } else {
+                appMainContainer.classList.remove('mobile-device-container', 'my-auto');
+                sidebar.classList.add('w-72', 'flex-col', 'border-r');
+                sidebar.classList.remove('w-full', 'order-last', 'flex-row', 'border-t', 'h-20', 'overflow-x-auto');
+                document.getElementById('chat-sidebar-section').style.display = 'flex';
+                deviceIcon.className = "fa-solid fa-desktop text-emerald-400";
+                deviceText.innerText = "Máy Tính";
+            }
         }
 
-        chat.messages.push({ role: "user", content: text });
-        renderMessages();
-        renderHistory();
-        setGenerating(true);
+        function showRegisterScreen() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('register-screen').classList.remove('hidden');
+        }
 
-        try {
-            // Cố lưu trước, nhưng không để lỗi Firestore chặn yêu cầu gửi tới AI.
+        function showLoginScreen() {
+            document.getElementById('register-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+        }
+
+        // XỬ LÝ ĐĂNG NHẬP
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value.trim();
             try {
-                await saveChat(chat);
-                chat.localOnly = false;
-            } catch (saveError) {
-                chat.localOnly = true;
-                console.error("Could not save user message before AI call:", saveError);
-                showStatus("Câu hỏi đang được giữ trên giao diện, nhưng lịch sử chưa lưu được. AI vẫn sẽ được gọi. " + getErrorMessage(saveError), "error");
+                await auth.signInWithEmailAndPassword(email, password);
+            } catch (err) {
+                alert("Lỗi đăng nhập: " + err.message);
             }
+        });
 
-            const violation = getSecurityViolation(text);
+        // XỬ LÝ ĐĂNG KÝ VỚI FORM RIÊNG BIỆT (TÊN, LỚP, CHUYÊN NGÀNH, NGÀY SINH, GMAIL, MẬT KHẨU)
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById('reg-fullname').value.trim();
+            const studentClass = document.getElementById('reg-class').value.trim();
+            const major = document.getElementById('reg-major').value.trim();
+            const dob = document.getElementById('reg-dob').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
 
-            if (violation) {
-                await logViolation(violation, text);
-                chat.messages.push({
-                    role: "model",
-                    content:
-                        "Mình không thể xử lý yêu cầu này theo bộ lọc hiện tại. " +
-                        "Bạn có thể đặt lại câu hỏi với mục tiêu học tập hoặc tra cứu rõ ràng hơn."
-                });
-                try { await saveChat(chat); chat.localOnly = false; }
-                catch (saveError) { console.error("Could not save refusal response:", saveError); }
-                renderMessages();
-                renderHistory();
+            try {
+                const cred = await auth.createUserWithEmailAndPassword(email, password);
+                // Lưu ngay thông tin hồ sơ vào Firestore
+                await db.collection('users').doc(cred.user.uid).set({
+                    email,
+                    fullName,
+                    studentClass,
+                    major,
+                    dob,
+                    createdAt: new Date().toISOString()
+                }, { merge: true });
+
+                alert("Tạo tài khoản định danh thành công!");
+            } catch (err) {
+                alert("Lỗi tạo tài khoản: " + err.message);
+            }
+        });
+
+        auth.onAuthStateChanged(async (user) => {
+            const loadingEl = document.getElementById('app-loading');
+            const loginScreen = document.getElementById('login-screen');
+            const registerScreen = document.getElementById('register-screen');
+            const apiKeyScreen = document.getElementById('api-key-screen');
+            const mainApp = document.getElementById('main-app');
+            const aiWidget = document.getElementById('ai-widget');
+            const setupWizard = document.getElementById('setup-wizard-screen');
+            loadingEl.classList.add('hidden');
+
+            if (!user) {
+                currentUser = null;
+                loginScreen.classList.remove('hidden');
+                registerScreen.classList.add('hidden');
+                apiKeyScreen.classList.add('hidden');
+                mainApp.classList.add('hidden');
+                aiWidget.classList.add('hidden');
+                setupWizard.classList.add('hidden');
                 return;
             }
 
-            const answer = await requestGemini(chat);
-            chat.messages.push({ role: "model", content: answer });
-
-            try {
-                await saveChat(chat);
-                chat.localOnly = false;
-                hideStatus();
-                renderMessages();
-                renderHistory();
-            } catch (saveError) {
-                chat.localOnly = true;
-                console.error("AI answered but chat history could not be saved:", saveError);
-                renderMessages();
-                renderHistory();
-                showStatus("AI đã trả lời, nhưng chưa lưu được lịch sử chat. " + getErrorMessage(saveError), "error");
-            }
-        } catch (error) {
-            console.error("Chat request failed:", error);
-
-            const friendlyMessage =
-                "Không thể hoàn thành yêu cầu. " +
-                (error && error.message ? error.message : "Vui lòng thử lại.");
-
-            chat.messages.push({
-                role: "model",
-                content: friendlyMessage,
-                error: true
-            });
-
-            try {
-                await saveChat(chat);
-                chat.localOnly = false;
-            } catch (saveError) {
-                chat.localOnly = true;
-                console.error("Save failed after chat error:", saveError);
+            currentUser = user;
+            loginScreen.classList.add('hidden');
+            registerScreen.classList.add('hidden');
+            apiKeyScreen.classList.add('hidden'); // Worker dùng API key lưu ở Cloudflare, không yêu cầu key cá nhân.
+            document.getElementById('user-email').innerText = user.email || '';
+            if ((user.email || '').toLowerCase() === MANAGEMENT_EMAIL.toLowerCase()) {
+                document.getElementById('admin-nav-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('admin-nav-btn').classList.add('hidden');
             }
 
-            renderMessages();
-            renderHistory();
-            const code = error && error.code ? String(error.code) : "";
-            let nextStep = "Kiểm tra kết nối Cloudflare Worker và cấu hình Gemini.";
-            if (code.includes("unauthenticated")) nextStep = "Phiên đăng nhập hết hạn. Hãy đăng xuất rồi đăng nhập lại.";
-            else if (code.includes("resource-exhausted")) nextStep = "Dịch vụ AI đã vượt hạn mức; kiểm tra hạn mức Gemini.";
-            showStatus("Không gọi được AI. " + nextStep + " Chi tiết: " + (error && error.message ? error.message : "không rõ"), "error");
-        } finally {
-            setGenerating(false);
-            input.focus();
-        }
-    }
-
-     async function initialiseUser(user) {
-        currentUser = user;
-
-        $("user-email").textContent = user.email || "";
-        $("admin-link").classList.toggle(
-            "hidden",
-            !user.email || user.email.trim().toLowerCase() !== adminEmail
-        );
-
-        loadingDetail.textContent = "Đang tải cấu hình cá nhân...";
-
-        const userRef = db.collection("users").doc(user.uid);
-
-        const [configDoc, userDoc] = await Promise.all([
-            userRef.collection("settings").doc("ai_config").get(),
-            userRef.get()
-        ]);
-
-        // Không còn yêu cầu mỗi thành viên phải lưu API key riêng.
-        // Chỉ yêu cầu hoàn tất hồ sơ AI cá nhân.
-        if (!configDoc.exists ||
-            !configDoc.data() ||
-            configDoc.data().completed !== true) {
-            window.location.replace("setup.html");
-            return;
-        }
-
-        aiConfig = configDoc.data();
-
-        const profile = userDoc.exists ? userDoc.data() : {};
-        const fullName = profile && typeof profile.fullName === "string"
-            ? profile.fullName.trim()
-            : "";
-
-        $("user-name").textContent =
-            fullName || (user.email ? user.email.split("@")[0] : "Người dùng");
-
-        $("ai-nickname-header").textContent =
-            aiConfig.nickname ? "Trợ lý: " + aiConfig.nickname : "Trợ lý AI C500";
-
-        loading.classList.add("hidden");
-        app.classList.remove("hidden");
-
-        loadingDetail.textContent = "Đang tải lịch sử hội thoại...";
-
-        try {
-            await loadChats();
-        } catch (error) {
-            console.error("Load chats failed:", error);
-            showStatus(
-                "Không tải được lịch sử hội thoại. " + getErrorMessage(error),
-                "error"
-            );
-            // Vẫn dựng chat cục bộ để câu hỏi không bị chặn khi lịch sử chưa tải được.
             try {
-                chats = [];
-                const localChat = createLocalChat();
-                showStatus("Không tải được lịch sử cũ; đã mở một chat mới trên giao diện. " + getErrorMessage(error), "error");
-                renderMessages();
-            } catch (localError) {
-                console.error("Could not create fallback local chat:", localError);
-                showWelcome();
+                const userRef = db.collection('users').doc(user.uid);
+                const userDoc = await userRef.get();
+                const profile = userDoc.exists ? userDoc.data() : {};
+                aiConfig = { ...aiConfig, ...profile };
+                aiConfig.fullName = profile.fullName || user.displayName || (user.email || '').split('@')[0];
+                aiConfig.studentClass = profile.studentClass || '';
+                aiConfig.major = profile.major || '';
+                aiConfig.dob = profile.dob || '';
+                aiConfig.nationality = profile.nationality || 'Việt Nam';
+                aiConfig.address = profile.address || '';
+                aiConfig.phone = profile.phone || '';
+                aiConfig.username = profile.username || profile.displayName || aiConfig.fullName;
+                document.getElementById('user-name').innerText = aiConfig.username || aiConfig.fullName;
+
+                const cfgDoc = await userRef.collection('settings').doc('ai_config').get();
+                if (cfgDoc.exists && cfgDoc.data().completed) {
+                    aiConfig = { ...aiConfig, ...cfgDoc.data() };
+                    // Existing users missing the new profile slides are sent through them once.
+                    currentWizardStep = aiConfig.profileSetupCompleted ? 3 : 1;
+                    if (!aiConfig.profileSetupCompleted) {
+                        setupWizard.classList.remove('hidden');
+                        renderWizardStep();
+                    } else {
+                        await launchApp();
+                    }
+                } else {
+                    currentWizardStep = 1;
+                    setupWizard.classList.remove('hidden');
+                    renderWizardStep();
+                }
+                await loadKeywords();
+            } catch (err) {
+                console.error('Lỗi đồng bộ Firestore:', err);
+                alert('Không thể tải hồ sơ từ Firestore: ' + err.message + '\nHãy kiểm tra Firestore Security Rules.');
+            }
+        });
+
+        async function saveUserApiKey() {
+            // Tương thích nút cũ nếu còn màn hình API key trong cache.
+            document.getElementById('api-key-screen').classList.add('hidden');
+            currentWizardStep = 1;
+            document.getElementById('setup-wizard-screen').classList.remove('hidden');
+            renderWizardStep();
+        }
+
+        function logout() { auth.signOut(); }
+
+        // WIZARD 4 SLIDE: NGÀY SINH -> QUỐC TỊCH -> NHÂN VẬT 3D -> BIỆT DANH AI
+        function renderWizardStep() {
+            const container = document.getElementById('wizard-step-content');
+            const indicator = document.getElementById('wizard-step-indicator');
+            const title = document.getElementById('wizard-title');
+            const desc = document.getElementById('wizard-desc');
+            const nextBtn = document.getElementById('wizard-next-btn');
+            indicator.innerText = `Bước ${currentWizardStep} / 4`;
+            nextBtn.innerHTML = currentWizardStep === 4
+                ? '<span>Hoàn tất thiết lập</span> <i class="fa-solid fa-check"></i>'
+                : '<span>Tiếp tục</span> <i class="fa-solid fa-arrow-right"></i>';
+
+            if (currentWizardStep === 1) {
+                title.innerText = 'Xác nhận ngày sinh';
+                desc.innerText = 'Thông tin này được lưu trong hồ sơ cá nhân của bạn.';
+                const isoDob = /^\d{4}-\d{2}-\d{2}$/.test(aiConfig.dob || '') ? aiConfig.dob : '';
+                container.innerHTML = `<div><label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-2">Ngày tháng năm sinh</label><input type="date" id="wizard-dob" value="${escapeHtml(isoDob)}" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500"><p class="text-xs text-slate-500 mt-2">Bạn có thể cập nhật thông tin này sau trong mục Hồ sơ của bạn.</p></div>`;
+            } else if (currentWizardStep === 2) {
+                title.innerText = 'Chọn quốc tịch';
+                desc.innerText = 'Chọn quốc tịch để lưu vào hồ sơ định danh.';
+                const opts = ['Việt Nam','Trung Quốc','Cuba','Lào'];
+                container.innerHTML = `<div><label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-2">Quốc tịch</label><select id="wizard-nationality" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white">${opts.map(x=>`<option value="${x}" ${((aiConfig.nationality||'Việt Nam')===x)?'selected':''}>${x}</option>`).join('')}</select></div>`;
+            } else if (currentWizardStep === 3) {
+                title.innerText = 'Tùy chỉnh nhân vật 3D & sắc phục';
+                desc.innerText = 'Chọn màu tóc, trang phục và mũ cho nhân vật trợ lý.';
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-center"><div class="w-36 h-40 bg-slate-950 rounded-2xl border border-emerald-500/50 flex flex-col items-center justify-center relative shadow-inner model-3d-preview"><canvas id="wizard-avatar-canvas" width="112" height="128" class="w-28 h-32 rounded-xl"></canvas><span class="text-[10px] text-emerald-400 font-bold" id="preview-avatar-label">${aiConfig.uniformType==='security'?'An ninh Nghi lễ':'Cảnh sát CAND'}</span></div></div>
+                        <div class="grid grid-cols-2 gap-3"><div><label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Màu tóc</label><select id="wizard-hair" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white"><option value="black" ${aiConfig.hairColor==='black'?'selected':''}>Tóc đen</option><option value="brown" ${aiConfig.hairColor==='brown'?'selected':''}>Tóc nâu</option><option value="white" ${aiConfig.hairColor==='white'?'selected':''}>Tóc trắng</option></select></div><div><label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Trang phục & mũ</label><select id="wizard-uniform" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white"><option value="police" ${aiConfig.uniformType==='police'?'selected':''}>Cảnh sát CAND</option><option value="security" ${aiConfig.uniformType==='security'?'selected':''}>An ninh nghi lễ</option></select></div></div>
+                    </div>`;
+                const redraw = () => drawAvatarOnCanvas(document.getElementById('wizard-avatar-canvas'), document.getElementById('wizard-hair').value, document.getElementById('wizard-uniform').value, false);
+                document.getElementById('wizard-hair').addEventListener('change', redraw);
+                document.getElementById('wizard-uniform').addEventListener('change', () => { document.getElementById('preview-avatar-label').innerText = document.getElementById('wizard-uniform').value==='police'?'Cảnh sát CAND':'An ninh nghi lễ'; redraw(); });
+                redraw();
+            } else if (currentWizardStep === 4) {
+                title.innerText = 'Đặt biệt danh cho trợ lý AI';
+                desc.innerText = 'Tên này sẽ xuất hiện trên widget và trong cuộc trò chuyện.';
+                container.innerHTML = `<div><label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Biệt danh trợ lý AI</label><input type="text" id="wizard-nickname" value="${escapeHtml(aiConfig.nickname || 'Sĩ quan AI')}" placeholder="Ví dụ: Sĩ quan Bôm, Trợ lý C500..." required maxlength="60" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500"></div>`;
             }
         }
-    }
 
-    $("chat-form").addEventListener("submit", sendMessage);
-
-    $("new-chat-btn").addEventListener("click", startNewChat);
-    $("header-new-chat").addEventListener("click", startNewChat);
-
-    $("logout-btn").addEventListener("click", async () => {
-        try {
-            await auth.signOut();
-            window.location.replace("login.html");
-        } catch (error) {
-            console.error("Sign out failed:", error);
-            showStatus(getErrorMessage(error), "error");
-        }
-    });
-
-    $("open-sidebar").addEventListener("click", openMobileSidebar);
-    $("close-sidebar").addEventListener("click", closeMobileSidebar);
-    backdrop.addEventListener("click", closeMobileSidebar);
-
-    input.addEventListener("input", () => {
-        input.style.height = "auto";
-        input.style.height = Math.min(input.scrollHeight, 180) + "px";
-    });
-
-    input.addEventListener("keydown", event => {
-        if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
-            $("chat-form").requestSubmit();
-        }
-    });
-
-    try {
-        firebaseReady();
-
-        auth.onAuthStateChanged(async user => {
-            if (authHandling) return;
-            authHandling = true;
-
+        async function nextWizardStep() {
             try {
-                authReady = true;
-
-                if (!user) {
-                    window.location.replace("login.html");
+                if (currentWizardStep === 1) {
+                    const dob = document.getElementById('wizard-dob').value;
+                    if (!dob) return alert('Vui lòng chọn ngày sinh.');
+                    aiConfig.dob = dob;
+                    await db.collection('users').doc(currentUser.uid).set({dob}, {merge:true});
+                } else if (currentWizardStep === 2) {
+                    aiConfig.nationality = document.getElementById('wizard-nationality').value;
+                    await db.collection('users').doc(currentUser.uid).set({nationality:aiConfig.nationality}, {merge:true});
+                } else if (currentWizardStep === 3) {
+                    aiConfig.hairColor = document.getElementById('wizard-hair').value;
+                    aiConfig.uniformType = document.getElementById('wizard-uniform').value;
+                } else if (currentWizardStep === 4) {
+                    const nick = document.getElementById('wizard-nickname').value.trim();
+                    if (!nick) return alert('Vui lòng đặt biệt danh cho AI!');
+                    aiConfig.nickname = nick;
+                    aiConfig.completed = true;
+                    aiConfig.profileSetupCompleted = true;
+                    await db.collection('users').doc(currentUser.uid).collection('settings').doc('ai_config').set(aiConfig, {merge:true});
+                    await db.collection('users').doc(currentUser.uid).set({dob:aiConfig.dob,nationality:aiConfig.nationality,fullName:aiConfig.fullName,studentClass:aiConfig.studentClass,major:aiConfig.major}, {merge:true});
+                    document.getElementById('setup-wizard-screen').classList.add('hidden');
+                    await launchApp();
                     return;
                 }
-
-                await initialiseUser(user);
-            } catch (error) {
-                console.error("Initialisation failed:", error);
-                loading.classList.add("hidden");
-                app.classList.remove("hidden");
-
-                showStatus(
-                    "Không thể khởi tạo đầy đủ màn hình chat. " +
-                    getErrorMessage(error) +
-                    " Nếu lỗi là permission-denied, hãy kiểm tra Firestore Rules; " +
-                    "không nên chuyển hướng sang trang thiết lập một cách tự động.",
-                    "error"
-                );
-
-                // Do not redirect to setup for every Firebase error.
-                showWelcome();
-            } finally {
-                authHandling = false;
+                currentWizardStep++;
+                renderWizardStep();
+            } catch (err) {
+                console.error('Không lưu được thiết lập:', err);
+                alert('Không lưu được thiết lập vào Firestore: ' + err.message);
             }
-        }, error => {
-            console.error("Auth listener failed:", error);
-            loading.classList.add("hidden");
-            showStatus(getErrorMessage(error), "error");
+        }
+
+        function restartWizard() {
+            currentWizardStep = 1;
+            document.getElementById('setup-wizard-screen').classList.remove('hidden');
+            renderWizardStep();
+        }
+
+        async function launchApp() {
+            document.getElementById('setup-wizard-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('ai-widget').classList.remove('hidden');
+
+            document.getElementById('widget-ai-nickname').innerText = aiConfig.nickname;
+            document.getElementById('header-ai-nickname-badge').innerText = `Biệt danh: ${aiConfig.nickname}`;
+            document.getElementById('widget-student-info').innerText = aiConfig.studentClass || 'C500 Hub';
+            document.getElementById('user-name').innerText = aiConfig.username || aiConfig.fullName || (currentUser.email || '').split('@')[0];
+            startCanvasAnimation();
+            await loadUserChats();
+        }
+
+        function switchView(viewName) {
+            if (viewName === 'chat') {
+                document.getElementById('chat-view').classList.remove('hidden');
+                document.getElementById('admin-view').classList.add('hidden');
+                if(!isMobileViewMode) document.getElementById('chat-sidebar-section').classList.remove('hidden');
+            } else {
+                document.getElementById('chat-view').classList.add('hidden');
+                document.getElementById('admin-view').classList.remove('hidden');
+                document.getElementById('chat-sidebar-section').classList.add('hidden');
+                loadAdminDashboardData();
+            }
+        }
+
+        async function loadKeywords() {
+            try {
+                const doc = await db.collection('settings').doc('security').get();
+                if (doc.exists && doc.data().keywords) sensitiveKeywords = doc.data().keywords;
+            } catch (e) {}
+        }
+
+        async function loadUserChats() {
+            const snapshot = await db.collection('users').doc(currentUser.uid).collection('chats').orderBy('updatedAt', 'desc').get();
+            chats = [];
+            snapshot.forEach(doc => chats.push({ id: doc.id, ...doc.data() }));
+
+            if (chats.length === 0) {
+                await startNewChat();
+            } else {
+                currentChatId = chats[0].id;
+                renderMessages();
+                renderHistoryList();
+            }
+        }
+
+        async function startNewChat() {
+            const newChat = { title: 'Cuộc trò chuyện mới', messages: [], updatedAt: new Date().toISOString() };
+            const docRef = await db.collection('users').doc(currentUser.uid).collection('chats').add(newChat);
+            chats.unshift({ id: docRef.id, ...newChat });
+            currentChatId = docRef.id;
+            renderMessages();
+            renderHistoryList();
+        }
+
+        document.getElementById('chat-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const inputEl = document.getElementById('user-input');
+            const text = inputEl.value.trim();
+            if (!text || isGenerating) return;
+            inputEl.value = '';
+
+            const chat = chats.find(c => c.id === currentChatId);
+            if (chat.messages.length === 0) chat.title = text.substring(0, 22) + '...';
+
+            chat.messages.push({ role: 'user', content: text });
+            renderMessages();
+
+            const lowerText = text.toLowerCase();
+            const violation = sensitiveKeywords.find(kw => lowerText.includes(kw));
+
+            if (violation) {
+                await db.collection('violations').add({
+                    user: currentUser.email,
+                    keyword: violation,
+                    query: text,
+                    timestamp: new Date().toISOString()
+                });
+
+                const rejectionMessage = "xin lỗi, tôi không thể trả lời câu hỏi này vì nó thuộc vấn đề nghiệp vụ, bạn hãy tìm đọc nội dung trên thư viện nhé!";
+                chat.messages.push({ role: 'model', content: rejectionMessage });
+                await saveCurrentChatToCloud(chat);
+                renderMessages();
+                return;
+            }
+
+            isGenerating = true;
+            setAiStatus('Đang trả lời...');
+            triggerSpeakingAnimation(true);
+
+            chat.messages.push({ role: 'model', content: '...' });
+            renderMessages();
+
+            try {
+                const aiResponse = await callGeminiAI(chat.messages.slice(0, -1));
+                chat.messages[chat.messages.length - 1] = { role: 'model', content: aiResponse };
+            } catch (err) {
+                chat.messages[chat.messages.length - 1] = { role: 'model', content: '❌ Không gọi được AI: ' + (err && err.message ? err.message : 'Lỗi không xác định.') };
+            } finally {
+                isGenerating = false;
+                setAiStatus('Sẵn sàng');
+                triggerSpeakingAnimation(false);
+            }
+
+            await saveCurrentChatToCloud(chat);
+            renderMessages();
+            renderHistoryList();
         });
-    } catch (error) {
-        console.error("Firebase startup failed:", error);
-        loading.classList.add("hidden");
-        showStatus(error.message || "Không thể khởi tạo Firebase.", "error");
-    }
-})();
-</script>
+
+        async function saveCurrentChatToCloud(chat) {
+            chat.updatedAt = new Date().toISOString();
+            await db.collection('users').doc(currentUser.uid).collection('chats').doc(chat.id).set({
+                title: chat.title,
+                messages: chat.messages,
+                updatedAt: chat.updatedAt
+            });
+        }
+
+        async function callGeminiAI(messages) {
+            if (!currentUser) throw new Error('Bạn chưa đăng nhập.');
+            const systemInstruction = `Bạn là ${aiConfig.nickname || 'Sĩ quan AI'}, trợ lý AI cá nhân cho sinh viên ${aiConfig.fullName || ''} (Lớp ${aiConfig.studentClass || ''}, chuyên ngành ${aiConfig.major || ''}, quốc tịch ${aiConfig.nationality || 'Việt Nam'}) tại Học viện C500. Bạn giao tiếp chuẩn mực, chuyên nghiệp và hỗ trợ học tập, tra cứu quy chế, pháp luật.`;
+            const idToken = await currentUser.getIdToken();
+            const history = messages.filter(m => m && ['user','model','assistant'].includes(m.role) && typeof m.content === 'string' && m.content.trim()).map(m => ({role:m.role === 'user' ? 'user' : 'assistant', content:m.content.trim()}));
+            const res = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: {'Content-Type':'application/json','Authorization':'Bearer '+idToken},
+                body: JSON.stringify({messages: history, systemInstruction})
+            });
+            let data;
+            try { data = await res.json(); } catch (_) { throw new Error('Worker trả về dữ liệu không phải JSON (HTTP '+res.status+').'); }
+            if (!res.ok) throw new Error((data && data.error ? data.error : 'Cloudflare Worker HTTP '+res.status)+' [HTTP '+res.status+']');
+            if (!data || typeof data.text !== 'string' || !data.text.trim()) throw new Error('Worker không trả về nội dung AI hợp lệ.');
+            return data.text.trim();
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('chat-messages');
+            const chat = chats.find(c => c.id === currentChatId);
+            if (!chat) return;
+            container.innerHTML = '';
+
+            if (chat.messages.length === 0) {
+                container.innerHTML = `
+                    <div class="flex items-start space-x-4 max-w-2xl mx-auto mt-10">
+                        <div class="w-10 h-10 rounded-2xl bg-emerald-800 border border-yellow-500 flex items-center justify-center text-yellow-400 font-bold shadow-lg"><i class="fa-solid fa-user-shield"></i></div>
+                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-sm text-slate-200 shadow-xl leading-relaxed">
+                            <p class="font-bold text-emerald-400 mb-1">Xin chào đồng chí ${aiConfig.fullName}!</p>
+                            <p>Tôi là ${aiConfig.nickname}. Hãy đặt câu hỏi về quy chế học tập, văn bản pháp luật hoặc các bài tập chuyên ngành C500 nhé.</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            chat.messages.forEach(m => {
+                const isUser = m.role === 'user';
+                container.innerHTML += `
+                    <div class="flex items-start space-x-3 max-w-3xl ${isUser ? 'ml-auto flex-row-reverse space-x-reverse' : ''}">
+                        <div class="w-9 h-9 rounded-2xl ${isUser ? 'bg-slate-700' : 'bg-emerald-800 border border-yellow-500 text-yellow-400'} flex items-center justify-center text-xs font-bold shadow">${isUser ? 'U' : '<i class="fa-solid fa-shield-halved text-xs"></i>'}</div>
+                        <div class="${isUser ? 'bg-emerald-950/90 text-emerald-100 border-emerald-800/60' : 'bg-slate-900 text-slate-200 border-slate-800'} border rounded-2xl p-4 text-sm leading-relaxed shadow-md">
+                            ${isUser ? escapeHtml(m.content) : marked.parse(m.content)}
+                        </div>
+                    </div>
+                `;
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        function renderHistoryList() {
+            const list = document.getElementById('chat-history-list');
+            list.innerHTML = '';
+            chats.forEach(c => {
+                list.innerHTML += `<div onclick="currentChatId='${c.id}'; renderMessages();" class="p-2.5 rounded-xl cursor-pointer truncate transition ${c.id===currentChatId?'bg-emerald-950 text-emerald-300 font-semibold border border-emerald-800/50':'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'}"><i class="fa-regular fa-comment mr-2"></i>${c.title}</div>`;
+            });
+        }
+
+        function openProfileModal() {
+            if (!currentUser) return;
+            const modal = document.getElementById('profile-modal');
+            document.getElementById('profile-fullname').value = aiConfig.fullName || '';
+            document.getElementById('profile-username').value = aiConfig.username || aiConfig.displayName || aiConfig.fullName || '';
+            document.getElementById('profile-email').value = currentUser.email || '';
+            document.getElementById('profile-address').value = aiConfig.address || '';
+            document.getElementById('profile-phone').value = aiConfig.phone || '';
+            document.getElementById('profile-dob').value = /^\d{4}-\d{2}-\d{2}$/.test(aiConfig.dob || '') ? aiConfig.dob : '';
+            document.getElementById('profile-nationality').value = aiConfig.nationality || 'Việt Nam';
+            document.getElementById('profile-message').classList.add('hidden');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+        }
+        function closeProfileModal() {
+            const modal = document.getElementById('profile-modal');
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+        }
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+            const message = document.getElementById('profile-message');
+            const payload = {
+                fullName: document.getElementById('profile-fullname').value.trim(),
+                username: document.getElementById('profile-username').value.trim(),
+                address: document.getElementById('profile-address').value.trim(),
+                phone: document.getElementById('profile-phone').value.trim(),
+                dob: document.getElementById('profile-dob').value,
+                nationality: document.getElementById('profile-nationality').value,
+                email: currentUser.email || ''
+            };
+            if (!payload.fullName) { alert('Vui lòng nhập họ và tên.'); return; }
+            try {
+                await db.collection('users').doc(currentUser.uid).set(payload, {merge:true});
+                aiConfig = {...aiConfig, ...payload};
+                document.getElementById('user-name').innerText = payload.username || payload.fullName;
+                message.className = 'text-xs rounded-lg p-3 border border-emerald-800 bg-emerald-950 text-emerald-200';
+                message.textContent = 'Đã lưu hồ sơ thành công.';
+                message.classList.remove('hidden');
+            } catch (err) {
+                message.className = 'text-xs rounded-lg p-3 border border-red-800 bg-red-950 text-red-200';
+                message.textContent = 'Không lưu được hồ sơ: ' + err.message;
+                message.classList.remove('hidden');
+            }
+        });
+
+        function setAiStatus(text) { document.getElementById('ai-status-badge').innerText = text; }
+
+        let isSpeaking = false;
+        let mouthOpen = 0;
+        let blinkTimer = 0;
+        let isBlinking = false;
+
+        function triggerSpeakingAnimation(speaking) { isSpeaking = speaking; }
+
+        function drawAvatarOnCanvas(canvas, hairColor, uniformType, animate = true) {
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const paint = () => {
+                const w = canvas.width, h = canvas.height;
+                ctx.clearRect(0, 0, w, h);
+                const grad = ctx.createLinearGradient(0, 0, 0, h);
+                grad.addColorStop(0, uniformType === 'police' ? '#14532d' : '#1e3a8a');
+                grad.addColorStop(1, '#0f172a'); ctx.fillStyle = grad; ctx.fillRect(0,0,w,h);
+                ctx.fillStyle = uniformType === 'police' ? '#166534' : '#1e40af';
+                ctx.beginPath(); ctx.arc(w/2, h-8, 45, Math.PI, 2*Math.PI); ctx.fill();
+                // Shoulder boards and uniform details
+                ctx.fillStyle = '#ca8a04'; ctx.fillRect(32,95,16,8); ctx.fillRect(64,95,16,8);
+                ctx.fillStyle = '#fed7aa'; ctx.fillRect(46,75,20,25);
+                ctx.beginPath(); ctx.arc(56,56,26,0,2*Math.PI); ctx.fillStyle='#fed7aa'; ctx.fill();
+                const hair = hairColor === 'white' ? '#f8fafc' : hairColor === 'brown' ? '#78350f' : '#1e293b';
+                ctx.fillStyle=hair; ctx.beginPath(); ctx.arc(56,50,26,Math.PI,2*Math.PI); ctx.fillRect(30,45,52,10); ctx.fill();
+                // Cap to make uniform selection visible
+                ctx.fillStyle = '#0f172a'; ctx.fillRect(30,34,52,5); ctx.fillRect(38,25,36,10);
+                ctx.fillStyle = '#facc15'; ctx.fillRect(52,28,8,4);
+                ctx.fillStyle='#0f172a'; ctx.beginPath(); ctx.arc(46,52,3.5,0,2*Math.PI); ctx.arc(66,52,3.5,0,2*Math.PI); ctx.fill();
+                ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(47,51,1,0,2*Math.PI); ctx.arc(67,51,1,0,2*Math.PI); ctx.fill();
+                ctx.fillStyle='#991b1b'; ctx.beginPath(); ctx.ellipse(56,70,5,animate && isSpeaking ? (Math.sin(Date.now()/80)+1)*5+2 : 2,0,0,2*Math.PI); ctx.fill();
+            };
+            if (!animate) { paint(); return; }
+            const loop = () => { if (!canvas.isConnected) return; paint(); requestAnimationFrame(loop); };
+            loop();
+        }
+        function startCanvasAnimation() {
+            drawAvatarOnCanvas(document.getElementById('avatar-canvas'), aiConfig.hairColor || 'black', aiConfig.uniformType || 'police', true);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => { startCanvasAnimation(); });
+
+        async function loadAdminDashboardData() {
+            const usersSnap = await db.collection('users').get();
+            document.getElementById('stat-users-count').innerText = usersSnap.size;
+            document.getElementById('stat-keywords-count').innerText = sensitiveKeywords.length;
+
+            const kwContainer = document.getElementById('keywords-list');
+            kwContainer.innerHTML = sensitiveKeywords.map(k => `<span class="bg-amber-950/80 text-amber-300 border border-amber-700/60 px-3 py-1 rounded-full text-xs font-bold shadow-sm">${k}</span>`).join('');
+
+            const logTable = document.getElementById('violation-logs-table');
+            logTable.innerHTML = '';
+            const violationsSnap = await db.collection('violations').orderBy('timestamp', 'desc').limit(15).get();
+            document.getElementById('stat-violations-count').innerText = violationsSnap.size;
+
+            violationsSnap.forEach(doc => {
+                const d = doc.data();
+                logTable.innerHTML += `
+                    <tr class="hover:bg-slate-900/50 transition">
+                        <td class="py-3 px-3 text-slate-400">${new Date(d.timestamp).toLocaleString()}</td>
+                        <td class="py-3 px-3 font-semibold text-emerald-300">${escapeHtml(d.user || "")}</td>
+                        <td class="py-3 px-3 text-red-400 font-bold">${escapeHtml(d.keyword || "")}</td>
+                        <td class="py-3 px-3 truncate max-w-xs">${escapeHtml(d.query || "")}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('add-keyword-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const kw = document.getElementById('new-keyword').value.trim();
+            if (kw && !sensitiveKeywords.includes(kw)) {
+                sensitiveKeywords.push(kw);
+                document.getElementById('new-keyword').value = '';
+                await db.collection('settings').doc('security').set({ keywords: sensitiveKeywords });
+                loadAdminDashboardData();
+                alert('Đã thêm từ khóa kiểm duyệt thành công!');
+            }
+        });
+    </script>
 </body>
 </html>

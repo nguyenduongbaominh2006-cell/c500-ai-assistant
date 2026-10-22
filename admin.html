@@ -1,128 +1,624 @@
+
 <!DOCTYPE html>
 <html lang="vi" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
     <title>Dashboard Quản Lý Hệ Thống - C500</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .panel {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+        }
+        .field {
+            background: #020617;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: white;
+            outline: none;
+            min-width: 0;
+        }
+        .field:focus { border-color: #10b981; }
+        button:disabled { opacity: .55; cursor: not-allowed; }
+        .keyword-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            border: 1px solid #92400e;
+            background: #451a03;
+            color: #fcd34d;
+            font-size: 12px;
+        }
+        .remove-keyword {
+            color: #fca5a5;
+            cursor: pointer;
+            padding: 0 2px;
+        }
+        .remove-keyword:hover { color: white; }
+    </style>
 </head>
-<body class="h-full bg-slate-950 text-slate-100 p-8 overflow-y-auto">
-    <div class="max-w-5xl mx-auto space-y-6">
-        
-        <!-- Header & Quay lại chat -->
-        <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow">
-            <div>
-                <h1 class="text-xl font-bold text-amber-400"><i class="fa-solid fa-gauge-high mr-2"></i>Dashboard Quản Lý Web Hệ Thống C500</h1>
-                <p class="text-xs text-slate-400 mt-1">Giám sát tài khoản định danh sinh viên, quản lý từ khóa kiểm duyệt & theo dõi nhật ký vi phạm vĩnh viễn.</p>
-            </div>
-            <a href="index.html" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow">
-                <i class="fa-solid fa-comments mr-1.5"></i> Về Khung Chat
+
+<body class="min-h-full bg-slate-950 text-slate-100 p-4 md:p-8">
+<main class="max-w-6xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <header class="panel p-5 flex flex-col md:flex-row
+                   md:justify-between md:items-center gap-4">
+        <div>
+            <h1 class="text-xl font-bold text-amber-400">
+                <i class="fa-solid fa-gauge-high mr-2"></i>
+                Dashboard Quản Lý C500
+            </h1>
+            <p class="text-xs text-slate-400 mt-2">
+                Quản lý tài khoản, từ khóa và nhật ký hệ thống.
+            </p>
+            <p id="admin-identity" class="text-xs text-emerald-300 mt-2">
+                Đang xác minh tài khoản...
+            </p>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+            <a href="index.html"
+               class="bg-emerald-600 hover:bg-emerald-500 text-white
+                      px-4 py-3 rounded-xl text-sm font-bold">
+                <i class="fa-solid fa-comments mr-1"></i> Về khung chat
             </a>
+            <button id="logout-btn"
+                    class="bg-slate-700 hover:bg-slate-600 text-white
+                           px-4 py-3 rounded-xl text-sm font-bold"
+                    hidden>
+                <i class="fa-solid fa-right-from-bracket mr-1"></i>
+                Đăng xuất
+            </button>
         </div>
+    </header>
 
-        <!-- Thống kê nhanh -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow">
-                <span class="text-xs text-slate-400 font-medium">Tổng sinh viên truy cập</span>
-                <h3 id="stat-users-count" class="text-3xl font-extrabold text-emerald-400 mt-2">0</h3>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow">
-                <span class="text-xs text-slate-400 font-medium">Từ khóa kiểm duyệt đang bật</span>
-                <h3 id="stat-keywords-count" class="text-3xl font-extrabold text-amber-400 mt-2">0</h3>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow">
-                <span class="text-xs text-slate-400 font-medium">Số lượt vi phạm bị từ chối</span>
-                <h3 id="stat-violations-count" class="text-3xl font-extrabold text-red-400 mt-2">0</h3>
-            </div>
-        </div>
+    <!-- Status / errors -->
+    <section id="status-box" role="status" aria-live="polite"
+             class="hidden rounded-xl border p-4 text-sm break-words">
+    </section>
 
-        <!-- Quản lý từ khóa kiểm duyệt -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow">
-            <h3 class="text-sm font-bold text-emerald-400 mb-2"><i class="fa-solid fa-filter mr-1.5"></i> Thêm từ khóa nghiệp vụ hoặc chủ đề biểu tình cần chặn</h3>
-            <form id="add-keyword-form" class="flex space-x-3 mt-3">
-                <input type="text" id="new-keyword" placeholder="Ví dụ: biểu tình 2018, formosa, bạo loạn..." required
-                    class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
-                <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white px-6 py-3 rounded-xl text-xs font-bold transition shadow">Thêm từ khóa</button>
+    <!-- Loading -->
+    <section id="loading-box" class="panel p-8 text-center">
+        <i class="fa-solid fa-spinner fa-spin text-2xl text-emerald-400"></i>
+        <p class="text-slate-300 mt-3">Đang xác minh và tải dữ liệu...</p>
+    </section>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="space-y-6" hidden>
+
+        <!-- Statistics -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="panel p-5">
+                <p class="text-xs text-slate-400">Tổng tài khoản trong hệ thống</p>
+                <p id="stat-users-count"
+                   class="text-3xl font-extrabold text-emerald-400 mt-2">—</p>
+            </div>
+
+            <div class="panel p-5">
+                <p class="text-xs text-slate-400">Từ khóa kiểm duyệt</p>
+                <p id="stat-keywords-count"
+                   class="text-3xl font-extrabold text-amber-400 mt-2">—</p>
+            </div>
+
+            <div class="panel p-5">
+                <p class="text-xs text-slate-400">Nhật ký vi phạm được tải</p>
+                <p id="stat-violations-count"
+                   class="text-3xl font-extrabold text-red-400 mt-2">—</p>
+                <p class="text-xs text-slate-500 mt-1">Tối đa 30 bản ghi gần nhất</p>
+            </div>
+        </section>
+
+        <!-- Keyword management -->
+        <section class="panel p-5 md:p-6">
+            <h2 class="font-bold text-emerald-400">
+                <i class="fa-solid fa-filter mr-2"></i>
+                Quản lý từ khóa kiểm duyệt
+            </h2>
+
+            <p class="text-xs text-slate-400 mt-2">
+                Từ khóa được lưu trong Firestore tại settings/security.
+            </p>
+
+            <form id="add-keyword-form"
+                  class="flex flex-col sm:flex-row gap-3 mt-4">
+                <input id="new-keyword" class="field flex-1"
+                       type="text" maxlength="100"
+                       placeholder="Nhập từ khóa cần quản lý..."
+                       autocomplete="off" required>
+
+                <button id="add-keyword-btn" type="submit"
+                        class="bg-amber-600 hover:bg-amber-500
+                               text-white px-5 py-3 rounded-xl
+                               text-sm font-bold">
+                    <i class="fa-solid fa-plus mr-1"></i>
+                    Thêm từ khóa
+                </button>
             </form>
-            <div id="keywords-list" class="flex flex-wrap gap-2 mt-4"></div>
-        </div>
 
-        <!-- Nhật ký vi phạm -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow">
-            <h3 class="text-sm font-bold text-red-400 mb-3"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Nhật ký vi phạm từ khóa an ninh & biểu tình</h3>
+            <div id="keywords-list" class="flex flex-wrap gap-2 mt-5"></div>
+            <p id="keywords-empty" class="hidden text-sm text-slate-500 mt-3">
+                Chưa có từ khóa. Bạn có thể thêm từ khóa ở trên.
+            </p>
+        </section>
+
+        <!-- Violations -->
+        <section class="panel p-5 md:p-6">
+            <div class="flex flex-col sm:flex-row sm:justify-between
+                        sm:items-center gap-3 mb-4">
+                <h2 class="font-bold text-red-400">
+                    <i class="fa-solid fa-triangle-exclamation mr-2"></i>
+                    Nhật ký vi phạm
+                </h2>
+
+                <button id="refresh-btn"
+                        class="bg-slate-700 hover:bg-slate-600
+                               px-4 py-2 rounded-lg text-sm">
+                    <i class="fa-solid fa-rotate mr-1"></i> Tải lại
+                </button>
+            </div>
+
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs text-slate-300">
-                    <thead class="border-b border-slate-800 text-slate-400 uppercase tracking-wider">
+                    <thead class="border-b border-slate-800 text-slate-400">
                         <tr>
                             <th class="py-3 px-3">Thời gian</th>
-                            <th class="py-3 px-3">Tài khoản User</th>
-                            <th class="py-3 px-3">Từ khóa phát hiện</th>
-                            <th class="py-3 px-3">Nội dung câu hỏi gốc</th>
+                            <th class="py-3 px-3">Tài khoản</th>
+                            <th class="py-3 px-3">Từ khóa</th>
+                            <th class="py-3 px-3">Nội dung</th>
                         </tr>
                     </thead>
-                    <tbody id="violation-logs-table" class="divide-y divide-slate-800/60"></tbody>
+                    <tbody id="violation-logs-table"
+                           class="divide-y divide-slate-800">
+                    </tbody>
                 </table>
             </div>
-        </div>
 
+            <p id="logs-empty" class="hidden text-sm text-slate-500 py-5">
+                Chưa có bản ghi vi phạm.
+            </p>
+        </section>
     </div>
+</main>
 
-    <script src="js/firebase-config.js"></script>
-    <script src="js/security-filter.js"></script>
-    <script>
-        auth.onAuthStateChanged(async user => {
-            if(!user || user.email !== MANAGEMENT_EMAIL) {
-                alert('Truy cập bị từ chối! Chỉ tài khoản quản lý mới có quyền truy cập.');
-                window.location.href = 'index.html';
-                return;
+<!-- Load the existing Firebase setup first. -->
+<script src="js/firebase-config.js"></script>
+<script src="js/security-filter.js"></script>
+
+<script>
+(() => {
+    "use strict";
+
+    const $ = (id) => document.getElementById(id);
+
+    const statusBox = $("status-box");
+    const loadingBox = $("loading-box");
+    const dashboard = $("dashboard");
+
+    let currentUser = null;
+    let keywords = [];
+    let busy = false;
+    let authReady = false;
+
+    // The existing config file defines MANAGEMENT_EMAIL.
+    const adminEmail =
+        typeof MANAGEMENT_EMAIL !== "undefined"
+            ? String(MANAGEMENT_EMAIL).trim().toLowerCase()
+            : "";
+
+    function showStatus(message, type = "info") {
+        statusBox.classList.remove("hidden");
+        statusBox.className =
+            "rounded-xl border p-4 text-sm break-words " +
+            (type === "error"
+                ? "border-red-800 bg-red-950 text-red-200"
+                : type === "success"
+                ? "border-emerald-800 bg-emerald-950 text-emerald-200"
+                : "border-sky-800 bg-sky-950 text-sky-200");
+
+        statusBox.textContent = message;
+    }
+
+    function errorMessage(error) {
+        const code = error && error.code ? error.code : "unknown";
+        const messages = {
+            "permission-denied":
+                "Firebase từ chối quyền truy cập. Hãy kiểm tra Firestore Security Rules.",
+            "unauthenticated":
+                "Phiên đăng nhập không hợp lệ hoặc đã hết hạn.",
+            "unavailable":
+                "Firebase tạm thời không khả dụng. Hãy kiểm tra kết nối mạng.",
+            "failed-precondition":
+                "Truy vấn chưa đáp ứng điều kiện Firestore. Kiểm tra cấu hình hoặc index.",
+            "not-found":
+                "Không tìm thấy tài nguyên được yêu cầu."
+        };
+
+        return (messages[code] || "Không thể hoàn thành thao tác Firebase.")
+            + " Mã lỗi: " + code
+            + (error && error.message ? " — " + error.message : "");
+    }
+
+    function requireFirebase() {
+        if (typeof firebase === "undefined" ||
+            typeof auth === "undefined" ||
+            typeof db === "undefined") {
+            throw new Error(
+                "Không khởi tạo được Firebase. Kiểm tra js/firebase-config.js."
+            );
+        }
+    }
+
+    function setLoading(loading) {
+        loadingBox.classList.toggle("hidden", !loading);
+    }
+
+    function normaliseKeyword(value) {
+        return String(value || "").trim().toLocaleLowerCase("vi");
+    }
+
+    function getInitialKeywords() {
+        // Fallback to the existing local list if no Firestore list exists yet.
+        if (typeof sensitiveKeywords !== "undefined" &&
+            Array.isArray(sensitiveKeywords)) {
+            return [...new Set(
+                sensitiveKeywords.map(normaliseKeyword).filter(Boolean)
+            )];
+        }
+        return [];
+    }
+
+    function syncLegacyKeywordArray() {
+        // Keep the current page's existing filter list in sync when possible.
+        if (typeof sensitiveKeywords !== "undefined" &&
+            Array.isArray(sensitiveKeywords)) {
+            sensitiveKeywords.splice(
+                0,
+                sensitiveKeywords.length,
+                ...keywords
+            );
+        }
+    }
+
+    function makeCell(value, className = "") {
+        const td = document.createElement("td");
+        td.className = "py-3 px-3 align-top " + className;
+        td.textContent =
+            value === undefined || value === null || value === ""
+                ? "—"
+                : String(value);
+        return td;
+    }
+
+    function timestampToText(value) {
+        try {
+            let date;
+
+            if (value && typeof value.toDate === "function") {
+                date = value.toDate(); // Firestore Timestamp
+            } else if (typeof value === "number" ||
+                       typeof value === "string") {
+                date = new Date(value);
+            } else if (value && typeof value.seconds === "number") {
+                date = new Date(value.seconds * 1000);
+            } else {
+                return "Không rõ thời gian";
             }
-            await loadAdminData();
+
+            if (Number.isNaN(date.getTime())) {
+                return "Không rõ thời gian";
+            }
+
+            return date.toLocaleString("vi-VN");
+        } catch (_) {
+            return "Không rõ thời gian";
+        }
+    }
+
+    function renderKeywords() {
+        const container = $("keywords-list");
+        container.replaceChildren();
+
+        $("stat-keywords-count").textContent = String(keywords.length);
+        $("keywords-empty").classList.toggle("hidden", keywords.length > 0);
+
+        keywords.forEach((keyword) => {
+            const chip = document.createElement("span");
+            chip.className = "keyword-chip";
+
+            const label = document.createElement("span");
+            label.textContent = keyword;
+
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.className = "remove-keyword";
+            remove.textContent = "×";
+            remove.title = "Xóa từ khóa " + keyword;
+            remove.setAttribute("aria-label", "Xóa từ khóa " + keyword);
+            remove.addEventListener("click", () => removeKeyword(keyword));
+
+            chip.append(label, remove);
+            container.appendChild(chip);
         });
+    }
 
-        async function loadAdminData() {
-            // Lấy tổng số user
-            const usersSnap = await db.collection('users').get();
-            document.getElementById('stat-users-count').innerText = usersSnap.size;
+    async function loadKeywords() {
+        const doc = await db.collection("settings").doc("security").get();
 
-            // Hiển thị từ khóa
-            document.getElementById('stat-keywords-count').innerText = sensitiveKeywords.length;
-            const kwContainer = document.getElementById('keywords-list');
-            kwContainer.innerHTML = sensitiveKeywords.map(k => `<span class="bg-amber-950/80 text-amber-300 border border-amber-700/60 px-3 py-1 rounded-full text-xs font-bold shadow-sm">${k}</span>`).join('');
+        if (doc.exists) {
+            const data = doc.data() || {};
 
-            // Lấy nhật ký vi phạm
-            const logTable = document.getElementById('violation-logs-table');
-            logTable.innerHTML = '';
-            const violationsSnap = await db.collection('violations').orderBy('timestamp', 'desc').limit(30).get();
-            document.getElementById('stat-violations-count').innerText = violationsSnap.size;
+            if (!Array.isArray(data.keywords)) {
+                throw new Error(
+                    "settings/security tồn tại nhưng trường keywords không phải mảng."
+                );
+            }
 
-            violationsSnap.forEach(doc => {
-                const d = doc.data();
-                logTable.innerHTML += `
-                    <tr class="hover:bg-slate-950/50 transition">
-                        <td class="py-3 px-3 text-slate-400">${new Date(d.timestamp).toLocaleString()}</td>
-                        <td class="py-3 px-3 font-semibold text-emerald-300">${d.user}</td>
-                        <td class="py-3 px-3 text-red-400 font-bold">${d.keyword}</td>
-                        <td class="py-3 px-3 text-slate-200 truncate max-w-xs">${d.query}</td>
-                    </tr>
-                `;
-            });
+            keywords = [...new Set(
+                data.keywords
+                    .filter(value => typeof value === "string")
+                    .map(normaliseKeyword)
+                    .filter(Boolean)
+            )];
+        } else {
+            // Keep the existing keyword list until an admin saves the list.
+            keywords = getInitialKeywords();
         }
 
-        document.getElementById('add-keyword-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const kw = document.getElementById('new-keyword').value.trim().toLowerCase();
-            if (kw && !sensitiveKeywords.includes(kw)) {
-                sensitiveKeywords.push(kw);
-                document.getElementById('new-keyword').value = '';
-                await db.collection('settings').doc('security').set({ keywords: sensitiveKeywords });
-                loadAdminData();
-                alert('Đã thêm từ khóa kiểm duyệt thành công!');
-            }
+        syncLegacyKeywordArray();
+        renderKeywords();
+    }
+
+    async function saveKeywords(nextKeywords) {
+        // Never report success before Firestore confirms the write.
+        await db.collection("settings").doc("security").set({
+            keywords: nextKeywords,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedBy: currentUser.uid
+        }, { merge: true });
+
+        keywords = nextKeywords;
+        syncLegacyKeywordArray();
+        renderKeywords();
+    }
+
+    async function addKeyword(event) {
+        event.preventDefault();
+
+        if (busy || !currentUser) return;
+
+        const input = $("new-keyword");
+        const keyword = normaliseKeyword(input.value);
+
+        if (!keyword) {
+            showStatus("Vui lòng nhập từ khóa.", "error");
+            return;
+        }
+
+        if (keywords.includes(keyword)) {
+            showStatus("Từ khóa này đã tồn tại.", "info");
+            return;
+        }
+
+        busy = true;
+        $("add-keyword-btn").disabled = true;
+
+        try {
+            await saveKeywords([...keywords, keyword]);
+            input.value = "";
+            showStatus("Đã lưu từ khóa vào Firestore.", "success");
+        } catch (error) {
+            console.error("Add keyword failed:", error);
+            showStatus(errorMessage(error), "error");
+        } finally {
+            busy = false;
+            $("add-keyword-btn").disabled = false;
+        }
+    }
+
+    async function removeKeyword(keyword) {
+        if (busy || !currentUser) return;
+
+        if (!window.confirm("Bạn có chắc muốn xóa từ khóa này?")) return;
+
+        busy = true;
+        $("add-keyword-btn").disabled = true;
+
+        try {
+            await saveKeywords(keywords.filter(item => item !== keyword));
+            showStatus("Đã xóa từ khóa khỏi danh sách Firestore.", "success");
+        } catch (error) {
+            console.error("Remove keyword failed:", error);
+            showStatus(errorMessage(error), "error");
+        } finally {
+            busy = false;
+            $("add-keyword-btn").disabled = false;
+        }
+    }
+
+    async function loadUsersCount() {
+        const snapshot = await db.collection("users").get();
+        $("stat-users-count").textContent = String(snapshot.size);
+    }
+
+    async function loadViolations() {
+        const tbody = $("violation-logs-table");
+        tbody.replaceChildren();
+        $("logs-empty").classList.add("hidden");
+
+        const snapshot = await db.collection("violations")
+            .orderBy("timestamp", "desc")
+            .limit(30)
+            .get();
+
+        $("stat-violations-count").textContent = String(snapshot.size);
+
+        if (snapshot.empty) {
+            $("logs-empty").classList.remove("hidden");
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        snapshot.forEach((documentSnapshot) => {
+            const data = documentSnapshot.data() || {};
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-slate-950/60";
+
+            tr.appendChild(makeCell(timestampToText(data.timestamp),
+                                    "text-slate-400 whitespace-nowrap"));
+            tr.appendChild(makeCell(data.user,
+                                    "text-emerald-300 font-semibold"));
+            tr.appendChild(makeCell(data.keyword,
+                                    "text-red-400 font-bold"));
+
+            const queryCell = makeCell(data.query, "text-slate-200");
+            queryCell.style.whiteSpace = "pre-wrap";
+            queryCell.style.overflowWrap = "anywhere";
+            queryCell.style.maxWidth = "360px";
+
+            tr.appendChild(queryCell);
+            fragment.appendChild(tr);
         });
-    </script>
+
+        tbody.appendChild(fragment);
+    }
+
+    async function loadAdminData() {
+        if (!currentUser || !authReady) return;
+
+        setLoading(true);
+        $("refresh-btn").disabled = true;
+
+        try {
+            // Keep each operation isolated so one failure is diagnosable.
+            const results = await Promise.allSettled([
+                loadUsersCount(),
+                loadKeywords(),
+                loadViolations()
+            ]);
+
+            const failures = results
+                .filter(result => result.status === "rejected")
+                .map(result => result.reason);
+
+            if (failures.length) {
+                failures.forEach(error =>
+                    console.error("Dashboard data load failed:", error)
+                );
+                showStatus(
+                    "Dashboard đã mở nhưng một số dữ liệu không tải được. "
+                    + failures.map(error =>
+                        error && error.code
+                            ? error.code
+                            : (error && error.message) || "Lỗi không xác định"
+                    ).join("; ")
+                    + ". Kiểm tra quyền Firestore và cấu trúc dữ liệu.",
+                    "error"
+                );
+            } else {
+                showStatus("Đã tải dữ liệu quản trị thành công.", "success");
+            }
+        } finally {
+            setLoading(false);
+            $("refresh-btn").disabled = false;
+        }
+    }
+
+    function redirectToLogin() {
+        window.location.replace("login.html");
+    }
+
+    $("add-keyword-form").addEventListener("submit", addKeyword);
+
+    $("refresh-btn").addEventListener("click", async () => {
+        if (!currentUser) return;
+        await loadAdminData();
+    });
+
+    $("logout-btn").addEventListener("click", async () => {
+        try {
+            await auth.signOut();
+            redirectToLogin();
+        } catch (error) {
+            console.error("Sign out failed:", error);
+            showStatus(errorMessage(error), "error");
+        }
+    });
+
+    try {
+        requireFirebase();
+
+        if (!adminEmail) {
+            throw new Error(
+                "Không tìm thấy MANAGEMENT_EMAIL trong js/firebase-config.js."
+            );
+        }
+
+        auth.onAuthStateChanged(async (user) => {
+            authReady = true;
+
+            if (!user) {
+                showStatus("Bạn chưa đăng nhập. Đang chuyển đến trang đăng nhập.");
+                setLoading(false);
+                window.setTimeout(redirectToLogin, 1200);
+                return;
+            }
+
+            if (!user.email ||
+                user.email.trim().toLowerCase() !== adminEmail) {
+                showStatus(
+                    "Tài khoản hiện tại không được phép mở trang quản trị.",
+                    "error"
+                );
+
+                try {
+                    await auth.signOut();
+                } catch (error) {
+                    console.error("Sign out unauthorized user failed:", error);
+                }
+
+                window.setTimeout(redirectToLogin, 1200);
+                return;
+            }
+
+            currentUser = user;
+            $("admin-identity").textContent =
+                "Đã đăng nhập: " + user.email;
+            $("logout-btn").hidden = false;
+            dashboard.hidden = false;
+
+            await loadAdminData();
+        }, (error) => {
+            console.error("Firebase Auth listener failed:", error);
+            setLoading(false);
+            showStatus(errorMessage(error), "error");
+        });
+    } catch (error) {
+        console.error("Admin initialization failed:", error);
+        setLoading(false);
+        showStatus(
+            "Không thể khởi tạo trang quản trị. " +
+            (error.message || "Kiểm tra cấu hình Firebase."),
+            "error"
+        );
+    }
+})();
+</script>
 </body>
 </html>

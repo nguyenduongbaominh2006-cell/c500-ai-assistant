@@ -1,0 +1,982 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#07131f">
+
+    <title>Chào mừng | C500 AI Assistant</title>
+
+    <meta
+        name="description"
+        content="C500 AI Assistant - Trợ lý AI cá nhân hỗ trợ học tập, tra cứu thông tin và cá nhân hóa trải nghiệm."
+    >
+
+    <style>
+        :root {
+            --bg: #06111c;
+            --bg-light: #0b1c2b;
+            --panel: rgba(15, 34, 48, 0.82);
+            --green: #16856b;
+            --green-light: #40d6a8;
+            --gold: #e8c779;
+            --gold-light: #fff0b8;
+            --text: #f4f7fb;
+            --muted: #a7b7c8;
+            --border: rgba(116, 174, 157, 0.24);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            overflow-x: hidden;
+            background:
+                radial-gradient(
+                    ellipse at 50% -10%,
+                    rgba(30, 111, 88, 0.42),
+                    transparent 55%
+                ),
+                radial-gradient(
+                    circle at 95% 65%,
+                    rgba(196, 151, 66, 0.08),
+                    transparent 30%
+                ),
+                var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button,
+        a {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button:focus-visible,
+        a:focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 4px;
+        }
+
+        .background-grid {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.16;
+            background-image:
+                linear-gradient(
+                    rgba(160, 196, 185, 0.08) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(160, 196, 185, 0.08) 1px,
+                    transparent 1px
+                );
+            background-size: 48px 48px;
+            mask-image: linear-gradient(
+                to bottom,
+                black,
+                transparent 85%
+            );
+        }
+
+        .navbar {
+            width: min(1180px, calc(100% - 40px));
+            margin: auto;
+            padding: 24px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(232, 199, 121, 0.6);
+            border-radius: 15px;
+            background: linear-gradient(
+                145deg,
+                #174538,
+                #0a201c
+            );
+            color: var(--gold);
+            font-size: 25px;
+            box-shadow: 0 0 30px rgba(42, 169, 126, 0.12);
+        }
+
+        .brand-name {
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+        }
+
+        .brand-subtitle {
+            display: block;
+            color: var(--muted);
+            font-size: 10px;
+            letter-spacing: 0.2em;
+        }
+
+        .nav-status {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 8px 13px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            color: #c7d7d8;
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green-light);
+            box-shadow: 0 0 12px var(--green-light);
+        }
+
+        .hero {
+            width: min(1180px, calc(100% - 40px));
+            min-height: 620px;
+            margin: 20px auto 0;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            align-items: center;
+            gap: 45px;
+            padding: 45px 0 65px;
+        }
+
+        .hero-content {
+            animation: fadeUp 0.8s ease both;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 13px;
+            border: 1px solid rgba(64, 214, 168, 0.25);
+            border-radius: 999px;
+            background: rgba(22, 133, 107, 0.1);
+            color: #8be7c8;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.17em;
+        }
+
+        .eyebrow-star {
+            color: var(--gold);
+        }
+
+        h1 {
+            margin-top: 26px;
+            max-width: 680px;
+            font-size: clamp(36px, 5.1vw, 64px);
+            line-height: 1.13;
+            letter-spacing: -0.045em;
+        }
+
+        h1 .highlight {
+            display: block;
+            margin-top: 5px;
+            background: linear-gradient(
+                95deg,
+                var(--gold-light),
+                var(--gold),
+                #9ce7c8
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero-description {
+            max-width: 570px;
+            margin-top: 23px;
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 13px;
+            margin-top: 32px;
+        }
+
+        .btn {
+            min-height: 51px;
+            padding: 13px 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border: 1px solid transparent;
+            border-radius: 13px;
+            font: inherit;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                background 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(
+                110deg,
+                #13785f,
+                #20a77e
+            );
+            color: white;
+            box-shadow: 0 10px 30px rgba(20, 148, 109, 0.2);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 14px 36px rgba(20, 148, 109, 0.32);
+        }
+
+        .btn-secondary {
+            border-color: var(--border);
+            background: rgba(13, 29, 43, 0.8);
+            color: #dce7ed;
+        }
+
+        .hero-note {
+            margin-top: 19px;
+            color: #8296a8;
+            font-size: 12px;
+        }
+
+        .hero-note span {
+            color: var(--gold);
+        }
+
+        /* KHU VỰC MINH HỌA NHÂN VẬT */
+
+        .hero-visual {
+            position: relative;
+            min-height: 465px;
+            display: grid;
+            place-items: center;
+            animation: fadeIn 1s 0.15s ease both;
+        }
+
+        .orbit {
+            position: absolute;
+            width: min(390px, 90%);
+            aspect-ratio: 1;
+            border: 1px solid rgba(95, 192, 159, 0.2);
+            border-radius: 50%;
+            transform: rotate(-25deg) scaleY(0.72);
+        }
+
+        .orbit::before {
+            content: "";
+            position: absolute;
+            inset: 25px;
+            border: 1px dashed rgba(232, 199, 121, 0.19);
+            border-radius: 50%;
+        }
+
+        .orbit::after {
+            content: "";
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            top: 13%;
+            left: 15%;
+            border-radius: 50%;
+            background: var(--gold);
+            box-shadow: 0 0 18px var(--gold);
+        }
+
+        .character-card {
+            position: relative;
+            width: min(330px, 82%);
+            min-height: 370px;
+            padding: 22px;
+            overflow: hidden;
+            border: 1px solid rgba(105, 175, 151, 0.3);
+            border-radius: 28px;
+            background: linear-gradient(
+                155deg,
+                rgba(27, 59, 65, 0.92),
+                rgba(9, 22, 35, 0.96) 70%
+            );
+            box-shadow:
+                0 35px 100px rgba(0, 0, 0, 0.28),
+                inset 0 1px rgba(255, 255, 255, 0.05);
+            text-align: center;
+            z-index: 1;
+        }
+
+        .character-card::before {
+            content: "";
+            position: absolute;
+            top: -100px;
+            left: 50%;
+            width: 240px;
+            height: 240px;
+            transform: translateX(-50%);
+            border-radius: 50%;
+            background: rgba(45, 171, 126, 0.13);
+            filter: blur(30px);
+        }
+
+        .character-label {
+            position: relative;
+            z-index: 2;
+            display: inline-block;
+            padding: 7px 11px;
+            border: 1px solid rgba(232, 199, 121, 0.28);
+            border-radius: 999px;
+            color: var(--gold-light);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.13em;
+        }
+
+        .character-illustration {
+            position: relative;
+            width: 100%;
+            height: 260px;
+            display: grid;
+            place-items: center;
+        }
+
+        .character-glow {
+            position: absolute;
+            bottom: 5px;
+            width: 170px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(45, 211, 158, 0.16);
+            filter: blur(18px);
+        }
+
+        .character-emoji {
+            position: relative;
+            z-index: 1;
+            font-size: 165px;
+            line-height: 1;
+            filter: drop-shadow(0 20px 25px rgba(0, 0, 0, 0.3));
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .character-name {
+            position: relative;
+            z-index: 1;
+            font-size: 19px;
+            font-weight: 800;
+        }
+
+        .character-caption {
+            position: relative;
+            z-index: 1;
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .floating-chip {
+            position: absolute;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 12px 15px;
+            border: 1px solid rgba(105, 175, 151, 0.3);
+            border-radius: 15px;
+            background: rgba(9, 24, 36, 0.96);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+            animation: float 5s ease-in-out infinite;
+        }
+
+        .floating-chip strong {
+            display: block;
+            font-size: 12px;
+        }
+
+        .floating-chip small {
+            display: block;
+            margin-top: 2px;
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        .chip-icon {
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            border-radius: 11px;
+            background: rgba(29, 145, 110, 0.18);
+            font-size: 17px;
+        }
+
+        .chip-top {
+            top: 50px;
+            right: -5px;
+        }
+
+        .chip-bottom {
+            bottom: 45px;
+            left: -10px;
+            animation-delay: -2s;
+        }
+
+        /* CÁC TÍNH NĂNG */
+
+        .features-section {
+            width: min(1180px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 35px 0 85px;
+        }
+
+        .section-heading {
+            max-width: 650px;
+            margin: 0 auto 35px;
+            text-align: center;
+        }
+
+        .section-heading .eyebrow {
+            margin-bottom: 15px;
+        }
+
+        .section-heading h2 {
+            font-size: clamp(26px, 4vw, 38px);
+            line-height: 1.25;
+        }
+
+        .section-heading p {
+            margin-top: 13px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 17px;
+        }
+
+        .feature-card {
+            padding: 25px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: linear-gradient(
+                145deg,
+                rgba(18, 39, 54, 0.85),
+                rgba(8, 21, 33, 0.86)
+            );
+            transition:
+                transform 0.25s ease,
+                border-color 0.25s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(64, 214, 168, 0.55);
+        }
+
+        .feature-icon {
+            width: 49px;
+            height: 49px;
+            display: grid;
+            place-items: center;
+            margin-bottom: 17px;
+            border: 1px solid rgba(64, 214, 168, 0.2);
+            border-radius: 15px;
+            background: rgba(22, 133, 107, 0.13);
+            font-size: 23px;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 9px;
+            font-size: 16px;
+        }
+
+        .feature-card p {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .bottom-cta {
+            width: min(1180px, calc(100% - 40px));
+            margin: 0 auto 55px;
+            padding: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 25px;
+            border: 1px solid rgba(232, 199, 121, 0.22);
+            border-radius: 23px;
+            background:
+                radial-gradient(
+                    ellipse at 100% 0%,
+                    rgba(190, 151, 65, 0.1),
+                    transparent 50%
+                ),
+                rgba(13, 29, 43, 0.8);
+        }
+
+        .bottom-cta h2 {
+            font-size: clamp(20px, 3vw, 29px);
+        }
+
+        .bottom-cta p {
+            margin-top: 7px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        footer {
+            padding: 24px 20px 30px;
+            border-top: 1px solid rgba(116, 174, 157, 0.12);
+            color: #8295a5;
+            text-align: center;
+            font-size: 11px;
+        }
+
+        footer strong {
+            color: #c5d2db;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-9px); }
+        }
+
+        @media (max-width: 900px) {
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 25px;
+                padding-top: 45px;
+            }
+
+            .hero-content {
+                text-align: center;
+            }
+
+            .hero-description {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-actions {
+                justify-content: center;
+            }
+
+            .hero-visual {
+                min-height: 430px;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .chip-top {
+                right: 2%;
+            }
+
+            .chip-bottom {
+                left: 2%;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .navbar {
+                width: calc(100% - 30px);
+                padding: 17px 0;
+            }
+
+            .brand-logo {
+                width: 42px;
+                height: 42px;
+            }
+
+            .brand-name {
+                font-size: 13px;
+            }
+
+            .brand-subtitle {
+                font-size: 8px;
+            }
+
+            .nav-status {
+                padding: 7px 9px;
+                font-size: 10px;
+            }
+
+            .hero,
+            .features-section,
+            .bottom-cta {
+                width: calc(100% - 30px);
+            }
+
+            .hero {
+                min-height: auto;
+                margin-top: 10px;
+                padding-top: 30px;
+            }
+
+            h1 {
+                font-size: clamp(34px, 10vw, 46px);
+            }
+
+            .hero-description {
+                font-size: 14px;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+            }
+
+            .hero-actions .btn {
+                width: 100%;
+            }
+
+            .hero-visual {
+                min-height: 400px;
+            }
+
+            .character-card {
+                width: min(290px, 85%);
+                min-height: 350px;
+            }
+
+            .character-illustration {
+                height: 240px;
+            }
+
+            .character-emoji {
+                font-size: 145px;
+            }
+
+            .floating-chip {
+                padding: 9px 11px;
+            }
+
+            .chip-top {
+                top: 28px;
+                right: -2px;
+            }
+
+            .chip-bottom {
+                bottom: 20px;
+                left: -2px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-card {
+                padding: 21px;
+            }
+
+            .bottom-cta {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 25px;
+                text-align: center;
+            }
+
+            .bottom-cta .btn {
+                width: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="background-grid" aria-hidden="true"></div>
+
+    <!-- THANH ĐIỀU HƯỚNG -->
+    <header class="navbar">
+        <a class="brand" href="welcome.html" aria-label="C500 AI Assistant">
+            <div class="brand-logo" aria-hidden="true">🛡️</div>
+
+            <div>
+                <div class="brand-name">C500 AI ASSISTANT</div>
+                <span class="brand-subtitle">
+                    YOUR PERSONAL AI COMPANION
+                </span>
+            </div>
+        </a>
+
+        <a class="nav-status" href="login.html">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span>Đăng nhập</span>
+        </a>
+    </header>
+
+    <main>
+        <!-- PHẦN GIỚI THIỆU CHÍNH -->
+        <section class="hero">
+            <div class="hero-content">
+                <div class="eyebrow">
+                    <span class="eyebrow-star">✦</span>
+                    HỆ THỐNG TRỢ LÝ AI CÁ NHÂN
+                </div>
+
+                <h1>
+                    Chào mừng bạn
+                    <span class="highlight">đến với C500.</span>
+                </h1>
+
+                <p class="hero-description">
+                    Một không gian AI được cá nhân hóa dành cho bạn.
+                    Tra cứu thông tin, hỗ trợ học tập, khám phá các tiện ích
+                    và trò chuyện với trợ lý theo cách của riêng mình.
+                </p>
+
+                <div class="hero-actions">
+                    <a class="btn btn-primary" href="login.html">
+                        Bắt đầu trải nghiệm
+                        <span aria-hidden="true">→</span>
+                    </a>
+
+                    <a class="btn btn-secondary" href="#features">
+                        Khám phá tính năng
+                        <span aria-hidden="true">↓</span>
+                    </a>
+                </div>
+
+                <p class="hero-note">
+                    <span>✦</span>
+                    Đăng nhập để lưu hồ sơ và thiết lập cá nhân của bạn.
+                </p>
+            </div>
+
+            <!-- MINH HỌA TRÊN TRANG WELCOME.
+                 Đây là minh họa giao diện, chưa phải nhân vật 3D tương tác. -->
+            <div class="hero-visual" aria-label="Minh họa trợ lý C500">
+                <div class="orbit" aria-hidden="true"></div>
+
+                <div class="character-card">
+                    <span class="character-label">
+                        YOUR AI COMPANION
+                    </span>
+
+                    <div class="character-illustration">
+                        <div class="character-glow" aria-hidden="true"></div>
+
+                        <div class="character-emoji" aria-hidden="true">
+                            🧑🏻‍🎓
+                        </div>
+                    </div>
+
+                    <div class="character-name">
+                        C500 Assistant
+                    </div>
+
+                    <div class="character-caption">
+                        Cá nhân hóa theo phong cách của bạn
+                    </div>
+                </div>
+
+                <div class="floating-chip chip-top">
+                    <div class="chip-icon" aria-hidden="true">💬</div>
+                    <div>
+                        <strong>AI Chat</strong>
+                        <small>Trò chuyện thông minh</small>
+                    </div>
+                </div>
+
+                <div class="floating-chip chip-bottom">
+                    <div class="chip-icon" aria-hidden="true">🎖️</div>
+                    <div>
+                        <strong>Personal Profile</strong>
+                        <small>Hồ sơ và nhân vật riêng</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CÁC TÍNH NĂNG -->
+        <section class="features-section" id="features">
+            <div class="section-heading">
+                <div class="eyebrow">
+                    <span class="eyebrow-star">✦</span>
+                    KHÁM PHÁ C500
+                </div>
+
+                <h2>
+                    Một trợ lý, nhiều khả năng
+                </h2>
+
+                <p>
+                    Bắt đầu với hồ sơ riêng và khám phá các công cụ hỗ trợ
+                    được thiết kế để thuận tiện hơn trong quá trình sử dụng.
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <article class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">💬</div>
+                    <h3>Trò chuyện với AI</h3>
+                    <p>
+                        Đặt câu hỏi, tìm ý tưởng và trao đổi với trợ lý
+                        trong giao diện trò chuyện quen thuộc.
+                    </p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">🧍</div>
+                    <h3>Nhân vật cá nhân</h3>
+                    <p>
+                        Tùy chỉnh biệt danh, lựa chọn đồng phục học viên
+                        hoặc trang phục hằng ngày trong phần thiết lập.
+                    </p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">🌏</div>
+                    <h3>Hồ sơ cá nhân</h3>
+                    <p>
+                        Thiết lập ngày sinh, quốc tịch và thông tin hiển thị
+                        theo tài khoản của bạn.
+                    </p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">📋</div>
+                    <h3>Gợi ý nội quy</h3>
+                    <p>
+                        Truy cập nhanh các câu hỏi về nội quy và thông tin
+                        cần thiết khi những nội dung đó đã được cung cấp.
+                    </p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">🗺️</div>
+                    <h3>Sơ đồ và tra cứu</h3>
+                    <p>
+                        Hỗ trợ tìm kiếm thông tin về địa điểm, khu vực
+                        và sơ đồ trường khi có dữ liệu phù hợp.
+                    </p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">🛡️</div>
+                    <h3>Nhận thức bảo mật</h3>
+                    <p>
+                        Gợi ý các chủ đề về an toàn tài khoản, nhận diện
+                        lừa đảo và thực hành bảo mật cơ bản.
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <!-- LỜI KÊU GỌI -->
+        <section class="bottom-cta">
+            <div>
+                <h2>Sẵn sàng bắt đầu?</h2>
+                <p>
+                    Đăng nhập để thiết lập trải nghiệm C500 của riêng bạn.
+                </p>
+            </div>
+
+            <a class="btn btn-primary" href="login.html">
+                Đăng nhập ngay <span aria-hidden="true">→</span>
+            </a>
+        </section>
+    </main>
+
+    <footer>
+        <strong>C500 AI Assistant</strong>
+        <span> · </span>
+        Trợ lý AI cá nhân
+        <br>
+        <span>© <span id="current-year"></span> C500 AI Assistant</span>
+    </footer>
+
+    <script>
+        "use strict";
+
+        // Tự cập nhật năm ở chân trang.
+        document.getElementById("current-year").textContent =
+            new Date().getFullYear();
+
+        // Cuộn mượt đến phần tính năng.
+        document.querySelectorAll('a[href="#features"]').forEach(link => {
+            link.addEventListener("click", event => {
+                const target = document.getElementById("features");
+
+                if (target) {
+                    event.preventDefault();
+                    target.scrollIntoView({
+                        behavior: window.matchMedia(
+                            "(prefers-reduced-motion: reduce)"
+                        ).matches ? "auto" : "smooth",
+                        block: "start"
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,690 +1,282 @@
+
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="h-full">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#07131f">
-<title>Thiết lập cá nhân | C500 AI Assistant</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#020617">
+    <title>Cấu Hình Trợ Lý AI C500</title>
 
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-<style>
-:root{
-  --bg:#06111c;--panel:#0d1b2a;--panel2:#102536;--green:#16856b;
-  --green2:#40d6a8;--gold:#e8c779;--gold2:#fff0b8;--text:#f4f7fb;
-  --muted:#a7b7c8;--border:rgba(116,174,157,.24);--danger:#fda4af;
-}
-*{box-sizing:border-box}
-html{color-scheme:dark}
-body{
-  min-height:100vh;margin:0;padding:24px;display:grid;place-items:center;
-  color:var(--text);font-family:"Segoe UI",Arial,sans-serif;
-  background:radial-gradient(ellipse at 50% -10%,rgba(30,111,88,.42),transparent 55%),var(--bg);
-}
-button,input,select{font:inherit}
-button,a{-webkit-tap-highlight-color:transparent}
-button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
-.shell{width:min(760px,100%);border:1px solid #28594e;border-radius:26px;overflow:hidden;background:rgba(12,25,39,.97);box-shadow:0 28px 90px #0007}
-.topbar{padding:23px 27px 19px;border-bottom:1px solid rgba(116,174,157,.14);background:linear-gradient(110deg,rgba(20,69,55,.45),transparent 65%)}
-.brand{display:flex;align-items:center;gap:12px}
-.brand-icon{width:43px;height:43px;display:grid;place-items:center;border:1px solid #9d8750;border-radius:13px;background:#123c35;color:var(--gold);font-size:22px}
-.brand-name{font-weight:850;font-size:14px;letter-spacing:.09em}
-.brand-sub{color:var(--muted);font-size:10px;letter-spacing:.14em;margin-top:3px}
-.toprow{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-top:23px}
-h1{font-size:clamp(24px,4vw,34px);line-height:1.2;margin:0;letter-spacing:-.03em}
-.step-count{font-size:11px;color:var(--gold2);white-space:nowrap;border:1px solid rgba(232,199,121,.25);border-radius:999px;padding:7px 10px}
-.progress{height:5px;border-radius:9px;background:#263847;overflow:hidden;margin-top:18px}
-.progress-fill{height:100%;width:14.285%;background:linear-gradient(90deg,var(--green2),var(--gold));transition:width .25s ease}
-.status{font-size:12px;color:var(--muted);line-height:1.55;margin:12px 0 0}
-.content{padding:clamp(22px,4vw,34px)}
-.step{display:none;min-height:320px;animation:appear .22s ease-out}
-.step.active{display:block}
-@keyframes appear{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
-.kicker{color:#8be7c8;font-size:10px;letter-spacing:.2em;font-weight:850;margin-bottom:12px}
-h2{font-size:clamp(21px,3.5vw,28px);line-height:1.25;margin:0 0 10px}
-.lead{color:#c0ceda;font-size:14px;line-height:1.8;margin:0 0 22px}
-.muted{color:var(--muted);font-size:12px;line-height:1.7}
-.welcome-mark{width:70px;height:70px;display:grid;place-items:center;border:1px solid rgba(232,199,121,.42);border-radius:22px;background:linear-gradient(145deg,#174538,#0a201c);font-size:32px;margin-bottom:23px}
-.info-box{padding:15px 16px;border:1px solid var(--border);border-radius:14px;background:rgba(5,16,26,.62);color:#b8c8d5;font-size:12px;line-height:1.8}
-.field-label{display:block;font-size:12px;color:#b7c8d7;margin:0 0 8px}
-.field{width:100%;min-height:47px;padding:12px 13px;border-radius:12px;background:#07121f;border:1px solid #334b5b;color:white;outline:none}
-.field:focus{border-color:var(--green2);box-shadow:0 0 0 3px #10b98122}
-.date-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.country-grid,.outfit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.choice{width:100%;min-height:100px;padding:16px;text-align:left;border:1px solid #334b5b;border-radius:16px;background:#0a1724;color:var(--text);cursor:pointer;transition:border-color .15s,background .15s,transform .15s}
-.choice:hover{transform:translateY(-2px);border-color:#5c8f7e}
-.choice.selected{border:2px solid var(--green2);background:linear-gradient(145deg,#10372e,#0a2020)}
-.choice-flag{font-size:27px;display:block;margin-bottom:9px}
-.choice-title{display:block;font-size:14px;font-weight:800}
-.choice-desc{display:block;margin-top:5px;font-size:11px;line-height:1.6;color:var(--muted)}
-.checkline{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;margin-top:12px}
-#avatar-canvas{width:100%;height:300px;border:1px solid var(--border);border-radius:18px;overflow:hidden;background:radial-gradient(ellipse at center,#172d3d,#08121d)}
-#avatar-canvas canvas{display:block;width:100%;height:100%}
-.avatar-caption{display:flex;justify-content:space-between;gap:12px;margin:9px 2px 16px;font-size:11px;color:var(--muted)}
-.topic-heading{font-size:12px;font-weight:800;margin:18px 0 9px}
-.topic-tabs{display:flex;gap:8px;overflow-x:auto;padding:1px 1px 8px}
-.topic-tab{flex:0 0 auto;border:1px solid #334b5b;background:#0a1724;color:#dce8ef;border-radius:999px;padding:8px 11px;font-size:11px;cursor:pointer}
-.topic-tab[aria-pressed="true"]{border-color:var(--green2);background:#10372e;color:#b9f7e1}
-.prompt-panel{padding:12px;border:1px solid var(--border);border-radius:14px;background:#071521}
-.prompt-panel-title{font-size:11px;color:var(--muted);margin-bottom:8px}
-.prompt-list{display:grid;gap:7px}
-.prompt-btn{padding:9px 11px;text-align:left;border:1px solid #2c4252;border-radius:10px;background:#0b1c29;color:#dce7ee;font-size:12px;cursor:pointer}
-.prompt-btn:hover{border-color:#4e9a80}
-.summary{display:grid;gap:0;border:1px solid #2b4353;border-radius:15px;overflow:hidden}
-.summary-row{display:grid;grid-template-columns:140px 1fr;gap:14px;padding:12px 14px;border-bottom:1px solid #203645;font-size:12px}
-.summary-row:last-child{border-bottom:0}
-.summary-key{color:var(--muted)}.summary-value{font-weight:700;overflow-wrap:anywhere}
-.alert{margin-top:15px;padding:12px 14px;border-radius:12px;font-size:12px;line-height:1.65}
-.alert.error{border:1px solid #85414d;background:#351820;color:#ffd4da}
-.alert.info{border:1px solid #28594e;background:#0b2925;color:#b8f3dc}
-.actions{display:flex;align-items:center;gap:10px;margin-top:27px}
-.actions-spacer{flex:1}
-.btn{min-height:45px;padding:12px 17px;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;transition:transform .15s,opacity .15s}
-.btn:hover{transform:translateY(-1px)}
-.btn:disabled{opacity:.55;cursor:wait;transform:none}
-.btn-primary{border:1px solid transparent;background:linear-gradient(110deg,#13785f,#20a77e);color:white}
-.btn-secondary{border:1px solid #405564;background:transparent;color:#d7e1ec}
-.btn-link{display:inline-block;margin-left:12px;color:#9ee6ce;font-size:12px}
-.hidden{display:none!important}
-.footer-note{text-align:center;border-top:1px solid rgba(116,174,157,.12);padding:15px;color:#7f94a5;font-size:10px}
-@media(max-width:520px){
- body{padding:10px}.shell{border-radius:20px}.topbar{padding:18px}.content{padding:21px 17px}.step{min-height:300px}
- .brand-name{font-size:12px}.brand-sub{font-size:9px}.toprow{align-items:flex-start}.step-count{font-size:10px}
- .country-grid,.outfit-grid{gap:9px}.choice{padding:13px;min-height:95px}.choice-title{font-size:13px}
- #avatar-canvas{height:270px}.avatar-caption{font-size:10px}.summary-row{grid-template-columns:105px 1fr}
- .actions{gap:8px}.btn{padding:11px 13px;font-size:12px}
-}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
-</style>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100%;
+            background:
+                radial-gradient(
+                    ellipse at top,
+                    rgba(6, 95, 70, 0.2),
+                    transparent 55%
+                ),
+                #020617;
+        }
+
+        .field {
+            width: 100%;
+            background: #020617;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 11px 13px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .field:focus {
+            border-color: #10b981;
+        }
+
+        .field:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
-<body>
-<main class="shell">
-  <header class="topbar">
-    <div class="brand">
-      <div class="brand-icon" aria-hidden="true">🛡️</div>
-      <div>
-        <div class="brand-name">C500 AI ASSISTANT</div>
-        <div class="brand-sub">PERSONAL SETUP EXPERIENCE</div>
-      </div>
-    </div>
-    <div class="toprow">
-      <h1 id="page-title">Cá nhân hóa trợ lý</h1>
-      <span class="step-count" id="step-label">Bước 1/7</span>
-    </div>
-    <div class="progress" aria-label="Tiến độ thiết lập">
-      <div class="progress-fill" id="progress-fill"></div>
-    </div>
-    <p class="status" id="save-state" role="status" aria-live="polite">
-      Đang kiểm tra phiên đăng nhập…
-    </p>
-  </header>
 
-  <div class="content">
-    <form id="wizard" novalidate>
-      <!-- STEP 1 -->
-      <section class="step active" data-title="Chào mừng">
-        <div class="welcome-mark" aria-hidden="true">✦</div>
-        <div class="kicker">BƯỚC 01 · WELCOME</div>
-        <h2>Chào mừng đến với C500</h2>
-        <p class="lead">
-          Hãy thiết lập trợ lý theo cách của bạn. Mỗi lựa chọn được trình bày
-          trên một màn hình riêng, có thể quay lại để chỉnh sửa trước khi hoàn tất.
-        </p>
-        <div class="info-box">
-          <strong style="color:var(--gold2)">Bạn sẽ thiết lập:</strong><br>
-          Ngày sinh · Quốc tịch · Biệt danh · Nhân vật 3D · Trang phục.
-          Sau khi lưu thành công, bạn sẽ được chuyển về giao diện chat hiện có.
-        </div>
-      </section>
+<body class="min-h-full text-slate-100 flex items-center justify-center p-4">
 
-      <!-- STEP 2 -->
-      <section class="step" data-title="Ngày sinh">
-        <div class="kicker">BƯỚC 02 · PROFILE</div>
-        <h2>Ngày sinh của bạn</h2>
-        <p class="lead">Chọn ngày, tháng và năm sinh để hoàn thiện hồ sơ cá nhân.</p>
-        <div class="date-grid">
-          <div><label class="field-label" for="dob-day">Ngày</label><select class="field" id="dob-day" required></select></div>
-          <div><label class="field-label" for="dob-month">Tháng</label><select class="field" id="dob-month" required></select></div>
-          <div><label class="field-label" for="dob-year">Năm</label><select class="field" id="dob-year" required></select></div>
-        </div>
-        <p class="muted" style="margin-top:13px">Ngày sinh được lưu trong hồ sơ Firebase của tài khoản đã đăng nhập.</p>
-      </section>
+    <main class="bg-slate-900 border border-emerald-500/40
+                 rounded-3xl max-w-md w-full p-7 shadow-2xl">
 
-      <!-- STEP 3 -->
-      <section class="step" data-title="Quốc tịch">
-        <div class="kicker">BƯỚC 03 · NATIONALITY</div>
-        <h2>Bạn đến từ quốc gia nào?</h2>
-        <p class="lead">Chọn một quốc gia để cá nhân hóa hồ sơ của bạn.</p>
-        <div class="country-grid" id="country-options">
-          <button type="button" class="choice selected" data-country="Việt Nam" aria-pressed="true">
-            <span class="choice-flag" aria-hidden="true">🇻🇳</span><span class="choice-title">Việt Nam</span><span class="choice-desc">Cộng hòa xã hội chủ nghĩa Việt Nam</span>
-          </button>
-          <button type="button" class="choice" data-country="Trung Quốc" aria-pressed="false">
-            <span class="choice-flag" aria-hidden="true">🇨🇳</span><span class="choice-title">Trung Quốc</span><span class="choice-desc">Trung Quốc</span>
-          </button>
-          <button type="button" class="choice" data-country="Cuba" aria-pressed="false">
-            <span class="choice-flag" aria-hidden="true">🇨🇺</span><span class="choice-title">Cuba</span><span class="choice-desc">Cuba</span>
-          </button>
-          <button type="button" class="choice" data-country="Lào" aria-pressed="false">
-            <span class="choice-flag" aria-hidden="true">🇱🇦</span><span class="choice-title">Lào</span><span class="choice-desc">Lào</span>
-          </button>
-        </div>
-        <p class="muted" style="margin-top:13px">Quốc tịch chỉ phục vụ cá nhân hóa; không tự quyết định quyền truy cập hay quyền quản trị.</p>
-      </section>
+        <header class="text-center mb-6">
+            <p class="text-[10px] uppercase tracking-[.3em]
+                      text-emerald-400 font-bold">
+                C500 • AI ASSISTANT
+            </p>
 
-      <!-- STEP 4 -->
-      <section class="step" data-title="Biệt danh">
-        <div class="kicker">BƯỚC 04 · DISPLAY NAME</div>
-        <h2>Bạn muốn được gọi là gì?</h2>
-        <p class="lead">Nhập biệt danh sẽ hiển thị trong trải nghiệm cá nhân của bạn.</p>
-        <label class="field-label" for="nickname">Biệt danh</label>
-        <input class="field" id="nickname" name="nickname" maxlength="40" autocomplete="nickname" placeholder="Ví dụ: Minh" required>
-        <p class="muted" style="margin-top:12px">Tối đa 40 ký tự. Bạn có thể thay đổi sau này bằng cách cập nhật hồ sơ.</p>
-      </section>
+            <h1 class="text-xl font-extrabold text-yellow-400 mt-2">
+                Thiết Lập Trợ Lý AI Cá Nhân
+            </h1>
 
-      <!-- STEP 5 -->
-      <section class="step" data-title="Nhân vật 3D">
-        <div class="kicker">BƯỚC 05 · YOUR AVATAR</div>
-        <h2>Chọn phong cách nhân vật</h2>
-        <p class="lead">Nhân vật minh họa là học viên châu Á. Chọn trang phục để xem bản xem trước thay đổi trực tiếp.</p>
-        <div id="avatar-canvas" aria-label="Bản xem trước nhân vật 3D học viên châu Á"></div>
-        <div class="avatar-caption"><span>Kéo ngang để xoay nhân vật</span><span id="outfit-caption">Đồng phục học viên</span></div>
-        <div class="outfit-grid" id="outfit-options">
-          <button type="button" class="choice selected" data-outfit="academy" aria-pressed="true">
-            <span class="choice-title">🎖️ Đồng phục học viên</span>
-            <span class="choice-desc">Phong cách đồng phục xanh đậm, chi tiết phù hiệu minh họa.</span>
-          </button>
-          <button type="button" class="choice" data-outfit="casual" aria-pressed="false">
-            <span class="choice-title">👕 Trang phục hằng ngày</span>
-            <span class="choice-desc">Áo polo và quần dài phong cách đời thường.</span>
-          </button>
-        </div>
+            <p class="text-xs leading-5 text-slate-400 mt-2">
+                Tùy chỉnh hồ sơ trợ lý của bạn.
+                Không cần nhập API key cá nhân.
+            </p>
+        </header>
 
-        <div class="topic-heading">Khám phá câu hỏi gợi ý</div>
-        <div class="topic-tabs" id="topic-tabs" role="group" aria-label="Nhóm câu hỏi gợi ý">
-          <button type="button" class="topic-tab" data-topic="rules" aria-pressed="true">📋 Nội quy</button>
-          <button type="button" class="topic-tab" data-topic="map" aria-pressed="false">🗺️ Sơ đồ trường</button>
-          <button type="button" class="topic-tab" data-topic="security" aria-pressed="false">🛡️ Bảo mật</button>
-          <button type="button" class="topic-tab" data-topic="study" aria-pressed="false">📚 Học tập</button>
-          <button type="button" class="topic-tab" data-topic="assistant" aria-pressed="false">💬 Trợ lý AI</button>
-        </div>
-        <div class="prompt-panel" aria-live="polite">
-          <div class="prompt-panel-title" id="prompt-title">Câu hỏi mẫu về nội quy</div>
-          <div class="prompt-list" id="prompt-list"></div>
-        </div>
-        <p class="muted" style="margin-top:10px">Đây là gợi ý xem trước. Khi tích hợp vào chat, các nút sẽ gửi câu hỏi qua hàm gửi tin nhắn hiện có.</p>
-      </section>
+        <section class="rounded-xl border border-emerald-800
+                        bg-emerald-950/40 p-3 mb-5">
+            <p class="text-xs leading-5 text-emerald-200">
+                <strong>AI dùng chung của hệ thống</strong><br>
+                Khóa truy cập AI được quản lý ở máy chủ.
+                Thành viên sử dụng tài khoản đăng nhập hiện có.
+            </p>
+        </section>
 
-      <!-- STEP 6 -->
-      <section class="step" data-title="Kết nối AI">
-        <div class="kicker">BƯỚC 06 · AI CONFIGURATION</div>
-        <h2>Kiểm tra cấu hình AI</h2>
-        <p class="lead">Bước này không bắt buộc nếu bạn đã lưu API key trong tài khoản.</p>
-        <label class="field-label" for="api-key">Gemini API key (tùy chọn)</label>
-        <input class="field" id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="Chỉ nhập nếu muốn cập nhật API key">
-        <label class="checkline"><input type="checkbox" id="show-api-key"> Hiện API key khi nhập</label>
-        <div class="info-box" style="margin-top:18px">
-          Không nhập API key nếu không cần thay đổi. API key được lưu trong Firestore vẫn có thể bị truy cập nếu Rules cấu hình sai; với triển khai nhiều người dùng, nên chuyển việc gọi mô hình sang backend có xác thực.
-        </div>
-      </section>
+        <form id="setup-form" class="space-y-4">
 
-      <!-- STEP 7 -->
-      <section class="step" data-title="Xác nhận">
-        <div class="kicker">BƯỚC 07 · REVIEW</div>
-        <h2>Kiểm tra thiết lập</h2>
-        <p class="lead">Xem lại thông tin. Nhấn “Lưu & vào trợ lý” để hoàn tất.</p>
-        <div id="summary" class="summary"></div>
-        <div class="alert info">Sau khi lưu thành công, trang sẽ mở <code>index.html</code>. Hãy đảm bảo đây là giao diện chat chính của dự án.</div>
-      </section>
+            <div class="grid grid-cols-2 gap-3">
 
-      <div id="form-error" class="alert error hidden" role="alert" aria-live="assertive"></div>
-      <div class="actions">
-        <button type="button" class="btn btn-secondary hidden" id="back">← Quay lại</button>
-        <div class="actions-spacer"></div>
-        <a class="btn-link" href="welcome.html">Thoát</a>
-        <button type="button" class="btn btn-primary" id="next">Tiếp tục →</button>
-        <button type="submit" class="btn btn-primary hidden" id="finish">Lưu & vào trợ lý ✓</button>
-      </div>
-    </form>
-  </div>
-  <footer class="footer-note">C500 AI Assistant · Thiết lập được lưu theo tài khoản Firebase</footer>
-</main>
+                <div>
+                    <label for="hair-color"
+                           class="block text-xs font-semibold
+                                  text-emerald-400 mb-1">
+                        Màu tóc
+                    </label>
 
-<script src="js/firebase-config.js"></script>
-<script src="js/avatar-customizer.js"></script>
-<script>
-(() => {
-  'use strict';
+                    <select id="hair-color" class="field">
+                        <option value="black">Đen</option>
+                        <option value="brown">Nâu</option>
+                        <option value="white">Trắng</option>
+                    </select>
+                </div>
 
-  const $ = id => document.getElementById(id);
-  const steps = Array.from(document.querySelectorAll('.step'));
-  const today = new Date();
-  let current = 0;
-  let activeUser = null;
-  let country = 'Việt Nam';
-  let outfit = 'academy';
-  let avatar = null;
-  let authReady = false;
+                <div>
+                    <label for="uniform-type"
+                           class="block text-xs font-semibold
+                                  text-emerald-400 mb-1">
+                        Sắc phục
+                    </label>
 
-  const promptGroups = {
-    rules: {
-      title: 'Câu hỏi mẫu về nội quy',
-      items: [
-        'Tóm tắt những nội quy học viên cần biết',
-        'Nhắc tôi về tác phong và giờ giấc',
-        'Tôi cần chuẩn bị gì trước buổi học?'
-      ]
-    },
-    map: {
-      title: 'Câu hỏi mẫu về sơ đồ trường',
-      items: [
-        'Hướng dẫn tìm các khu vực trong trường',
-        'Tìm phòng học hoặc giảng đường',
-        'Chỉ đường đến khu vực tôi cần đến'
-      ]
-    },
-    security: {
-      title: 'Câu hỏi mẫu về bảo mật',
-      items: [
-        'Hướng dẫn bảo vệ tài khoản cá nhân',
-        'Cách nhận biết tin nhắn lừa đảo',
-        'Tôi nên làm gì khi phát hiện sự cố bảo mật?'
-      ]
-    },
-    study: {
-      title: 'Câu hỏi mẫu về học tập',
-      items: [
-        'Lập kế hoạch học tập trong tuần',
-        'Tạo bộ câu hỏi ôn tập',
-        'Giải thích một nội dung tôi chưa hiểu'
-      ]
-    },
-    assistant: {
-      title: 'Câu hỏi mẫu về trợ lý AI',
-      items: [
-        'Tôi có thể nhờ trợ lý hỗ trợ những gì?',
-        'Hướng dẫn sử dụng các tính năng',
-        'Gợi ý công việc cần hoàn thành hôm nay'
-      ]
-    }
-  };
+                    <select id="uniform-type" class="field">
+                        <option value="police">Cảnh sát</option>
+                        <option value="security">An ninh</option>
+                    </select>
+                </div>
 
-  // Populate DOB selectors.
-  $('dob-day').add(new Option('Ngày', ''));
-  $('dob-month').add(new Option('Tháng', ''));
-  $('dob-year').add(new Option('Năm', ''));
-  for (let d = 1; d <= 31; d++) $('dob-day').add(new Option(String(d).padStart(2, '0'), String(d).padStart(2, '0')));
-  for (let m = 1; m <= 12; m++) $('dob-month').add(new Option(String(m).padStart(2, '0'), String(m).padStart(2, '0')));
-  for (let y = today.getFullYear(); y >= 1900; y--) $('dob-year').add(new Option(String(y), String(y)));
-  $('dob-day').value = '01';
-  $('dob-month').value = '01';
-  $('dob-year').value = '2006';
+            </div>
 
-  function setStatus(message) {
-    $('save-state').textContent = message;
-  }
+            <div>
+                <label for="ai-nickname"
+                       class="block text-xs font-semibold
+                              text-emerald-400 mb-1">
+                    Biệt danh AI
+                </label>
 
-  function showError(message) {
-    $('form-error').textContent = message || '';
-    $('form-error').classList.toggle('hidden', !message);
-  }
+                <input
+                    type="text"
+                    id="ai-nickname"
+                    maxlength="60"
+                    placeholder="Ví dụ: Sĩ quan Bôm..."
+                    required
+                    class="field"
+                >
+            </div>
 
-  function setSelected(selector, attribute, value) {
-    document.querySelectorAll(selector).forEach(button => {
-      const selected = button.getAttribute(attribute) === value;
-      button.classList.toggle('selected', selected);
-      button.setAttribute('aria-pressed', String(selected));
-    });
-  }
+            <p id="status"
+               class="hidden text-xs leading-5"
+               role="status"
+               aria-live="polite"></p>
 
-  function getDob() {
-    return `${$('dob-day').value}/${$('dob-month').value}/${$('dob-year').value}`;
-  }
+            <button
+                type="submit"
+                id="submit-btn"
+                class="w-full bg-emerald-600 hover:bg-emerald-500
+                       disabled:opacity-50 text-white font-bold
+                       py-3 rounded-xl text-xs uppercase
+                       tracking-wider transition">
+                Lưu cấu hình &amp; vào Chat
+            </button>
 
-  function isValidDob() {
-    const d = Number($('dob-day').value);
-    const m = Number($('dob-month').value);
-    const y = Number($('dob-year').value);
-    if (!d || !m || !y) return false;
-    const date = new Date(y, m - 1, d);
-    return date.getFullYear() === y &&
-      date.getMonth() === m - 1 &&
-      date.getDate() === d &&
-      date <= today;
-  }
+        </form>
+    </main>
 
-  function validateCurrentStep() {
-    showError('');
-    if (current === 1 && !isValidDob()) {
-      showError('Ngày sinh chưa hợp lệ. Hãy chọn ngày, tháng và năm chính xác.');
-      return false;
-    }
-    if (current === 3) {
-      const nickname = $('nickname').value.trim();
-      if (!nickname) {
-        showError('Vui lòng nhập biệt danh trước khi tiếp tục.');
-        $('nickname').focus();
-        return false;
-      }
-      if (nickname.length > 40) {
-        showError('Biệt danh không được dài quá 40 ký tự.');
-        return false;
-      }
-    }
-    return true;
-  }
+    <script src="js/firebase-config.js"></script>
 
-  function renderPrompts(topic) {
-    const group = promptGroups[topic] || promptGroups.rules;
-    $('prompt-title').textContent = group.title;
-    $('prompt-list').replaceChildren();
+    <script>
+        "use strict";
 
-    group.items.forEach(question => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'prompt-btn';
-      button.textContent = question;
-      button.addEventListener('click', () => {
-        // This is a setup preview. Do not silently send a chat request here.
-        $('prompt-title').textContent = 'Câu hỏi đã chọn';
-        $('prompt-list').replaceChildren();
-        const selected = document.createElement('div');
-        selected.className = 'muted';
-        selected.textContent = question;
-        $('prompt-list').append(selected);
+        let activeUser = null;
 
-        const reset = document.createElement('button');
-        reset.type = 'button';
-        reset.className = 'prompt-btn';
-        reset.textContent = '← Xem các câu hỏi khác';
-        reset.addEventListener('click', () => renderPrompts(topic));
-        $('prompt-list').append(reset);
-      });
-      $('prompt-list').append(button);
-    });
-  }
+        const form = document.getElementById("setup-form");
+        const button = document.getElementById("submit-btn");
+        const statusBox = document.getElementById("status");
 
-  function makeSummary() {
-    $('summary').replaceChildren();
-    const data = [
-      ['Ngày sinh', getDob()],
-      ['Quốc tịch', country],
-      ['Biệt danh', $('nickname').value.trim()],
-      ['Nhân vật', 'Học viên châu Á'],
-      ['Trang phục', outfit === 'academy' ? 'Đồng phục học viên' : 'Trang phục hằng ngày'],
-      ['API key', $('api-key').value.trim() ? 'Sẽ cập nhật' : 'Giữ cấu hình hiện tại']
-    ];
-
-    data.forEach(([key, value]) => {
-      const row = document.createElement('div');
-      row.className = 'summary-row';
-      const k = document.createElement('div');
-      k.className = 'summary-key';
-      k.textContent = key;
-      const v = document.createElement('div');
-      v.className = 'summary-value';
-      v.textContent = value;
-      row.append(k, v);
-      $('summary').append(row);
-    });
-  }
-
-  function updateUI() {
-    steps.forEach((step, index) => step.classList.toggle('active', index === current));
-    $('step-label').textContent = `Bước ${current + 1}/${steps.length}`;
-    $('progress-fill').style.width = `${((current + 1) / steps.length) * 100}%`;
-    $('back').classList.toggle('hidden', current === 0);
-    $('next').classList.toggle('hidden', current === steps.length - 1);
-    $('finish').classList.toggle('hidden', current !== steps.length - 1);
-    showError('');
-
-    if (current === 4) {
-      if (!avatar && window.C500Avatar && typeof window.C500Avatar.mount === 'function') {
-        avatar = window.C500Avatar.mount('avatar-canvas', { outfit });
-      }
-      if (avatar && typeof avatar.setOutfit === 'function') avatar.setOutfit(outfit);
-    }
-    if (current === 6) makeSummary();
-  }
-
-  async function saveStepDraft() {
-    if (!activeUser || typeof db === 'undefined' || typeof firebase === 'undefined') {
-      setStatus('Bước hiện tại vẫn ở trên màn hình; sẽ thử đồng bộ khi bạn lưu hoàn tất.');
-      return;
-    }
-
-    let partial = {};
-    if (current === 1) partial = { dob: getDob() };
-    if (current === 2) partial = { nationality: country };
-    if (current === 3) partial = { nickname: $('nickname').value.trim() };
-    if (current === 4) partial = {
-      outfit,
-      uniformType: outfit === 'academy' ? 'security' : 'casual',
-      avatarStyle: 'asian-student-3d',
-      hairColor: 'black'
-    };
-    if (!Object.keys(partial).length) return;
-
-    try {
-      const stamp = firebase.firestore.FieldValue.serverTimestamp();
-      await Promise.all([
-        db.collection('users').doc(activeUser.uid).set(
-          { ...partial, updatedAt: stamp }, { merge: true }
-        ),
-        db.collection('users').doc(activeUser.uid)
-          .collection('settings').doc('ai_config')
-          .set({ ...partial, completed: false, updatedAt: stamp }, { merge: true })
-      ]);
-      setStatus('Bước này đã được lưu. Bạn có thể tiếp tục hoặc quay lại để chỉnh sửa.');
-    } catch (error) {
-      const code = error && error.code ? error.code : '';
-      console.warn('Could not save setup draft:', code || error);
-      if (code.includes('permission-denied')) {
-        setStatus('Chưa thể lưu bước này do quyền Firestore. Bạn có thể tiếp tục, nhưng cần sửa Rules trước khi hoàn tất.');
-      } else if (code.includes('unavailable') || code.includes('network')) {
-        setStatus('Đang offline: bước này vẫn hiển thị, nhưng chưa đồng bộ lên Firebase. Hệ thống sẽ thử lưu lại khi bạn hoàn tất.');
-      } else {
-        setStatus('Chưa đồng bộ được bước này. Thông tin trên màn hình vẫn được giữ để thử lưu lại ở bước cuối.');
-      }
-    }
-  }
-
-  $('next').addEventListener('click', async () => {
-    if (!validateCurrentStep()) return;
-    const nextButton = $('next');
-    nextButton.disabled = true;
-    await saveStepDraft();
-    current = Math.min(current + 1, steps.length - 1);
-    updateUI();
-    nextButton.disabled = false;
-  });
-
-  $('back').addEventListener('click', () => {
-    current = Math.max(0, current - 1);
-    updateUI();
-  });
-
-  document.querySelectorAll('[data-country]').forEach(button => {
-    button.addEventListener('click', () => {
-      country = button.dataset.country;
-      setSelected('[data-country]', 'data-country', country);
-    });
-  });
-
-  document.querySelectorAll('[data-outfit]').forEach(button => {
-    button.addEventListener('click', () => {
-      outfit = button.dataset.outfit;
-      setSelected('[data-outfit]', 'data-outfit', outfit);
-      $('outfit-caption').textContent = outfit === 'academy' ? 'Đồng phục học viên' : 'Trang phục hằng ngày';
-      if (avatar && typeof avatar.setOutfit === 'function') avatar.setOutfit(outfit);
-    });
-  });
-
-  document.querySelectorAll('[data-topic]').forEach(button => {
-    button.addEventListener('click', () => {
-      setSelected('[data-topic]', 'data-topic', button.dataset.topic);
-      renderPrompts(button.dataset.topic);
-    });
-  });
-  renderPrompts('rules');
-
-  $('show-api-key').addEventListener('change', () => {
-    $('api-key').type = $('show-api-key').checked ? 'text' : 'password';
-  });
-
-  $('wizard').addEventListener('submit', async event => {
-    event.preventDefault();
-    if (!validateCurrentStep()) return;
-    showError('');
-
-    if (!activeUser) {
-      showError('Chưa xác nhận được phiên đăng nhập. Kiểm tra kết nối và đăng nhập lại nếu cần; trang vẫn được giữ nguyên.');
-      return;
-    }
-    if (typeof db === 'undefined' || typeof firebase === 'undefined') {
-      showError('Firebase chưa được khởi tạo. Kiểm tra js/firebase-config.js và các SDK Firebase.');
-      return;
-    }
-
-    const finish = $('finish');
-    finish.disabled = true;
-    finish.textContent = 'Đang lưu…';
-    setStatus('Đang lưu hồ sơ và cấu hình cá nhân…');
-
-    try {
-      const uid = activeUser.uid;
-      const nickname = $('nickname').value.trim();
-      const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-      const config = {
-        dob: getDob(),
-        nationality: country,
-        nickname,
-        outfit,
-        uniformType: outfit === 'academy' ? 'security' : 'casual',
-        avatarStyle: 'asian-student-3d',
-        hairColor: 'black',
-        completed: true,
-        updatedAt: timestamp
-      };
-
-      const writes = [
-        db.collection('users').doc(uid).set({
-          dob: getDob(),
-          nationality: country,
-          nickname,
-          updatedAt: timestamp
-        }, { merge: true }),
-        db.collection('users').doc(uid).collection('settings').doc('ai_config').set(config, { merge: true })
-      ];
-
-      const apiKey = $('api-key').value.trim();
-      if (apiKey) {
-        writes.push(
-          db.collection('users').doc(uid).collection('settings').doc('apikey').set({
-            key: apiKey,
-            updatedAt: timestamp
-          }, { merge: true })
-        );
-      }
-
-      await Promise.all(writes);
-      setStatus('Đã lưu thiết lập. Đang mở trợ lý…');
-      window.location.assign('index.html');
-    } catch (error) {
-      console.error('C500 setup save failed:', error && (error.code || error.message || error));
-      const code = error && error.code ? error.code : '';
-      let message = 'Chưa lưu được thiết lập. Hãy thử lại.';
-      if (code.includes('permission-denied')) {
-        message = 'Firebase từ chối quyền đọc/ghi. Kiểm tra Firestore Security Rules cho tài khoản này. Bạn vẫn ở trang thiết lập.';
-      } else if (code.includes('unavailable') || code.includes('network')) {
-        message = 'Firebase tạm thời không khả dụng hoặc thiết bị đang offline. Kiểm tra mạng rồi thử lại; không tự chuyển trang.';
-      } else if (code.includes('unauthenticated')) {
-        message = 'Phiên đăng nhập không còn hợp lệ. Hãy đăng nhập lại rồi thử lại.';
-      } else if (code.includes('failed-precondition')) {
-        message = 'Firestore chưa sẵn sàng hoặc thiếu cấu hình cần thiết. Kiểm tra cấu hình dự án Firebase.';
-      }
-      showError(message);
-      setStatus('Chưa lưu xong. Dữ liệu trên màn hình vẫn được giữ để thử lại.');
-      finish.disabled = false;
-      finish.textContent = 'Lưu & vào trợ lý ✓';
-    }
-  });
-
-  function loadExistingConfig(user) {
-    activeUser = user;
-    if (!user) {
-      setStatus('Bạn chưa đăng nhập. Đang chuyển đến trang đăng nhập…');
-      window.location.replace('login.html');
-      return;
-    }
-    setStatus('Đã đăng nhập. Đang tải cấu hình đã lưu nếu có…');
-
-    db.collection('users').doc(user.uid).collection('settings').doc('ai_config').get()
-      .then(snapshot => {
-        if (!snapshot.exists) {
-          setStatus('Chưa có thiết lập cũ. Bạn có thể bắt đầu cấu hình.');
-          return;
+        function showStatus(message, type = "error") {
+            statusBox.textContent = message;
+            statusBox.className =
+                "text-xs leading-5 " +
+                (type === "success"
+                    ? "text-emerald-300"
+                    : "text-red-300");
         }
-        const data = snapshot.data() || {};
-        if (data.dob) {
-          const parts = String(data.dob).split('/');
-          if (parts.length === 3 && $('dob-day').querySelector(`option[value="${parts[0]}"]`)) {
-            $('dob-day').value = parts[0];
-            $('dob-month').value = parts[1];
-            $('dob-year').value = parts[2];
-          }
-        }
-        if (data.nationality) country = data.nationality;
-        if (data.nickname) $('nickname').value = data.nickname;
-        if (data.outfit === 'academy' || data.outfit === 'casual') outfit = data.outfit;
-        else if (data.uniformType === 'casual') outfit = 'casual';
 
-        setSelected('[data-country]', 'data-country', country);
-        setSelected('[data-outfit]', 'data-outfit', outfit);
-        $('outfit-caption').textContent = outfit === 'academy' ? 'Đồng phục học viên' : 'Trang phục hằng ngày';
-        setStatus('Đã tải cấu hình cũ. Bạn có thể giữ nguyên hoặc thay đổi.');
-      })
-      .catch(error => {
-        const code = error && error.code ? error.code : '';
-        console.warn('Could not load setup configuration:', code || error);
-        if (code.includes('permission-denied')) {
-          setStatus('Không đọc được cấu hình cũ do quyền Firestore. Bạn vẫn có thể kiểm tra thông tin; không tự chuyển trang.');
-        } else if (code.includes('unavailable') || code.includes('network')) {
-          setStatus('Đang offline hoặc Firebase tạm thời không khả dụng. Trang vẫn mở; việc lưu cần kết nối trở lại.');
-        } else {
-          setStatus('Không tải được cấu hình cũ. Bạn vẫn có thể tiếp tục và thử lưu lại.');
-        }
-      });
-  }
+        // Chỉ cho phép người đã đăng nhập thiết lập hồ sơ.
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+                return;
+            }
 
-  // Wait for Firebase auth state instead of redirecting on a transient Firestore error.
-  if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length && typeof auth !== 'undefined') {
-    auth.onAuthStateChanged(user => {
-      authReady = true;
-      loadExistingConfig(user);
-    }, error => {
-      console.warn('Firebase auth state error:', error && error.code);
-      setStatus('Không xác nhận được đăng nhập do lỗi kết nối. Kiểm tra mạng rồi tải lại trang.');
-    });
-  } else {
-    setStatus('Firebase chưa khởi tạo. Kiểm tra SDK và js/firebase-config.js trước khi lưu.');
-  }
+            activeUser = user;
 
-  updateUI();
-})();
-</script>
-  
-<!-- Thư viện Three.js: phải tải trước avatar-customizer.js -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+            try {
+                const configRef = db
+                    .collection("users")
+                    .doc(user.uid)
+                    .collection("settings")
+                    .doc("ai_config");
 
-<!-- Mã nhân vật học viên 3D -->
-<script src="js/avatar-customizer.js"></script>
+                const snapshot = await configRef.get();
 
-<!-- Mã popup câu hỏi gợi ý -->
-<script src="js/suggestion-popups.js"></script>
+                if (!snapshot.exists) return;
+
+                const config = snapshot.data() || {};
+
+                if (config.hairColor) {
+                    document.getElementById("hair-color").value =
+                        config.hairColor;
+                }
+
+                if (config.uniformType) {
+                    document.getElementById("uniform-type").value =
+                        config.uniformType;
+                }
+
+                if (config.nickname) {
+                    document.getElementById("ai-nickname").value =
+                        config.nickname;
+                }
+
+            } catch (error) {
+                console.error("Không tải được cấu hình:", error);
+                showStatus(
+                    "Không tải được cấu hình cũ. Bạn vẫn có thể thử lưu lại."
+                );
+            }
+        });
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            if (!activeUser) {
+                showStatus(
+                    "Phiên đăng nhập chưa sẵn sàng. Vui lòng tải lại trang."
+                );
+                return;
+            }
+
+            const nickname = document
+                .getElementById("ai-nickname")
+                .value.trim();
+
+            if (!nickname) {
+                showStatus("Vui lòng nhập biệt danh AI.");
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = "Đang lưu cấu hình...";
+
+            try {
+                const configRef = db
+                    .collection("users")
+                    .doc(activeUser.uid)
+                    .collection("settings")
+                    .doc("ai_config");
+
+                await configRef.set({
+                    hairColor:
+                        document.getElementById("hair-color").value,
+
+                    uniformType:
+                        document.getElementById("uniform-type").value,
+
+                    nickname: nickname,
+                    completed: true,
+
+                    updatedAt:
+                        firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                // Không còn lưu hoặc yêu cầu API key cá nhân.
+                showStatus(
+                    "Lưu thành công. Đang chuyển đến khung chat...",
+                    "success"
+                );
+
+                window.location.href = "index.html";
+
+            } catch (error) {
+                console.error("Lỗi lưu cấu hình:", error);
+
+                showStatus(
+                    "Không lưu được cấu hình: " +
+                    (error.message || "Lỗi không xác định")
+                );
+
+                button.disabled = false;
+                button.textContent = "Lưu cấu hình & vào Chat";
+            }
+        });
+    </script>
 
 </body>
 </html>

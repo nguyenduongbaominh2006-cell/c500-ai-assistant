@@ -14,6 +14,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-functions-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
 
@@ -78,6 +79,7 @@
         }
         #chat-input { resize: none; max-height: 180px; }
         .safe-link { color: #6ee7b7; }
+
         @media (max-width: 767px) {
             #sidebar {
                 position: fixed; z-index: 40; inset: 0 auto 0 0;
@@ -252,6 +254,7 @@
 
 <script src="js/firebase-config.js"></script>
 <script src="js/security-filter.js"></script>
+<script src="js/chat-client.js"></script>
 
 <script>
 (() => {
@@ -260,7 +263,6 @@
     const $ = id => document.getElementById(id);
 
     let currentUser = null;
-    let userApiKey = "";
     let aiConfig = {};
     let chats = [];
     let currentChatId = null;
@@ -596,7 +598,9 @@
             console.error("Could not write violation log:", error);
         }
     }
+</script>
 
+<script>
     function setGenerating(value) {
         isGenerating = value;
         sendButton.disabled = value;
@@ -610,76 +614,28 @@
     }
 
     async function requestGemini(chat) {
-        const endpoint =
-            "https://generativelanguage.googleapis.com/v1beta/models/" +
-            "gemini-1.5-flash:generateContent";
-
-        // API key remains in the browser in this legacy-compatible architecture.
-        // A server-side proxy is needed to keep the key confidential from clients.
-        const response = await fetch(endpoint + "?key=" + encodeURIComponent(userApiKey), {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                system_instruction: {
-                    parts: [{
-                        text:
-                            "Bạn là " + (aiConfig.nickname || "trợ lý AI C500") +
-                            ", trợ lý AI hỗ trợ học tập và tra cứu thông tin cho người dùng. " +
-                            "Hãy trả lời bằng tiếng Việt khi phù hợp, rõ ràng, có cấu trúc, " +
-                            "không bịa đặt nguồn hoặc quy định. Nếu không chắc chắn, hãy nói rõ."
-                    }]
-                },
-                contents: chat.messages
-                    .filter(message =>
-                        message &&
-                        ["user", "model"].includes(message.role) &&
-                        typeof message.content === "string" &&
-                        !message.error
-                    )
-                    .map(message => ({
-                        role: message.role,
-                        parts: [{ text: message.content }]
-                    })),
-                generationConfig: {
-                    temperature: 0.7,
-                    maxOutputTokens: 4096
-                }
-            })
-        });
-
-        let data;
-        try {
-            data = await response.json();
-        } catch (_) {
-            throw new Error("Gemini trả về phản hồi không đọc được.");
+        // Giữ tên hàm để không phải thay đổi luồng sendMessage hiện có.
+        // Nội dung được gửi tới Firebase Cloud Function, không gọi Gemini trực tiếp.
+        if (!window.requestOpenAI) {
+            throw new Error(
+                "Chưa tải được bộ kết nối OpenAI. Hãy kiểm tra js/chat-client.js."
+            );
         }
 
-        if (!response.ok || data.error) {
-            const message = data && data.error && data.error.message
-                ? data.error.message
-                : "HTTP " + response.status;
-            throw new Error(message);
-        }
+        const messages = (Array.isArray(chat.messages) ? chat.messages : [])
+            .filter(message =>
+                message &&
+                ["user", "model", "assistant"].includes(message.role) &&
+                typeof message.content === "string" &&
+                !message.error
+            )
+            .map(message => ({
+                role: message.role === "model" ? "assistant" : message.role,
+                content: message.content
+            }));
 
-        const answer = data &&
-            data.candidates &&
-            data.candidates[0] &&
-            data.candidates[0].content &&
-            Array.isArray(data.candidates[0].content.parts)
-                ? data.candidates[0].content.parts
-                    .map(part => part.text || "")
-                    .join("")
-                    .trim()
-                : "";
-
-        if (!answer) {
-            const reason = data && data.candidates && data.candidates[0]
-                ? data.candidates[0].finishReason
-                : "không rõ";
-            throw new Error("Không nhận được nội dung trả lời. Trạng thái: " + reason);
-        }
-
-        return answer;
+        const result = await window.requestOpenAI(messages);
+        return result.text;
     }
 
     async function sendMessage(event) {
@@ -756,7 +712,7 @@
             renderMessages();
             renderHistory();
             showStatus(
-                "Yêu cầu gặp lỗi. Kiểm tra API key, hạn mức Gemini, kết nối mạng và quyền Firestore.",
+                "Yêu cầu gặp lỗi. Hãy kiểm tra Firebase Cloud Functions, quyền đăng nhập, hạn mức OpenAI và kết nối mạng.",
                 "error"
             );
         } finally {
@@ -778,24 +734,20 @@
 
         const userRef = db.collection("users").doc(user.uid);
 
-        const [keyDoc, configDoc, userDoc] = await Promise.all([
-            userRef.collection("settings").doc("apikey").get(),
+        const [configDoc, userDoc] = await Promise.all([
             userRef.collection("settings").doc("ai_config").get(),
             userRef.get()
         ]);
 
-        if (!keyDoc.exists ||
-            !keyDoc.data() ||
-            typeof keyDoc.data().key !== "string" ||
-            !keyDoc.data().key.trim() ||
-            !configDoc.exists ||
+        // Không còn yêu cầu mỗi thành viên phải lưu API key riêng.
+        // Chỉ yêu cầu hoàn tất hồ sơ AI cá nhân.
+        if (!configDoc.exists ||
             !configDoc.data() ||
             configDoc.data().completed !== true) {
             window.location.replace("setup.html");
             return;
         }
 
-        userApiKey = keyDoc.data().key.trim();
         aiConfig = configDoc.data();
 
         const profile = userDoc.exists ? userDoc.data() : {};

@@ -160,15 +160,29 @@ button:focus-visible {
         opacity .35s ease,
         transform .35s ease;
 }
-  /* Giới hạn kích thước logo trên màn hình curtain */
+/* LOGO CURTAIN - HIỂN THỊ NỀN TRONG SUỐT */
 .curtain-center img {
     display: block;
+
     width: 90px;
     height: 90px;
     max-width: 90px;
     max-height: 90px;
+
     object-fit: contain;
+    object-position: center;
+
     margin: 0 auto 15px;
+    padding: 0;
+
+    background: transparent !important;
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+
+    mix-blend-mode: normal;
+    filter: none;
 }
 
 .curtain-center h1 {

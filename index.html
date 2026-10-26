@@ -45,9 +45,10 @@ button:focus-visible {
   outline: 3px solid var(--gold-light);
   outline-offset: 4px;
 }
+
 /* =========================================
    C500 - THEATER CURTAIN INTRO
-   Hai cánh rèm nhung đỏ mở đồng thời
+   Sliding Door - Browser-managed transition
 ========================================= */
 
 .curtain-intro {
@@ -88,9 +89,13 @@ button:focus-visible {
             #b3293b 78%,
             #500713 100%
         );
+
+    /* Trình duyệt tự nội suy chuyển động */
+    transition:
+        transform 1.8s cubic-bezier(.65, 0, .25, 1);
 }
 
-/* Tạo nếp gấp nhung */
+/* Nếp gấp nhung */
 .curtain-panel::before {
     content: "";
     position: absolute;
@@ -108,16 +113,16 @@ button:focus-visible {
 }
 
 .curtain-panel.left {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
     box-shadow: inset -20px 0 35px rgba(0,0,0,.35);
 }
 
 .curtain-panel.right {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
     box-shadow: inset 20px 0 35px rgba(0,0,0,.35);
 }
 
-/* Mép rèm ở chính giữa */
+/* Mép rèm ở giữa */
 .curtain-panel.left::after,
 .curtain-panel.right::after {
     content: "";
@@ -140,7 +145,7 @@ button:focus-visible {
     left: 0;
 }
 
-/* Phần trang trí chính giữa */
+/* Nội dung chính giữa */
 .curtain-center {
     position: absolute;
     z-index: 3;
@@ -150,7 +155,10 @@ button:focus-visible {
     text-align: center;
     width: min(90%, 600px);
     pointer-events: none;
-    transition: opacity .35s ease, transform .35s ease;
+    opacity: 1;
+    transition:
+        opacity .35s ease,
+        transform .35s ease;
 }
 
 .curtain-center h1 {
@@ -169,7 +177,6 @@ button:focus-visible {
     margin: 0;
 }
 
-/* Gợi ý thao tác */
 .curtain-hint {
     margin-top: 30px;
     color: #ffe7a2;
@@ -183,13 +190,13 @@ button:focus-visible {
     50% { opacity: 1; }
 }
 
-/* KÍCH HOẠT MỞ RÈM */
+/* Kích hoạt mở rèm */
 .curtain-intro.is-opening .curtain-panel.left {
-    animation: curtainLeft 1.8s cubic-bezier(.65, 0, .25, 1) forwards;
+    transform: translate3d(-100%, 0, 0);
 }
 
 .curtain-intro.is-opening .curtain-panel.right {
-    animation: curtainRight 1.8s cubic-bezier(.65, 0, .25, 1) forwards;
+    transform: translate3d(100%, 0, 0);
 }
 
 .curtain-intro.is-opening .curtain-center {
@@ -197,135 +204,23 @@ button:focus-visible {
     transform: translate(-50%, -50%) scale(.92);
 }
 
-/* Hai cánh mở đối xứng */
-@keyframes curtainLeft {
-    0% {
-        transform: translateX(0);
-    }
-    100% {
-        transform: translateX(-100%);
-    }
-}
-
-@keyframes curtainRight {
-    0% {
-        transform: translateX(0);
-    }
-    100% {
-        transform: translateX(100%);
-    }
-}
-
-/* Chỉ ẩn sau khi đã mở xong */
+/* Chỉ ẩn khi JavaScript xác nhận cả hai cánh đã hoàn tất */
 .curtain-intro.is-finished {
     display: none;
 }
 
-/* Tôn trọng cài đặt giảm chuyển động */
+/* Thiết bị yêu cầu giảm chuyển động:
+   Không ép thời gian .01ms.
+   JavaScript sẽ xử lý trạng thái hoàn tất riêng. */
 @media (prefers-reduced-motion: reduce) {
-    .curtain-intro.is-opening .curtain-panel.left,
-    .curtain-intro.is-opening .curtain-panel.right {
-        animation-duration: .01ms;
+    .curtain-panel,
+    .curtain-center {
+        transition: none;
     }
-}
 
-/* =========================
-   THANH ĐIỀU HƯỚNG
-========================= */
-
-.header {
-  position: fixed;
-  z-index: 50;
-  top: 0;
-  left: 0;
-  right: 0;
-  min-height: 78px;
-  padding: 12px clamp(18px, 5vw, 76px);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 22px;
-  background: linear-gradient(
-    180deg,
-    rgba(3, 24, 21, .96),
-    rgba(3, 24, 21, .72)
-  );
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid #e5bd6635;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
-.brand img {
-  width: 52px;
-  height: 52px;
-  object-fit: contain;
-  border-radius: 50%;
-  background: #fff;
-}
-
-.brand strong {
-  display: block;
-  color: var(--gold-light);
-  font-size: 12px;
-  letter-spacing: .8px;
-}
-
-.brand small {
-  display: block;
-  color: #d0ded6;
-  font-size: 11px;
-  letter-spacing: 1.5px;
-}
-
-.nav {
-  display: flex;
-  align-items: center;
-  gap: clamp(12px, 2vw, 28px);
-  font-size: 13px;
-}
-
-.nav a:not(.nav-button) {
-  color: #e2ebe5;
-  transition: color .2s;
-}
-
-.nav a:hover { color: var(--gold-light); }
-
-.nav-button,
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 12px 23px;
-  border: 1px solid var(--gold-light);
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--gold-light), #d8a843);
-  color: #172b20;
-  font-weight: 800;
-  transition: transform .2s, box-shadow .2s;
-}
-
-.nav-button:hover,
-.button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 30px #e5bd6635;
-}
-
-.menu-toggle {
-  display: none;
-  border: 1px solid #ffffff50;
-  background: transparent;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 9px;
-  font-size: 21px;
+    .curtain-hint {
+        animation: none;
+    }
 }
 
 /* =========================
@@ -964,15 +859,24 @@ img {
 
 <body>
 
-<!-- MÀN KÉO RÈM -->
-<div class="curtain" aria-hidden="true">
-  <div class="curtain-panel"></div>
-  <div class="curtain-panel"></div>
-  <div class="curtain-title">
-    <img src="assets/academy-logo.png" alt="">
-    <strong>HỌC VIỆN AN NINH NHÂN DÂN</strong>
-    <span>C500 AI ASSISTANT</span>
-  </div>
+<!-- C500 THEATER CURTAIN INTRO -->
+<div class="curtain-intro" id="curtainIntro" role="button"
+     tabindex="0" aria-label="Mở màn hình C500 AI Assistant">
+
+    <div class="curtain-panel left"></div>
+    <div class="curtain-panel right"></div>
+
+    <div class="curtain-center">
+        <img src="assets/academy-logo.png"
+             alt="Academy Logo">
+
+        <h1>HỌC VIỆN AN NINH NHÂN DÂN</h1>
+        <p>C500 AI ASSISTANT</p>
+
+        <div class="curtain-hint">
+            NHẤN ĐỂ TIẾP TỤC
+        </div>
+    </div>
 </div>
 
 <!-- HEADER -->
@@ -1352,6 +1256,83 @@ img {
   }
 })();
 </script>
+<!-- C500 CURTAIN CONTROL -->
+    <script>(() => {
+    const curtain = document.getElementById("curtainIntro");
+
+    if (!curtain) return;
+
+    const leftPanel = curtain.querySelector(".curtain-panel.left");
+    const rightPanel = curtain.querySelector(".curtain-panel.right");
+
+    if (!leftPanel || !rightPanel) return;
+
+    let isOpening = false;
+    const completedPanels = new Set();
+
+    function finishOpening() {
+        if (completedPanels.size < 2) return;
+
+        curtain.classList.add("is-finished");
+        curtain.setAttribute("aria-hidden", "true");
+        curtain.removeAttribute("role");
+        curtain.removeAttribute("tabindex");
+    }
+
+    function openCurtain() {
+        if (isOpening) return;
+
+        isOpening = true;
+        completedPanels.clear();
+
+        curtain.classList.add("is-opening");
+
+        // Nếu thiết bị yêu cầu giảm chuyển động,
+        // hoàn tất ngay mà không ép chạy animation.
+        const reducedMotion = window.matchMedia(
+            "(prefers-reduced-motion: reduce)"
+        ).matches;
+
+        if (reducedMotion) {
+            curtain.classList.add("is-finished");
+            curtain.setAttribute("aria-hidden", "true");
+            return;
+        }
+
+        // Kiểm tra transition thực tế của từng cánh.
+        [leftPanel, rightPanel].forEach((panel) => {
+            const onTransitionEnd = (event) => {
+                if (
+                    event.target !== panel ||
+                    event.propertyName !== "transform"
+                ) return;
+
+                completedPanels.add(panel);
+                panel.removeEventListener(
+                    "transitionend",
+                    onTransitionEnd
+                );
+
+                finishOpening();
+            };
+
+            panel.addEventListener(
+                "transitionend",
+                onTransitionEnd
+            );
+        });
+    }
+
+    curtain.addEventListener("click", openCurtain);
+
+    curtain.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openCurtain();
+        }
+    });
+})();
+    </script>
 
 </body>
 </html>

@@ -47,94 +47,97 @@ button:focus-visible {
   outline-offset: 4px;
 }
 
-/* =========================
-   HIỆU ỨNG KÉO RÈM MỞ MÀN
-========================= */
 
-.curtain {
-  position: fixed;
-  z-index: 1000;
-  inset: 0;
-  display: flex;
-  pointer-events: none;
-  animation: curtainFade 10s 5s forwards;
+/* RÈM NHUNG SÂN KHẤU – HAI CÁNH ĐỒNG BỘ */
+.curtain-intro {
+    position: fixed;
+    z-index: 9999;
+    inset: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    overflow: hidden;
+    cursor: pointer;
+    background: #35050c;
+    transition: visibility 0s linear 1.9s;
+}
+
+.curtain-intro.is-opening {
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .curtain-panel {
-  position: relative;
-  width: 50%;
-  height: 100%;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      #650e18 0%,
-      #a51d2a 12%,
-      #74101c 22%,
-      #c32e37 29%,
-      #72101b 40%
-    );
-  box-shadow: inset -18px 0 35px #28040a70;
+    position: relative;
+    min-width: 0;
+    height: 100%;
+    overflow: hidden;
+    will-change: transform;
+
+    /* Nếp gấp và ánh sáng trên bề mặt nhung */
+    background:
+        repeating-linear-gradient(
+            90deg,
+            rgba(25, 0, 5, .48) 0px,
+            rgba(25, 0, 5, .48) 9px,
+            rgba(205, 57, 70, .35) 23px,
+            rgba(110, 8, 23, .2) 39px,
+            rgba(35, 0, 8, .42) 56px
+        ),
+        linear-gradient(
+            90deg,
+            #4b0611 0%,
+            #a51d30 25%,
+            #720b1b 55%,
+            #b3293b 78%,
+            #500713 100%
+        );
 }
 
-.curtain-panel:first-child {
-  border-right: 2px solid var(--gold);
-  animation: curtainLeft 1.5s cubic-bezier(.75, 0, .2, 1) 2s forwards;
+.curtain-panel.left {
+    transform-origin: left center;
+    box-shadow: inset -18px 0 35px rgba(0,0,0,.35);
 }
 
-.curtain-panel:last-child {
-  border-left: 2px solid var(--gold);
-  animation: curtainRight 1.5s cubic-bezier(.75, 0, .2, 1) 2s forwards;
+.curtain-panel.right {
+    transform-origin: right center;
+    box-shadow: inset 18px 0 35px rgba(0,0,0,.35);
 }
 
-.curtain-title {
-  position: absolute;
-  z-index: 2;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  color: var(--gold-light);
-  padding: 20px;
-  animation: titleFade .7s 1s forwards;
+/* Cả hai cánh dùng CHUNG thời gian và đường chuyển động */
+.curtain-intro.is-opening .curtain-panel.left {
+    animation: curtainLeft 1.8s cubic-bezier(.55,.02,.25,1) both;
 }
 
-.curtain-title img {
-  width: 90px;
-  height: 90px;
-  object-fit: contain;
-  margin-bottom: 22px;
-  filter: drop-shadow(0 5px 18px #0006);
-}
-
-.curtain-title strong {
-  font-family: Georgia, serif;
-  font-size: clamp(16px, 3vw, 28px);
-  letter-spacing: 2px;
-}
-
-.curtain-title span {
-  margin-top: 8px;
-  font-size: 11px;
-  letter-spacing: 3px;
+.curtain-intro.is-opening .curtain-panel.right {
+    animation: curtainRight 1.8s cubic-bezier(.55,.02,.25,1) both;
 }
 
 @keyframes curtainLeft {
-  to { transform: translateX(-101%); }
+    0% {
+        transform: translateX(0) scaleX(1);
+    }
+    100% {
+        transform: translateX(-101%) scaleX(.98);
+    }
 }
 
 @keyframes curtainRight {
-  to { transform: translateX(101%); }
+    0% {
+        transform: translateX(0) scaleX(1);
+    }
+    100% {
+        transform: translateX(101%) scaleX(.98);
+    }
 }
 
-@keyframes curtainFade {
-  0%, 75% { opacity: 1; }
-  100% { opacity: 0; visibility: hidden; }
+.curtain-center {
+    transition: opacity .55s ease, transform .55s ease;
 }
 
-@keyframes titleFade {
-  to { opacity: 0; }
+.curtain-intro.is-opening .curtain-center {
+    opacity: 0;
+    transform: scale(.96);
+    pointer-events: none;
 }
 
 /* =========================

@@ -710,7 +710,113 @@ button:focus-visible {
   opacity: 1;
   transform: none;
 }
+/* =========================
+   HEADER - THANH ĐIỀU HƯỚNG
+========================= */
 
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+
+    width: 100%;
+    padding: 12px clamp(24px, 5vw, 75px);
+
+    background: rgba(4, 29, 25, .96);
+    border-bottom: 1px solid rgba(229, 189, 102, .28);
+    box-shadow: 0 5px 25px rgba(0, 0, 0, .18);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    flex-shrink: 0;
+    min-width: 0;
+}
+
+.brand img {
+    display: block;
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    object-fit: contain;
+    border-radius: 50%;
+    background: #fff;
+}
+
+.brand span {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.35;
+}
+
+.brand strong {
+    color: var(--gold-light);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: .5px;
+    white-space: nowrap;
+}
+
+.brand small {
+    color: #d5e0d9;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: clamp(14px, 2vw, 28px);
+}
+
+.nav a {
+    color: #f4f5ed;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: color .2s ease;
+}
+
+.nav a:hover {
+    color: var(--gold-light);
+}
+
+.nav .nav-button {
+    padding: 10px 19px;
+    color: #17372e;
+    background: var(--gold);
+    border-radius: 999px;
+    font-weight: 800;
+}
+
+.nav .nav-button:hover {
+    color: #17372e;
+    background: var(--gold-light);
+}
+
+.menu-toggle {
+    display: none;
+    border: 1px solid rgba(229, 189, 102, .5);
+    border-radius: 8px;
+    padding: 7px 12px;
+    color: var(--gold-light);
+    background: transparent;
+    font-size: 23px;
+    cursor: pointer;
+}
 /* =========================
    GIAO DIỆN DI ĐỘNG
 ========================= */

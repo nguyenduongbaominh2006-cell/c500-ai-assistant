@@ -630,9 +630,58 @@
                 const opts = ['Việt Nam','Trung Quốc','Cuba','Lào'];
                 container.innerHTML = `<div><label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-2">Quốc tịch</label><select id="wizard-nationality" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white">${opts.map(x=>`<option value="${x}" ${((aiConfig.nationality||'Việt Nam')===x)?'selected':''}>${x}</option>`).join('')}</select></div>`;
             } else if (currentWizardStep === 3) {
-                title.innerText = 'Tùy chỉnh nhân vật 3D & sắc phục';
-                desc.innerText = 'Chọn màu tóc, trang phục và mũ cho nhân vật trợ lý.';
-                container.innerHTML = `
+    title.innerText = 'Tải ảnh đại diện của bạn';
+    desc.innerText = 'Chọn ảnh cá nhân từ thiết bị để sử dụng làm hình đại diện trong C500 AI Assistant.';
+
+    container.innerHTML = `
+        <div class="space-y-4">
+            <div class="flex justify-center">
+                <div class="w-36 h-36 rounded-full border-2 border-emerald-500 overflow-hidden bg-slate-950 flex items-center justify-center">
+                    <img id="wizard-photo-preview"
+                         src="${escapeHtml(aiConfig.photoURL || '')}"
+                         class="w-full h-full object-cover ${aiConfig.photoURL ? '' : 'hidden'}"
+                         alt="Ảnh đại diện">
+                    <i id="wizard-photo-placeholder"
+                       class="fa-solid fa-user text-5xl text-slate-600 ${aiConfig.photoURL ? 'hidden' : ''}"></i>
+                </div>
+            </div>
+
+            <label class="block text-center text-sm font-semibold text-emerald-400">
+                Chọn ảnh từ thiết bị
+            </label>
+
+            <input type="file"
+                   id="wizard-photo"
+                   accept="image/*"
+                   class="w-full text-sm text-slate-300
+                   file:mr-3 file:py-2 file:px-4 file:rounded-xl
+                   file:border-0 file:bg-emerald-700 file:text-white
+                   file:font-semibold">
+
+            <p class="text-xs text-slate-400 text-center">
+                Hỗ trợ JPG, PNG, WEBP. Ảnh sẽ được dùng làm ảnh đại diện cá nhân.
+            </p>
+        </div>
+    `;
+
+    document.getElementById('wizard-photo').addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('Vui lòng chọn một tệp hình ảnh.');
+            this.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            document.getElementById('wizard-photo-preview').src = e.target.result;
+            document.getElementById('wizard-photo-preview').classList.remove('hidden');
+            document.getElementById('wizard-photo-placeholder').classList.add('hidden');
+        };
+        reader.readAsDataURL(file);
+    });
                     <div class="space-y-4">
                         <div class="flex justify-center"><div class="w-36 h-40 bg-slate-950 rounded-2xl border border-emerald-500/50 flex flex-col items-center justify-center relative shadow-inner model-3d-preview"><canvas id="wizard-avatar-canvas" width="112" height="128" class="w-28 h-32 rounded-xl"></canvas><span class="text-[10px] text-emerald-400 font-bold" id="preview-avatar-label">${aiConfig.uniformType==='security'?'An ninh Nghi lễ':'Cảnh sát CAND'}</span></div></div>
                         <div class="grid grid-cols-2 gap-3"><div><label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Màu tóc</label><select id="wizard-hair" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white"><option value="black" ${aiConfig.hairColor==='black'?'selected':''}>Tóc đen</option><option value="brown" ${aiConfig.hairColor==='brown'?'selected':''}>Tóc nâu</option><option value="white" ${aiConfig.hairColor==='white'?'selected':''}>Tóc trắng</option></select></div><div><label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Trang phục & mũ</label><select id="wizard-uniform" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white"><option value="police" ${aiConfig.uniformType==='police'?'selected':''}>Cảnh sát CAND</option><option value="security" ${aiConfig.uniformType==='security'?'selected':''}>An ninh nghi lễ</option></select></div></div>
@@ -658,9 +707,31 @@
                 } else if (currentWizardStep === 2) {
                     aiConfig.nationality = document.getElementById('wizard-nationality').value;
                     await db.collection('users').doc(currentUser.uid).set({nationality:aiConfig.nationality}, {merge:true});
-                } else if (currentWizardStep === 3) {
-                    aiConfig.hairColor = document.getElementById('wizard-hair').value;
-                    aiConfig.uniformType = document.getElementById('wizard-uniform').value;
+} else if (currentWizardStep === 3) {
+    const photoInput = document.getElementById('wizard-photo');
+    const file = photoInput.files[0];
+
+    if (file) {
+        if (!file.type.startsWith('image/')) {
+            return alert('Tệp được chọn không phải hình ảnh.');
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            return alert('Vui lòng chọn ảnh có dung lượng không quá 2MB.');
+        }
+
+        const reader = new FileReader();
+
+        aiConfig.photoURL = await new Promise((resolve, reject) => {
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    await db.collection('users').doc(currentUser.uid).set({
+        photoURL: aiConfig.photoURL || ''
+    }, { merge: true });
                 } else if (currentWizardStep === 4) {
                     const nick = document.getElementById('wizard-nickname').value.trim();
                     if (!nick) return alert('Vui lòng đặt biệt danh cho AI!');

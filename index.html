@@ -1,79 +1,30 @@
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#082b26">
-<meta name="description" content="C500 AI Assistant - Không gian học tập số dành cho học viên Học viện An ninh Nhân dân.">
-<title>C500 AI Assistant | Học viện An ninh Nhân dân</title>
+/* =========================================
+   C500 - THEATER CURTAIN INTRO
+   Hai cánh rèm nhung đỏ mở đồng thời
+========================================= */
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-<style>
-:root {
-  --green: #082b26;
-  --green-light: #10463b;
-  --gold: #e5bd66;
-  --gold-light: #ffe7a2;
-  --red: #a91e2b;
-  --cream: #f5efdf;
-  --white: #fffdf6;
-  --text-muted: #c6d6ce;
-}
-
-* { box-sizing: border-box; }
-
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 85px;
-}
-
-body {
-  margin: 0;
-  background: var(--green);
-  color: var(--white);
-  font-family: "Segoe UI", Arial, sans-serif;
-  line-height: 1.7;
-}
-
-a { color: inherit; text-decoration: none; }
-
-a:focus-visible,
-button:focus-visible {
-  outline: 3px solid var(--gold-light);
-  outline-offset: 4px;
-}
-
-
-/* RÈM NHUNG SÂN KHẤU – HAI CÁNH ĐỒNG BỘ */
 .curtain-intro {
     position: fixed;
-    z-index: 9999;
     inset: 0;
+    z-index: 99999;
     display: grid;
     grid-template-columns: 1fr 1fr;
     overflow: hidden;
-    cursor: pointer;
     background: #35050c;
-    transition: visibility 0s linear 1.9s;
+    cursor: pointer;
+    isolation: isolate;
 }
 
-.curtain-intro.is-opening {
-    visibility: hidden;
-    pointer-events: none;
-}
-
+/* Hai cánh rèm */
 .curtain-panel {
     position: relative;
-    min-width: 0;
+    width: 100%;
     height: 100%;
+    min-width: 0;
     overflow: hidden;
     will-change: transform;
 
-    /* Nếp gấp và ánh sáng trên bề mặt nhung */
     background:
         repeating-linear-gradient(
             90deg,
@@ -93,51 +44,143 @@ button:focus-visible {
         );
 }
 
+/* Tạo nếp gấp nhung */
+.curtain-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0px,
+            rgba(255, 190, 190, .12) 12px,
+            rgba(0, 0, 0, .22) 25px,
+            transparent 42px,
+            rgba(255, 220, 220, .08) 54px
+        );
+    pointer-events: none;
+}
+
 .curtain-panel.left {
-    transform-origin: left center;
-    box-shadow: inset -18px 0 35px rgba(0,0,0,.35);
+    transform: translateX(0);
+    box-shadow: inset -20px 0 35px rgba(0,0,0,.35);
 }
 
 .curtain-panel.right {
-    transform-origin: right center;
-    box-shadow: inset 18px 0 35px rgba(0,0,0,.35);
+    transform: translateX(0);
+    box-shadow: inset 20px 0 35px rgba(0,0,0,.35);
 }
 
-/* Cả hai cánh dùng CHUNG thời gian và đường chuyển động */
+/* Mép rèm ở chính giữa */
+.curtain-panel.left::after,
+.curtain-panel.right::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 12px;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 210, 160, .18),
+        rgba(0, 0, 0, .35)
+    );
+}
+
+.curtain-panel.left::after {
+    right: 0;
+}
+
+.curtain-panel.right::after {
+    left: 0;
+}
+
+/* Phần trang trí chính giữa */
+.curtain-center {
+    position: absolute;
+    z-index: 3;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: min(90%, 600px);
+    pointer-events: none;
+    transition: opacity .35s ease, transform .35s ease;
+}
+
+.curtain-center h1 {
+    color: #ffe7a2;
+    font-size: clamp(25px, 5vw, 48px);
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-shadow: 0 3px 15px rgba(0,0,0,.6);
+    margin: 0 0 12px;
+}
+
+.curtain-center p {
+    color: #fff5dc;
+    font-size: 14px;
+    letter-spacing: 2px;
+    margin: 0;
+}
+
+/* Gợi ý thao tác */
+.curtain-hint {
+    margin-top: 30px;
+    color: #ffe7a2;
+    font-size: 13px;
+    letter-spacing: 2px;
+    animation: hintPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes hintPulse {
+    0%, 100% { opacity: .5; }
+    50% { opacity: 1; }
+}
+
+/* KÍCH HOẠT MỞ RÈM */
 .curtain-intro.is-opening .curtain-panel.left {
-    animation: curtainLeft 1.8s cubic-bezier(.55,.02,.25,1) both;
+    animation: curtainLeft 1.8s cubic-bezier(.65, 0, .25, 1) forwards;
 }
 
 .curtain-intro.is-opening .curtain-panel.right {
-    animation: curtainRight 1.8s cubic-bezier(.55,.02,.25,1) both;
+    animation: curtainRight 1.8s cubic-bezier(.65, 0, .25, 1) forwards;
 }
 
+.curtain-intro.is-opening .curtain-center {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(.92);
+}
+
+/* Hai cánh mở đối xứng */
 @keyframes curtainLeft {
     0% {
-        transform: translateX(0) scaleX(1);
+        transform: translateX(0);
     }
     100% {
-        transform: translateX(-101%) scaleX(.98);
+        transform: translateX(-100%);
     }
 }
 
 @keyframes curtainRight {
     0% {
-        transform: translateX(0) scaleX(1);
+        transform: translateX(0);
     }
     100% {
-        transform: translateX(101%) scaleX(.98);
+        transform: translateX(100%);
     }
 }
 
-.curtain-center {
-    transition: opacity .55s ease, transform .55s ease;
+/* Chỉ ẩn sau khi đã mở xong */
+.curtain-intro.is-finished {
+    display: none;
 }
 
-.curtain-intro.is-opening .curtain-center {
-    opacity: 0;
-    transform: scale(.96);
-    pointer-events: none;
+/* Tôn trọng cài đặt giảm chuyển động */
+@media (prefers-reduced-motion: reduce) {
+    .curtain-intro.is-opening .curtain-panel.left,
+    .curtain-intro.is-opening .curtain-panel.right {
+        animation-duration: .01ms;
+    }
 }
 
 /* =========================

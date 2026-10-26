@@ -786,14 +786,21 @@ button:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-    scroll-behavior: auto !important;
+  /* Chỉ giảm các hiệu ứng trang trí không thiết yếu */
+  .curtain-hint,
+  .hero-content,
+  .scroll-cue span {
+    animation: none;
   }
 
-  .reveal { opacity: 1; transform: none; }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
 }
   
 /* FONT HIỆN ĐẠI - PHONG CÁCH CHATGPT */
@@ -1271,14 +1278,13 @@ img {
     const completedPanels = new Set();
 
     function finishOpening() {
-        if (completedPanels.size < 2) return;
+    if (completedPanels.size < 2) return;
 
-        curtain.classList.add("is-finished");
-        curtain.setAttribute("aria-hidden", "true");
-        curtain.removeAttribute("role");
-        curtain.removeAttribute("tabindex");
-    }
-
+    curtain.classList.add("is-finished");
+    curtain.setAttribute("aria-hidden", "true");
+    curtain.removeAttribute("role");
+    curtain.removeAttribute("tabindex");
+}
     function openCurtain() {
         if (isOpening) return;
 
@@ -1312,6 +1318,14 @@ img {
                     "transitionend",
                     onTransitionEnd
                 );
+              panel.addEventListener(
+    "transitioncancel",
+    () => {
+        completedPanels.add(panel);
+        finishOpening();
+    },
+    { once: true }
+);
 
                 finishOpening();
             };

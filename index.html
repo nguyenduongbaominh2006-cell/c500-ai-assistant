@@ -1263,8 +1263,10 @@ img {
   }
 })();
 </script>
+
 <!-- C500 CURTAIN CONTROL -->
-    <script>(() => {
+<script>
+(() => {
     const curtain = document.getElementById("curtainIntro");
 
     if (!curtain) return;
@@ -1278,34 +1280,34 @@ img {
     const completedPanels = new Set();
 
     function finishOpening() {
-    if (completedPanels.size < 2) return;
+        if (completedPanels.size < 2) return;
 
-    curtain.classList.add("is-finished");
-    curtain.setAttribute("aria-hidden", "true");
-    curtain.removeAttribute("role");
-    curtain.removeAttribute("tabindex");
-}
+        curtain.classList.add("is-finished");
+        curtain.setAttribute("aria-hidden", "true");
+        curtain.removeAttribute("role");
+        curtain.removeAttribute("tabindex");
+    }
+
     function openCurtain() {
         if (isOpening) return;
 
         isOpening = true;
         completedPanels.clear();
 
-        curtain.classList.add("is-opening");
-
-        // Nếu thiết bị yêu cầu giảm chuyển động,
-        // hoàn tất ngay mà không ép chạy animation.
         const reducedMotion = window.matchMedia(
             "(prefers-reduced-motion: reduce)"
         ).matches;
 
         if (reducedMotion) {
+            curtain.classList.add("is-opening");
             curtain.classList.add("is-finished");
             curtain.setAttribute("aria-hidden", "true");
+            curtain.removeAttribute("role");
+            curtain.removeAttribute("tabindex");
             return;
         }
 
-        // Kiểm tra transition thực tế của từng cánh.
+        // Đăng ký sự kiện cho cả hai cánh trước khi mở.
         [leftPanel, rightPanel].forEach((panel) => {
             const onTransitionEnd = (event) => {
                 if (
@@ -1314,18 +1316,11 @@ img {
                 ) return;
 
                 completedPanels.add(panel);
+
                 panel.removeEventListener(
                     "transitionend",
                     onTransitionEnd
                 );
-              panel.addEventListener(
-    "transitioncancel",
-    () => {
-        completedPanels.add(panel);
-        finishOpening();
-    },
-    { once: true }
-);
 
                 finishOpening();
             };
@@ -1335,6 +1330,9 @@ img {
                 onTransitionEnd
             );
         });
+
+        // Mở đồng thời hai cánh rèm.
+        curtain.classList.add("is-opening");
     }
 
     curtain.addEventListener("click", openCurtain);
@@ -1346,7 +1344,7 @@ img {
         }
     });
 })();
-    </script>
+</script>
 
 </body>
 </html>

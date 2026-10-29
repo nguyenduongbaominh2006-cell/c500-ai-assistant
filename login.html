@@ -1014,14 +1014,25 @@
                 ctx.fillStyle='#991b1b'; ctx.beginPath(); ctx.ellipse(56,70,5,animate && isSpeaking ? (Math.sin(Date.now()/80)+1)*5+2 : 2,0,0,2*Math.PI); ctx.fill();
             };
             if (!animate) { paint(); return; }
-            const loop = () => { if (!canvas.isConnected) return; paint(); requestAnimationFrame(loop); };
-            loop();
+            let animationId;
+
+const loop = () => {
+    if (!canvas.isConnected || document.hidden) {
+        cancelAnimationFrame(animationId);
+        return;
+    }
+
+    paint();
+    animationId = requestAnimationFrame(loop);
+};
+
+loop();
         }
         function startCanvasAnimation() {
             drawAvatarOnCanvas(document.getElementById('avatar-canvas'), aiConfig.hairColor || 'black', aiConfig.uniformType || 'police', true);
         }
 
-        window.addEventListener('DOMContentLoaded', () => { startCanvasAnimation(); });
+        startCanvasAnimation();
 
         async function rateAnswer(chatId, messageIndex, correct) {
             if (!currentUser) return;

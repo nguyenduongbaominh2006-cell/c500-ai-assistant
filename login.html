@@ -60,6 +60,22 @@
         <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-green-700/15 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
     </div>
 
+    <!-- 0. TRANG CHÀO MỪNG -->
+    <div id="welcome-screen" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-2xl hidden">
+        <div class="bg-slate-900/90 border border-emerald-500/40 rounded-3xl max-w-xl w-full p-8 md:p-10 shadow-2xl relative overflow-hidden fade-in text-center">
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600"></div>
+            <div class="w-24 h-24 bg-gradient-to-tr from-emerald-800 to-emerald-600 rounded-3xl mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30 mb-6 text-yellow-400 text-4xl border border-yellow-500/50">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <p class="text-xs uppercase tracking-[0.25em] text-emerald-400 font-bold">C500 Security Hub</p>
+            <h1 class="text-3xl font-extrabold text-white mt-3">Chào mừng đồng chí</h1>
+            <p class="text-sm text-slate-300 mt-3 leading-relaxed">Trợ lý AI hỗ trợ học tập, tra cứu quy chế và thông tin dành cho sinh viên C500.</p>
+            <button type="button" onclick="showLoginScreen()" class="mt-8 w-full sm:w-auto px-10 bg-gradient-to-r from-emerald-700 to-green-600 hover:from-emerald-600 hover:to-green-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition uppercase tracking-wider text-xs">
+                Tiếp tục đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- 1. MÀN HÌNH ĐĂNG NHẬP (LOGIN SCREEN) -->
     <div id="login-screen" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-2xl hidden">
         <div class="bg-slate-900/90 border border-emerald-500/40 rounded-3xl max-w-md w-full p-8 shadow-2xl relative overflow-hidden fade-in">
@@ -363,6 +379,7 @@
     <div id="ai-widget" class="fixed bottom-4 left-4 z-40 bg-slate-900/90 border border-emerald-500/40 rounded-2xl p-3 shadow-2xl backdrop-blur-xl flex flex-col items-center w-44 select-none hidden">
         <div class="relative w-28 h-32 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex items-center justify-center shadow-inner">
             <canvas id="avatar-canvas" width="112" height="128" class="w-full h-full"></canvas>
+            <img id="avatar-photo" class="hidden absolute inset-0 w-full h-full object-cover" alt="Ảnh đại diện AI">
             <div id="ai-status-badge" class="absolute bottom-1 px-2 py-0.5 rounded text-[9px] font-bold tracking-tight bg-slate-900/90 text-emerald-400 border border-emerald-700/50 shadow">
                 Sẵn sàng
             </div>
@@ -471,11 +488,13 @@
         }
 
         function showRegisterScreen() {
+            document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('register-screen').classList.remove('hidden');
         }
 
         function showLoginScreen() {
+            document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('register-screen').classList.add('hidden');
             document.getElementById('login-screen').classList.remove('hidden');
         }
@@ -534,7 +553,8 @@
                 currentUser = null;
                 isAdmin = false;
                 if (notificationsUnsubscribe) { notificationsUnsubscribe(); notificationsUnsubscribe = null; }
-                loginScreen.classList.remove('hidden');
+                document.getElementById('welcome-screen').classList.remove('hidden');
+                loginScreen.classList.add('hidden');
                 registerScreen.classList.add('hidden');
                 apiKeyScreen.classList.add('hidden');
                 mainApp.classList.add('hidden');
@@ -682,19 +702,49 @@
         };
         reader.readAsDataURL(file);
     });
-                    <div class="space-y-4">
-                        <div class="flex justify-center"><div class="w-36 h-40 bg-slate-950 rounded-2xl border border-emerald-500/50 flex flex-col items-center justify-center relative shadow-inner model-3d-preview"><canvas id="wizard-avatar-canvas" width="112" height="128" class="w-28 h-32 rounded-xl"></canvas><span class="text-[10px] text-emerald-400 font-bold" id="preview-avatar-label">${aiConfig.uniformType==='security'?'An ninh Nghi lễ':'Cảnh sát CAND'}</span></div></div>
-                        <div class="grid grid-cols-2 gap-3"><div><label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Màu tóc</label><select id="wizard-hair" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white"><option value="black" ${aiConfig.hairColor==='black'?'selected':''}>Tóc đen</option><option value="brown" ${aiConfig.hairColor==='brown'?'selected':''}>Tóc nâu</option><option value="white" ${aiConfig.hairColor==='white'?'selected':''}>Tóc trắng</option></select></div><div><label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Trang phục & mũ</label><select id="wizard-uniform" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white"><option value="police" ${aiConfig.uniformType==='police'?'selected':''}>Cảnh sát CAND</option><option value="security" ${aiConfig.uniformType==='security'?'selected':''}>An ninh nghi lễ</option></select></div></div>
-                    </div>`;
-                const redraw = () => drawAvatarOnCanvas(document.getElementById('wizard-avatar-canvas'), document.getElementById('wizard-hair').value, document.getElementById('wizard-uniform').value, false);
-                document.getElementById('wizard-hair').addEventListener('change', redraw);
-                document.getElementById('wizard-uniform').addEventListener('change', () => { document.getElementById('preview-avatar-label').innerText = document.getElementById('wizard-uniform').value==='police'?'Cảnh sát CAND':'An ninh nghi lễ'; redraw(); });
-                redraw();
             } else if (currentWizardStep === 4) {
                 title.innerText = 'Đặt biệt danh cho trợ lý AI';
                 desc.innerText = 'Tên này sẽ xuất hiện trên widget và trong cuộc trò chuyện.';
                 container.innerHTML = `<div><label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Biệt danh trợ lý AI</label><input type="text" id="wizard-nickname" value="${escapeHtml(aiConfig.nickname || 'Sĩ quan AI')}" placeholder="Ví dụ: Sĩ quan Bôm, Trợ lý C500..." required maxlength="60" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500"></div>`;
             }
+        }
+
+        async function compressPortraitImage(file) {
+            const sourceUrl = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error('Không đọc được tệp ảnh.'));
+                reader.readAsDataURL(file);
+            });
+
+            const image = await new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error('Tệp ảnh không hợp lệ hoặc không thể giải mã.'));
+                img.src = sourceUrl;
+            });
+
+            const maxSide = 900;
+            const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(image.width * scale));
+            canvas.height = Math.max(1, Math.round(image.height * scale));
+            const ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error('Trình duyệt không hỗ trợ xử lý ảnh.');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+            let quality = 0.82;
+            let dataUrl = canvas.toDataURL('image/jpeg', quality);
+            while (dataUrl.length > 700000 && quality > 0.45) {
+                quality -= 0.08;
+                dataUrl = canvas.toDataURL('image/jpeg', quality);
+            }
+            if (dataUrl.length > 700000) {
+                throw new Error('Ảnh vẫn quá lớn sau khi nén. Hãy chọn ảnh khác có kích thước nhỏ hơn.');
+            }
+            return dataUrl;
         }
 
         async function nextWizardStep() {
@@ -716,22 +766,19 @@
             return alert('Tệp được chọn không phải hình ảnh.');
         }
 
-        if (file.size > 2 * 1024 * 1024) {
-            return alert('Vui lòng chọn ảnh có dung lượng không quá 2MB.');
+        if (file.size > 8 * 1024 * 1024) {
+            return alert('Ảnh gốc không được vượt quá 8MB.');
         }
 
-        const reader = new FileReader();
-
-        aiConfig.photoURL = await new Promise((resolve, reject) => {
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
+        // Nén ảnh ở phía trình duyệt để tránh vượt giới hạn kích thước tài liệu Firestore.
+        aiConfig.photoURL = await compressPortraitImage(file);
     }
 
-    await db.collection('users').doc(currentUser.uid).set({
-        photoURL: aiConfig.photoURL || ''
-    }, { merge: true });
+    if (aiConfig.photoURL) {
+        await db.collection('users').doc(currentUser.uid).set({
+            photoURL: aiConfig.photoURL
+        }, { merge: true });
+    }
                 } else if (currentWizardStep === 4) {
                     const nick = document.getElementById('wizard-nickname').value.trim();
                     if (!nick) return alert('Vui lòng đặt biệt danh cho AI!');
@@ -767,8 +814,27 @@
             document.getElementById('header-ai-nickname-badge').innerText = `Biệt danh: ${aiConfig.nickname}`;
             document.getElementById('widget-student-info').innerText = aiConfig.studentClass || 'C500 Hub';
             document.getElementById('user-name').innerText = aiConfig.username || aiConfig.fullName || (currentUser.email || '').split('@')[0];
-            startCanvasAnimation();
-            await loadUserChats();
+            const avatarPhoto = document.getElementById('avatar-photo');
+            const avatarCanvas = document.getElementById('avatar-canvas');
+            if (aiConfig.photoURL) {
+                avatarPhoto.src = aiConfig.photoURL;
+                avatarPhoto.classList.remove('hidden');
+                avatarCanvas.classList.add('hidden');
+            } else {
+                avatarPhoto.classList.add('hidden');
+                avatarPhoto.removeAttribute('src');
+                avatarCanvas.classList.remove('hidden');
+                startCanvasAnimation();
+            }
+            try {
+                await loadUserChats();
+            } catch (err) {
+                console.error('Không tải được lịch sử trò chuyện:', err);
+                const messages = document.getElementById('chat-messages');
+                messages.innerHTML = '<div class="max-w-2xl mx-auto mt-8 p-4 rounded-xl border border-amber-700/50 bg-amber-950/30 text-amber-200 text-sm">Không tải được lịch sử trò chuyện. Đồng chí vẫn có thể sử dụng giao diện; hãy kiểm tra quyền Firestore hoặc tải lại trang.</div>';
+                chats = [];
+                currentChatId = null;
+            }
         }
 
         function switchView(viewName) {

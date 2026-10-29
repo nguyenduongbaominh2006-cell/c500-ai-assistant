@@ -44,6 +44,125 @@
             50% { transform: translateY(-8px) rotateY(5deg); }
         }
         .model-3d-preview { animation: floatModel 4s ease-in-out infinite; }
+
+        /* Thanh phụ trợ mobile: giữ các nhóm nút gọn trong chiều rộng thiết bị */
+        #app-sidebar.mobile-sidebar-mode {
+            box-sizing: border-box;
+            width: 100% !important;
+            min-width: 0 !important;
+            height: 68px !important;
+            min-height: 68px !important;
+            max-height: 68px !important;
+            flex: 0 0 68px !important;
+            order: 99;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: stretch;
+            gap: 4px;
+            padding: 5px 6px calc(5px + env(safe-area-inset-bottom));
+            overflow: hidden !important;
+            border-top: 1px solid rgba(51, 65, 85, .9);
+            border-right: 0 !important;
+            box-sizing: border-box;
+        }
+        #app-sidebar.mobile-sidebar-mode > div:first-child {
+            flex: 0 1 29%;
+            min-width: 0;
+            padding: 4px !important;
+            border: 0 !important;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2px;
+        }
+        #app-sidebar.mobile-sidebar-mode > div:first-child > div:first-child {
+            min-width: 0;
+            gap: 4px !important;
+        }
+        #app-sidebar.mobile-sidebar-mode > div:first-child > div:first-child span {
+            font-size: 10px;
+            line-height: 1.1;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+        #app-sidebar.mobile-sidebar-mode > div:first-child > div:last-child {
+            justify-content: flex-start;
+            gap: 2px !important;
+        }
+        #app-sidebar.mobile-sidebar-mode > div:first-child button {
+            padding: 5px !important;
+            flex: 0 0 auto;
+        }
+        #app-sidebar.mobile-sidebar-mode > div:nth-child(2) {
+            flex: 0 0 42px;
+            min-width: 42px;
+            padding: 3px !important;
+            border: 0 !important;
+            display: flex;
+            align-items: center;
+        }
+        #app-sidebar.mobile-sidebar-mode > div:nth-child(2) > div {
+            display: flex;
+            flex-direction: column;
+            grid-template-columns: 1fr !important;
+            gap: 3px !important;
+            width: 100%;
+        }
+        #app-sidebar.mobile-sidebar-mode > div:nth-child(2) button {
+            width: 100%;
+            min-width: 0;
+            padding: 5px 2px !important;
+            justify-content: center;
+            gap: 0 !important;
+        }
+        #app-sidebar.mobile-sidebar-mode #theme-text,
+        #app-sidebar.mobile-sidebar-mode #device-text {
+            display: none;
+        }
+        #app-sidebar.mobile-sidebar-mode > div:nth-child(3) {
+            flex: 1 1 auto;
+            min-width: 0;
+            padding: 3px 0 !important;
+            display: flex;
+            align-items: stretch;
+            gap: 4px !important;
+            overflow: hidden;
+        }
+        #app-sidebar.mobile-sidebar-mode > div:nth-child(3) button {
+            flex: 1 1 0;
+            min-width: 0;
+            width: auto;
+            padding: 5px 3px !important;
+            justify-content: center;
+            gap: 0 !important;
+            text-align: center;
+        }
+        #app-sidebar.mobile-sidebar-mode > div:nth-child(3) button span {
+            display: none;
+        }
+        #app-sidebar.mobile-sidebar-mode > div:nth-child(3) button i {
+            margin: 0 !important;
+        }
+        #app-sidebar.mobile-sidebar-mode #chat-sidebar-section,
+        #app-sidebar.mobile-sidebar-mode > div:last-child {
+            display: none !important;
+        }
+        #app-sidebar.mobile-sidebar-mode button {
+            white-space: nowrap;
+        }
+        @media (max-width: 360px) {
+            #app-sidebar.mobile-sidebar-mode > div:first-child {
+                flex-basis: 25%;
+            }
+            #app-sidebar.mobile-sidebar-mode > div:first-child > div:first-child span {
+                display: none;
+            }
+            #app-sidebar.mobile-sidebar-mode > div:nth-child(2) {
+                flex-basis: 36px;
+                min-width: 36px;
+            }
+        }
+
     </style>
 </head>
 <body class="h-full bg-slate-950 dark:bg-slate-950 text-slate-100 font-sans antialiased overflow-hidden flex flex-col relative selection:bg-emerald-500 selection:text-slate-950 transition-colors duration-300" id="body-root">
@@ -472,13 +591,15 @@
 
             if (isMobileViewMode) {
                 appMainContainer.classList.add('mobile-device-container', 'my-auto');
-                sidebar.classList.remove('w-72', 'flex-col', 'border-r');
-                sidebar.classList.add('w-full', 'order-last', 'flex-row', 'border-t', 'h-20', 'overflow-x-auto');
+                sidebar.classList.remove('w-72', 'flex-col', 'border-r', 'h-20', 'overflow-x-auto');
+                sidebar.classList.add('w-full', 'order-last', 'flex-row', 'border-t');
+                sidebar.classList.add('mobile-sidebar-mode');
                 document.getElementById('chat-sidebar-section').style.display = 'none';
                 deviceIcon.className = "fa-solid fa-mobile-screen text-emerald-400";
                 deviceText.innerText = "Điện Thoại";
             } else {
                 appMainContainer.classList.remove('mobile-device-container', 'my-auto');
+                sidebar.classList.remove('mobile-sidebar-mode');
                 sidebar.classList.add('w-72', 'flex-col', 'border-r');
                 sidebar.classList.remove('w-full', 'order-last', 'flex-row', 'border-t', 'h-20', 'overflow-x-auto');
                 document.getElementById('chat-sidebar-section').style.display = 'flex';

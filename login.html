@@ -1042,7 +1042,7 @@
             renderMessages();
 
             try {
-                const aiResponse = await callGeminiAI(chat.messages.slice(0, -1));
+                const aiResponse = await callOpenAIWorker(chat.messages.slice(0, -1));
                 chat.messages[chat.messages.length - 1] = { role: 'model', content: aiResponse };
             } catch (err) {
                 chat.messages[chat.messages.length - 1] = { role: 'model', content: '❌ Không gọi được AI: ' + (err && err.message ? err.message : 'Lỗi không xác định.') };
@@ -1067,14 +1067,70 @@
         }
 
 
-async function callGeminiAI(messages) {
+// Địa chỉ Cloudflare Worker xử lý yêu cầu OpenAI
+const WORKER_URL = "https://c500-ai-api.nguyenduongbaominh2006.workers.dev/";
+
+async function callOpenAIWorker(messages) {
     if (!currentUser) {
         throw new Error('Bạn chưa đăng nhập.');
     }
 
-    if (typeof firebase.functions !== 'function') {
-        throw new Error('Firebase Functions SDK chưa được tải.');
+    // Lấy Firebase ID Token để Cloudflare Worker xác thực người dùng
+    const idToken = await currentUser.getIdToken();
+
+    // Giữ nguyên thông tin cá nhân và thiết lập AI hiện tại
+    const systemInstruction = `Bạn là ${aiConfig.nickname || 'Trợ lý AI C500'}, trợ lý AI cá nhân của ${aiConfig.fullName || ''}.
+Lớp: ${aiConfig.studentClass || ''}
+Chuyên ngành: ${aiConfig.major || ''}
+Quốc tịch: ${aiConfig.nationality || 'Việt Nam'}.
+Hãy giao tiếp chuẩn mực, chuyên nghiệp và hỗ trợ người dùng trong học tập, nghiên cứu.`;
+
+    // Chuyển lịch sử hội thoại sang định dạng OpenAI
+    const history = messages
+        .filter(m => m && ['user', 'model', 'assistant'].includes(m.role))
+        .map(m => ({
+            role: m.role === 'user' ? 'user' : 'assistant',
+            content: m.content
+        }));
+
+    try {
+        const response = await fetch(WORKER_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`
+            },
+            body: JSON.stringify({
+                messages: history,
+                systemInstruction: systemInstruction
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                throw new Error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+            }
+
+            if (response.status === 429) {
+                throw new Error('Hệ thống AI đang quá tải. Vui lòng thử lại sau.');
+            }
+
+            throw new Error(data.error || `Lỗi máy chủ: ${response.status}`);
+        }
+
+        if (!data.text) {
+            throw new Error('AI không trả về nội dung hợp lệ.');
+        }
+
+        return data.text;
+
+    } catch (error) {
+        console.error('OpenAI Worker Error:', error);
+        throw error;
     }
+}
 
     // Giữ nguyên thông tin cá nhân hóa trợ lý AI của C500.
     const systemInstruction = `Bạn là ${aiConfig.nickname || 'Sĩ quan AI'}, trợ lý AI cá nhân cho sinh viên ${aiConfig.fullName || ''} (Lớp ${aiConfig.studentClass || ''}, chuyên ngành ${aiConfig.major || ''}, quốc tịch ${aiConfig.nationality || 'Việt Nam'}) tại Học viện C500. Bạn giao tiếp chuẩn mực, chuyên nghiệp và hỗ trợ học tập, tra cứu quy chế, pháp luật.`;

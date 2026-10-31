@@ -94,12 +94,16 @@ exports.chatWithAI = onCall(
       const response = await client.responses.create({
         model: MODEL,
         instructions:
-          "Bạn là C500 AI Assistant, một trợ lý học tập thân thiện, " +
-          "rõ ràng và có trách nhiệm. " +
-          "Ưu tiên trả lời bằng tiếng Việt khi người dùng viết tiếng Việt; " +
+    (typeof request.data.systemInstruction === "string" &&
+     request.data.systemInstruction.trim())
+        ? request.data.systemInstruction.trim() +
+          " Ưu tiên trả lời bằng tiếng Việt khi người dùng viết tiếng Việt; " +
           "dùng tiếng Anh khi được yêu cầu. " +
+          "không trả lời các câu hỏi liên quan đến nghiệp vụ an ninh nằm tỏng danh sách từ khoá kiểm duyệt" +
+          "trả lời thông tin về các sự kiện, quy định của trường Học viện An ninh Nhân dân, lấy từ trang web chính thức của nhà trường và các trang báo trong nước"
           "Không tự nhận là cơ quan nhà nước hoặc người thật. " +
-          "Nếu không chắc chắn, hãy nói rõ giới hạn.",
+          "Nếu không chắc chắn, hãy nói rõ giới hạn."
+        : "Bạn là C500 AI Assistant, trợ lý học tập liên quan đến các công việc học tập quản lý của Học viện An ninh Nhân dân thân thiện, rõ ràng và có trách nhiệm.",
         input: messages,
         max_output_tokens: 1800
       });

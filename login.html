@@ -1003,68 +1003,138 @@
             renderHistoryList();
         }
 
-        document.getElementById('chat-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const inputEl = document.getElementById('user-input');
-            const text = inputEl.value.trim();
-            if (!text || isGenerating) return;
-            inputEl.value = '';
+document.getElementById('chat-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-            const chat = chats.find(c => c.id === currentChatId);
-            if (chat.messages.length === 0) chat.title = text.substring(0, 22) + '...';
+    const inputEl = document.getElementById('user-input');
+    const text = inputEl.value.trim();
 
-            chat.messages.push({ role: 'user', content: text });
-            renderMessages();
+    if (!text || isGenerating) return;
 
-            const lowerText = text.toLowerCase();
-            const violation = sensitiveKeywords.find(kw => lowerText.includes(kw));
+    const chat = chats.find(c => c.id === currentChatId);
+    if (!chat) {
+        alert('Không tìm thấy cuộc trò chuyện hiện tại.');
+        return;
+    }
 
-            if (violation) {
-                await db.collection('violations').add({
-                    user: currentUser.email,
-                    keyword: violation,
-                    query: text,
-                    timestamp: new Date().toISOString()
-                });
+    inputEl.value = '';
 
-                const rejectionMessage = "xin lỗi, tôi không thể trả lời câu hỏi này vì nó thuộc vấn đề nghiệp vụ, bạn hãy tìm đọc nội dung trên thư viện nhé!";
-                chat.messages.push({ role: 'model', content: rejectionMessage });
-                await saveCurrentChatToCloud(chat);
-                renderMessages();
-                return;
-            }
+    if (chat.messages.length === 0) {
+        chat.title = text.substring(0, 22) + '...';
+    }
 
-            isGenerating = true;
-            setAiStatus('Đang trả lời...');
-            triggerSpeakingAnimation(true);
+    // Chỉ giữ tin nhắn hợp lệ, loại bỏ thông báo lỗi và tin nhắn chờ cũ.
+    chat.messages = chat.messages.filter(m =>
+        m &&
+        ['user', 'model', 'assistant'].includes(m.role) &&
+        typeof m.content === 'string' &&
+        m.content.trim() !== '...' &&
+        !m.content.startsWith('❌ Không gọi được AI:')
+    );
 
-            chat.messages.push({ role: 'model', content: '...' });
-            renderMessages();
+    chat.messages.push({ role: 'user', content: text });
+    renderMessages();
 
-            try {
-                const aiResponse = await callOpenAIWorker(chat.messages.slice(0, -1));
-                chat.messages[chat.messages.length - 1] = { role: 'model', content: aiResponse };
-            } catch (err) {
-                chat.messages[chat.messages.length - 1] = { role: 'model', content: '❌ Không gọi được AI: ' + (err && err.message ? err.message : 'Lỗi không xác định.') };
-            } finally {
-                isGenerating = false;
-                setAiStatus('Sẵn sàng');
-                triggerSpeakingAnimation(false);
-            }
+    const lowerText = text.toLowerCase();
+    const violation = sensitiveKeywords.find(kw => lowerText.includes(kw));
+
+    if (violation) {
+        try {
+            await db.collection('violations').add({
+                user: currentUser.email,
+                keyword: violation,
+                query: text,
+                timestamp: new Date().toISOString()
+            });
+
+            chat.messages.push({
+                role: 'model',
+                content: 'Xin lỗi, tôi không thể trả lời câu hỏi này vì nó thuộc vấn đề nghiệp vụ. Đồng chí hãy tìm đọc nội dung trên thư viện nhé!'
+            });
 
             await saveCurrentChatToCloud(chat);
-            renderMessages();
-            renderHistoryList();
+        } catch (err) {
+            console.error('Lỗi lưu nội dung kiểm duyệt:', err);
+        }
+
+        renderMessages();
+        return;
+    }
+
+    isGenerating = true;
+    setAiStatus('Đang trả lời...');
+    triggerSpeakingAnimation(true);
+
+    // Tin nhắn chờ chỉ hiển thị trên giao diện, không đưa vào lịch sử gửi AI.
+    const pendingMessage = { role: 'model', content: '...' };
+    chat.messages.push(pendingMessage);
+    renderMessages();
+
+    try {
+        const history = chat.messages
+            .filter(m => m !== pendingMessage)
+            .slice(-20);
+
+        const aiResponse = await callOpenAIWorker(history);
+
+        chat.messages = chat.messages.filter(m => m !== pendingMessage);
+        chat.messages.push({
+            role: 'model',
+            content: aiResponse
         });
 
-        async function saveCurrentChatToCloud(chat) {
-            chat.updatedAt = new Date().toISOString();
-            await db.collection('users').doc(currentUser.uid).collection('chats').doc(chat.id).set({
-                title: chat.title,
-                messages: chat.messages,
-                updatedAt: chat.updatedAt
-            });
+        await saveCurrentChatToCloud(chat);
+
+    } catch (err) {
+        console.error('Lỗi gọi AI:', err);
+
+        // Không lưu thông báo lỗi vào lịch sử hội thoại.
+        chat.messages = chat.messages.filter(m => m !== pendingMessage);
+
+        setAiStatus('Lỗi kết nối');
+
+        const errorBox = document.getElementById('chat-messages');
+        if (errorBox) {
+            renderMessages();
+
+            const notice = document.createElement('div');
+            notice.className = 'max-w-3xl mx-auto mt-3 p-3 rounded-xl border border-red-700/50 bg-red-950/30 text-red-300 text-sm';
+            notice.textContent = 'Không gọi được AI: ' + (err.message || 'Lỗi không xác định.');
+            errorBox.appendChild(notice);
         }
+
+        try {
+            await saveCurrentChatToCloud(chat);
+        } catch (saveError) {
+            console.error('Không lưu được lịch sử:', saveError);
+        }
+
+    } finally {
+        isGenerating = false;
+        triggerSpeakingAnimation(false);
+
+        if (document.getElementById('ai-status-badge')) {
+            setAiStatus('Sẵn sàng');
+        }
+    }
+
+    renderMessages();
+    renderHistoryList();
+});
+
+async function saveCurrentChatToCloud(chat) {
+    chat.updatedAt = new Date().toISOString();
+
+    await db.collection('users')
+        .doc(currentUser.uid)
+        .collection('chats')
+        .doc(chat.id)
+        .set({
+            title: chat.title,
+            messages: chat.messages,
+            updatedAt: chat.updatedAt
+        });
+}
 
 
 // Địa chỉ Cloudflare Worker xử lý yêu cầu OpenAI
@@ -1075,23 +1145,49 @@ async function callOpenAIWorker(messages) {
         throw new Error('Bạn chưa đăng nhập.');
     }
 
-    // Lấy Firebase ID Token để Cloudflare Worker xác thực người dùng
+    if (!Array.isArray(messages)) {
+        throw new Error('Dữ liệu lịch sử hội thoại không hợp lệ.');
+    }
+
     const idToken = await currentUser.getIdToken();
 
-    // Giữ nguyên thông tin cá nhân và thiết lập AI hiện tại
     const systemInstruction = `Bạn là ${aiConfig.nickname || 'Trợ lý AI C500'}, trợ lý AI cá nhân của ${aiConfig.fullName || ''}.
 Lớp: ${aiConfig.studentClass || ''}
 Chuyên ngành: ${aiConfig.major || ''}
 Quốc tịch: ${aiConfig.nationality || 'Việt Nam'}.
 Hãy giao tiếp chuẩn mực, chuyên nghiệp và hỗ trợ người dùng trong học tập, nghiên cứu.`;
 
-    // Chuyển lịch sử hội thoại sang định dạng OpenAI
+    // Chuẩn hóa lịch sử hội thoại.
     const history = messages
-        .filter(m => m && ['user', 'model', 'assistant'].includes(m.role))
+        .filter(m =>
+            m &&
+            ['user', 'model', 'assistant'].includes(m.role) &&
+            typeof m.content === 'string' &&
+            m.content.trim() !== '' &&
+            m.content.trim() !== '...' &&
+            !m.content.startsWith('❌ Không gọi được AI:')
+        )
         .map(m => ({
             role: m.role === 'user' ? 'user' : 'assistant',
-            content: m.content
-        }));
+            content: m.content.trim()
+        }))
+        .slice(-20);
+
+    if (history.length === 0) {
+        throw new Error('Chưa có nội dung hợp lệ để gửi đến AI.');
+    }
+
+    // Kiểm tra giới hạn trước khi gửi Worker.
+    for (const message of history) {
+        if (message.content.length > 6000) {
+            throw new Error('Một tin nhắn vượt quá giới hạn 6.000 ký tự.');
+        }
+    }
+
+    const payload = {
+        messages: history,
+        systemInstruction
+    };
 
     try {
         const response = await fetch(WORKER_URL, {
@@ -1100,31 +1196,34 @@ Hãy giao tiếp chuẩn mực, chuyên nghiệp và hỗ trợ người dùng t
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${idToken}`
             },
-            body: JSON.stringify({
-                messages: history,
-                systemInstruction: systemInstruction
-            })
+            body: JSON.stringify(payload)
         });
 
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
+            const diagnostic = data.diagnostic
+                ? ` | Chi tiết: ${JSON.stringify(data.diagnostic)}`
+                : '';
+
             if (response.status === 401 || response.status === 403) {
-                throw new Error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+                throw new Error('Xác thực Firebase thất bại. Vui lòng đăng nhập lại.' + diagnostic);
             }
 
             if (response.status === 429) {
-                throw new Error('Hệ thống AI đang quá tải. Vui lòng thử lại sau.');
+                throw new Error('Đã đạt giới hạn sử dụng hoặc ngân sách AI.' + diagnostic);
             }
 
-            throw new Error(data.error || `Lỗi máy chủ: ${response.status}`);
+            throw new Error(
+                (data.error || `Worker trả về lỗi HTTP ${response.status}`) + diagnostic
+            );
         }
 
-        if (!data.text) {
-            throw new Error('AI không trả về nội dung hợp lệ.');
+        if (data.success === false || typeof data.text !== 'string' || !data.text.trim()) {
+            throw new Error(data.error || 'AI không trả về nội dung hợp lệ.');
         }
 
-        return data.text;
+        return data.text.trim();
 
     } catch (error) {
         console.error('OpenAI Worker Error:', error);

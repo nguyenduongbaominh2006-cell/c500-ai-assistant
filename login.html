@@ -1131,61 +1131,6 @@ Hãy giao tiếp chuẩn mực, chuyên nghiệp và hỗ trợ người dùng t
         throw error;
     }
 }
-
-    // Giữ nguyên thông tin cá nhân hóa trợ lý AI của C500.
-    const systemInstruction = `Bạn là ${aiConfig.nickname || 'Sĩ quan AI'}, trợ lý AI cá nhân cho sinh viên ${aiConfig.fullName || ''} (Lớp ${aiConfig.studentClass || ''}, chuyên ngành ${aiConfig.major || ''}, quốc tịch ${aiConfig.nationality || 'Việt Nam'}) tại Học viện C500. Bạn giao tiếp chuẩn mực, chuyên nghiệp và hỗ trợ học tập, tra cứu quy chế, pháp luật.`;
-
-    // Chuyển lịch sử Gemini sang định dạng role của OpenAI.
-    const history = messages
-        .filter(m =>
-            m &&
-            ['user', 'model', 'assistant'].includes(m.role) &&
-            typeof m.content === 'string' &&
-            m.content.trim()
-        )
-        .map(m => ({
-            role: m.role === 'user' ? 'user' : 'assistant',
-            content: m.content.trim()
-        }));
-
-    try {
-        const chatFunction = firebase
-            .app()
-            .functions(AI_FUNCTION_REGION)
-            .httpsCallable('chatWithAI');
-
-        const result = await chatFunction({
-            messages: history,
-            systemInstruction: systemInstruction
-        });
-
-        const data = result && result.data;
-
-        if (!data || typeof data.text !== 'string' || !data.text.trim()) {
-            throw new Error('OpenAI chưa trả về nội dung hợp lệ.');
-        }
-
-        return data.text.trim();
-
-    } catch (error) {
-        console.error('Lỗi kết nối OpenAI:', error);
-
-        const errorMessages = {
-            'functions/unauthenticated': 'Phiên đăng nhập hết hạn. Hãy đăng nhập lại.',
-            'functions/not-found': 'Không tìm thấy chatWithAI. Hãy triển khai Firebase Functions.',
-            'functions/resource-exhausted': 'AI đang quá tải hoặc đã hết hạn mức sử dụng.',
-            'functions/failed-precondition': 'Hãy kiểm tra OpenAI API Key và quyền truy cập model.',
-            'functions/unavailable': 'Máy chủ AI hiện không khả dụng. Vui lòng thử lại.'
-        };
-
-        throw new Error(
-            errorMessages[error.code] ||
-            error.message ||
-            'Không thể kết nối OpenAI.'
-        );
-    }
-}
-
         function renderMessages() {
             const container = document.getElementById('chat-messages');
             const chat = chats.find(c => c.id === currentChatId);

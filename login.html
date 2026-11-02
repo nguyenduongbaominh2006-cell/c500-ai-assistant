@@ -606,6 +606,18 @@
                 <div><label class="block text-xs text-emerald-300 mb-1">Địa chỉ</label><input id="profile-address" placeholder="Địa chỉ (không bắt buộc)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm" /></div>
                 <div><label class="block text-xs text-emerald-300 mb-1">Số điện thoại <span class="text-slate-500 normal-case">(không bắt buộc)</span></label><input id="profile-phone" type="tel" autocomplete="tel" placeholder="Ví dụ: 09xxxxxxxx" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm" /></div>
                 <div class="grid grid-cols-2 gap-3"><div><label class="block text-xs text-emerald-300 mb-1">Ngày sinh</label><input id="profile-dob" type="date" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm" /></div><div><label class="block text-xs text-emerald-300 mb-1">Quốc tịch</label><select id="profile-nationality" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm"><option value="Việt Nam">Việt Nam</option><option value="Trung Quốc">Trung Quốc</option><option value="Cuba">Cuba</option><option value="Lào">Lào</option></select></div></div>
+                <div class="rounded-xl border border-slate-700 bg-slate-950/60 p-3 space-y-3">
+                    <p class="text-xs font-bold uppercase tracking-wider text-emerald-300"><i class="fa-solid fa-eye mr-2"></i>Hiển thị hình đại diện</p>
+                    <label class="flex items-center justify-between gap-3 text-sm text-slate-200 cursor-pointer">
+                        <span><i class="fa-solid fa-user-tie w-5 text-emerald-400"></i> Nhân vật AI hoạt họa</span>
+                        <input id="profile-show-ai-character" type="checkbox" class="h-4 w-4 accent-emerald-500">
+                    </label>
+                    <label class="flex items-center justify-between gap-3 text-sm text-slate-200 cursor-pointer">
+                        <span><i class="fa-solid fa-image w-5 text-emerald-400"></i> Ảnh đại diện cá nhân</span>
+                        <input id="profile-show-personal-photo" type="checkbox" class="h-4 w-4 accent-emerald-500">
+                    </label>
+                    <p class="text-[11px] leading-relaxed text-slate-500">Có thể bật/tắt riêng từng mục. Khi chuyển sang chế độ Điện Thoại, toàn bộ khung avatar sẽ tự động ẩn.</p>
+                </div>
                 <p id="profile-message" class="hidden text-xs rounded-lg p-3"></p>
                 <div class="flex gap-3"><button type="button" onclick="closeProfileModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 rounded-xl py-3 text-sm">Đóng</button><button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-500 rounded-xl py-3 text-sm font-bold">Lưu hồ sơ</button></div>
             </form>
@@ -724,6 +736,7 @@
                 deviceIcon.className = "fa-solid fa-desktop text-emerald-400";
                 deviceText.innerText = "Máy Tính";
             }
+            applyAiAvatarVisibility();
         }
 
         function showRegisterScreen() {
@@ -1047,8 +1060,6 @@
         async function launchApp() {
             document.getElementById('setup-wizard-screen').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
-            document.getElementById('ai-widget').classList.remove('hidden');
-
             document.getElementById('widget-ai-nickname').innerText = aiConfig.nickname;
             document.getElementById('header-ai-nickname-badge').innerText = `Biệt danh: ${aiConfig.nickname}`;
             document.getElementById('widget-student-info').innerText = aiConfig.studentClass || 'C500 Hub';
@@ -1065,6 +1076,7 @@
                 avatarCanvas.classList.remove('hidden');
                 startCanvasAnimation();
             }
+            applyAiAvatarVisibility();
             try {
                 await loadUserChats();
             } catch (err) {
@@ -1387,6 +1399,22 @@ Hãy giao tiếp chuẩn mực, chuyên nghiệp và hỗ trợ người dùng t
             });
         }
 
+        function applyAiAvatarVisibility() {
+            const widget = document.getElementById('ai-widget');
+            const canvas = document.getElementById('avatar-canvas');
+            const photo = document.getElementById('avatar-photo');
+            if (!widget || !canvas || !photo) return;
+
+            const showCharacter = aiConfig.showAiCharacter !== false;
+            const showPhoto = aiConfig.showPersonalPhoto !== false && !!aiConfig.photoURL;
+            const usePhoto = showPhoto;
+            const useCharacter = !usePhoto && showCharacter;
+
+            photo.classList.toggle('hidden', !usePhoto);
+            canvas.classList.toggle('hidden', !useCharacter);
+            widget.classList.toggle('hidden', isMobileViewMode || (!usePhoto && !useCharacter));
+        }
+
         function openProfileModal() {
             if (!currentUser) return;
             const modal = document.getElementById('profile-modal');
@@ -1398,6 +1426,8 @@ Hãy giao tiếp chuẩn mực, chuyên nghiệp và hỗ trợ người dùng t
             document.getElementById('profile-dob').value = /^\d{4}-\d{2}-\d{2}$/.test(aiConfig.dob || '') ? aiConfig.dob : '';
             document.getElementById('profile-nationality').value = aiConfig.nationality || 'Việt Nam';
             document.getElementById('profile-message').classList.add('hidden');
+            document.getElementById('profile-show-ai-character').checked = aiConfig.showAiCharacter !== false;
+            document.getElementById('profile-show-personal-photo').checked = aiConfig.showPersonalPhoto !== false;
             modal.classList.remove('hidden'); modal.classList.add('flex');
         }
         function closeProfileModal() {
@@ -1415,13 +1445,16 @@ Hãy giao tiếp chuẩn mực, chuyên nghiệp và hỗ trợ người dùng t
                 phone: document.getElementById('profile-phone').value.trim(),
                 dob: document.getElementById('profile-dob').value,
                 nationality: document.getElementById('profile-nationality').value,
-                email: currentUser.email || ''
+                email: currentUser.email || '',
+                showAiCharacter: document.getElementById('profile-show-ai-character').checked,
+                showPersonalPhoto: document.getElementById('profile-show-personal-photo').checked
             };
             if (!payload.fullName) { alert('Vui lòng nhập họ và tên.'); return; }
             try {
                 await db.collection('users').doc(currentUser.uid).set(payload, {merge:true});
                 aiConfig = {...aiConfig, ...payload};
                 document.getElementById('user-name').innerText = payload.username || payload.fullName;
+                applyAiAvatarVisibility();
                 message.className = 'text-xs rounded-lg p-3 border border-emerald-800 bg-emerald-950 text-emerald-200';
                 message.textContent = 'Đã lưu hồ sơ thành công.';
                 message.classList.remove('hidden');

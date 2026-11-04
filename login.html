@@ -439,6 +439,39 @@
         </div>
     </div>
 
+    <!-- THÔNG BÁO AN TOÀN VÀ NGUYÊN TẮC SỬ DỤNG -->
+    <div id="security-notice-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-950/95 backdrop-blur-xl p-4 overflow-y-auto">
+        <section class="w-full max-w-2xl my-auto rounded-2xl border border-amber-500/50 bg-slate-900 shadow-2xl overflow-hidden">
+            <div class="bg-amber-950/50 border-b border-amber-700/40 px-5 py-4 flex items-center gap-3">
+                <div class="w-11 h-11 shrink-0 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-300 text-xl"><i class="fa-solid fa-shield-halved"></i></div>
+                <div>
+                    <h2 class="text-lg font-extrabold text-amber-300">THÔNG BÁO AN TOÀN THÔNG TIN</h2>
+                    <p class="text-[11px] text-amber-100/70 uppercase tracking-wider">Nguyên tắc sử dụng C500 Security Hub</p>
+                </div>
+            </div>
+            <div class="p-5 sm:p-6 space-y-4 text-sm leading-relaxed text-slate-200">
+                <p class="font-semibold text-white">Trước khi tiếp tục vào giao diện trò chuyện, vui lòng đọc và thực hiện nghiêm các nguyên tắc sau:</p>
+                <div class="space-y-3">
+                    <div class="flex gap-3"><i class="fa-solid fa-ban text-red-400 mt-1"></i><p><strong class="text-red-300">Không hỏi, nhập, tải lên hoặc chia sẻ</strong> bất kỳ thông tin thuộc danh mục bí mật nhà nước; tài liệu, dữ liệu nghiệp vụ; phương án, kế hoạch, quy trình công tác nội bộ chưa được phép công khai; hoặc thông tin có thể ảnh hưởng đến an ninh, an toàn của cơ quan, đơn vị.</p></div>
+                    <div class="flex gap-3"><i class="fa-solid fa-user-shield text-emerald-400 mt-1"></i><p>Nếu đồng chí là cán bộ, chiến sĩ, học viên hoặc người công tác trong lực lượng Công an nhân dân, cần tuân thủ đầy đủ quy định của pháp luật và quy định nội bộ của ngành về bảo vệ bí mật nhà nước, bảo vệ dữ liệu và sử dụng hệ thống, thiết bị, công cụ AI.</p></div>
+                    <div class="flex gap-3"><i class="fa-solid fa-circle-info text-sky-400 mt-1"></i><p>Chỉ sử dụng hệ thống với nội dung học tập, tra cứu và thông tin được phép cung cấp cho công cụ AI. Không coi câu trả lời của AI là văn bản chỉ đạo, kết luận nghiệp vụ hoặc nguồn xác nhận chính thức.</p></div>
+                    <div class="flex gap-3"><i class="fa-solid fa-scale-balanced text-amber-400 mt-1"></i><p>Người sử dụng chịu trách nhiệm về nội dung mình cung cấp và cách thức sử dụng kết quả do AI tạo ra; phải tự kiểm tra, đối chiếu và tuân thủ các quy định có liên quan. Không sử dụng hệ thống để thực hiện hành vi vi phạm pháp luật hoặc quy định của cơ quan, đơn vị.</p></div>
+                </div>
+                <div class="rounded-xl border border-amber-700/40 bg-amber-950/30 p-3 text-xs text-amber-100">
+                    <strong>Lưu ý:</strong> Không đưa thông tin mật, dữ liệu cá nhân nhạy cảm hoặc tài liệu nội bộ chưa được phép chia sẻ vào cuộc trò chuyện, kể cả dưới dạng ảnh, tệp đính kèm hay nội dung đã ẩn danh chưa đầy đủ.
+                </div>
+                <label class="flex items-start gap-3 rounded-xl border border-slate-700 bg-slate-950/60 p-3 cursor-pointer">
+                    <input id="security-notice-ack" type="checkbox" class="mt-1 h-4 w-4 shrink-0 accent-emerald-500">
+                    <span class="text-sm font-semibold text-white">Tôi đã đọc, hiểu và cam kết tuân thủ các nguyên tắc an toàn thông tin nêu trên.</span>
+                </label>
+                <button id="security-notice-continue" type="button" onclick="acceptSecurityNotice()" disabled class="w-full rounded-xl bg-emerald-700 hover:bg-emerald-600 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed py-3.5 text-sm font-bold text-white transition">
+                    XÁC NHẬN VÀ TIẾP TỤC <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+                <p class="text-[10px] text-center text-slate-500">Xác nhận này được lưu theo tài khoản. Nếu không đồng ý, vui lòng đăng xuất và không tiếp tục sử dụng hệ thống.</p>
+            </div>
+        </section>
+    </div>
+
     <!-- 5. GIAO DIỆN CHÍNH (APP & DASHBOARD) -->
     <div id="main-app" class="flex-1 flex overflow-hidden hidden z-10 transition-all duration-300">
         
@@ -1057,7 +1090,57 @@
             renderWizardStep();
         }
 
+        const SECURITY_NOTICE_VERSION = '2026-11-04-v1';
+
+        document.getElementById('security-notice-ack').addEventListener('change', function () {
+            document.getElementById('security-notice-continue').disabled = !this.checked;
+        });
+
+        async function acceptSecurityNotice() {
+            if (!currentUser) return;
+            const checkbox = document.getElementById('security-notice-ack');
+            if (!checkbox.checked) return;
+            const button = document.getElementById('security-notice-continue');
+            button.disabled = true;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang lưu xác nhận...';
+            try {
+                await db.collection('users').doc(currentUser.uid).set({
+                    securityNoticeAcceptedVersion: SECURITY_NOTICE_VERSION,
+                    securityNoticeAcceptedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+                const modal = document.getElementById('security-notice-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                checkbox.checked = false;
+                button.innerHTML = 'XÁC NHẬN VÀ TIẾP TỤC <i class="fa-solid fa-arrow-right ml-2"></i>';
+                await launchApp();
+            } catch (err) {
+                console.error('Không lưu được xác nhận an toàn thông tin:', err);
+                button.disabled = false;
+                button.innerHTML = 'Thử xác nhận lại';
+                alert('Chưa lưu được xác nhận. Vui lòng kiểm tra kết nối và thử lại.');
+            }
+        }
+
         async function launchApp() {
+            if (!currentUser) return;
+            try {
+                const noticeDoc = await db.collection('users').doc(currentUser.uid).get();
+                const acceptedVersion = noticeDoc.exists ? noticeDoc.data().securityNoticeAcceptedVersion : null;
+                if (acceptedVersion !== SECURITY_NOTICE_VERSION) {
+                    document.getElementById('main-app').classList.add('hidden');
+                    document.getElementById('setup-wizard-screen').classList.add('hidden');
+                    const noticeModal = document.getElementById('security-notice-modal');
+                    noticeModal.classList.remove('hidden');
+                    noticeModal.classList.add('flex');
+                    return;
+                }
+            } catch (err) {
+                console.error('Không kiểm tra được xác nhận an toàn thông tin:', err);
+                alert('Không thể kiểm tra trạng thái xác nhận an toàn thông tin. Vui lòng tải lại trang hoặc đăng nhập lại.');
+                return;
+            }
+            document.getElementById('security-notice-modal').classList.add('hidden');
             document.getElementById('setup-wizard-screen').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
             document.getElementById('widget-ai-nickname').innerText = aiConfig.nickname;

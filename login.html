@@ -1091,6 +1091,7 @@
         }
 
         const SECURITY_NOTICE_VERSION = '2026-11-04-v1';
+        let securityNoticeConfirmedThisSession = false;
 
         document.getElementById('security-notice-ack').addEventListener('change', function () {
             document.getElementById('security-notice-continue').disabled = !this.checked;
@@ -1108,6 +1109,7 @@
                     securityNoticeAcceptedVersion: SECURITY_NOTICE_VERSION,
                     securityNoticeAcceptedAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
+                securityNoticeConfirmedThisSession = true;
                 const modal = document.getElementById('security-notice-modal');
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
@@ -1124,21 +1126,13 @@
 
         async function launchApp() {
             if (!currentUser) return;
-            try {
-                const noticeDoc = await db.collection('users').doc(currentUser.uid).get();
-                const acceptedVersion = noticeDoc.exists ? noticeDoc.data().securityNoticeAcceptedVersion : null;
-                if (acceptedVersion !== SECURITY_NOTICE_VERSION) {
+            if (!securityNoticeConfirmedThisSession) {
                     document.getElementById('main-app').classList.add('hidden');
                     document.getElementById('setup-wizard-screen').classList.add('hidden');
                     const noticeModal = document.getElementById('security-notice-modal');
                     noticeModal.classList.remove('hidden');
                     noticeModal.classList.add('flex');
                     return;
-                }
-            } catch (err) {
-                console.error('Không kiểm tra được xác nhận an toàn thông tin:', err);
-                alert('Không thể kiểm tra trạng thái xác nhận an toàn thông tin. Vui lòng tải lại trang hoặc đăng nhập lại.');
-                return;
             }
             document.getElementById('security-notice-modal').classList.add('hidden');
             document.getElementById('setup-wizard-screen').classList.add('hidden');

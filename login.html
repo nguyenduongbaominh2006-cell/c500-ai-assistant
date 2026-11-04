@@ -1182,10 +1182,18 @@
                 securityNoticeConfirmedThisSession = true;
                 const modal = document.getElementById('security-notice-modal');
                 modal.classList.add('hidden');
-                modal.classList.remove('flex');
+                modal.classList.remove('is-active');
+                document.body.classList.remove('security-notice-open');
                 checkbox.checked = false;
-                button.innerHTML = 'XÁC NHẬN VÀ TIẾP TỤC <i class="fa-solid fa-arrow-right ml-2"></i>';
-                await launchApp();
+                button.innerHTML = 'TÔI ĐỒNG Ý - TIẾP TỤC <i class="fa-solid fa-arrow-right ml-2"></i>';
+                if (securityNoticeNeedsSetup) {
+                    securityNoticeNeedsSetup = false;
+                    currentWizardStep = aiConfig.profileSetupCompleted ? 3 : 1;
+                    document.getElementById('setup-wizard-screen').classList.remove('hidden');
+                    renderWizardStep();
+                } else {
+                    await launchApp();
+                }
             } catch (err) {
                 console.error('Không lưu được xác nhận an toàn thông tin:', err);
                 button.disabled = false;

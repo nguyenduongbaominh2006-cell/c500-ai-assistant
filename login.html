@@ -281,7 +281,59 @@
             }
         }
 
-    </style>
+    
+        /* SECURITY NOTICE: modal luôn nổi chính giữa, phủ kín viewport */
+        #security-notice-modal {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            z-index: 999999 !important;
+            display: none;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 24px !important;
+            overflow-y: auto !important;
+            background: rgba(2, 6, 23, 0.94) !important;
+            backdrop-filter: blur(14px) !important;
+            -webkit-backdrop-filter: blur(14px) !important;
+        }
+        #security-notice-modal.is-active { display: flex !important; }
+        #security-notice-modal > section {
+            position: relative !important;
+            flex: 0 0 auto !important;
+            width: min(680px, 100%) !important;
+            max-height: calc(100dvh - 48px) !important;
+            margin: auto !important;
+            overflow-y: auto !important;
+            border: 2px solid rgba(245, 158, 11, .9) !important;
+            border-radius: 22px !important;
+            box-shadow: 0 0 0 1px rgba(245,158,11,.22), 0 25px 90px rgba(0,0,0,.85), 0 0 55px rgba(245,158,11,.18) !important;
+            animation: securityNoticePop .28s ease-out both;
+        }
+        #security-notice-modal > section > div:first-child {
+            background: linear-gradient(110deg, rgba(120,53,15,.95), rgba(69,26,3,.92)) !important;
+            padding: 22px 24px !important;
+        }
+        #security-notice-modal h2 { font-size: clamp(18px, 3vw, 23px) !important; letter-spacing: .04em; }
+        #security-notice-continue {
+            min-height: 54px !important;
+            font-size: 15px !important;
+            letter-spacing: .045em !important;
+            box-shadow: 0 8px 24px rgba(16,185,129,.22) !important;
+        }
+        @keyframes securityNoticePop {
+            from { opacity: 0; transform: translateY(14px) scale(.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        body.security-notice-open { overflow: hidden !important; }
+        @media (max-width: 640px) {
+            #security-notice-modal { padding: 12px !important; }
+            #security-notice-modal > section { max-height: calc(100dvh - 24px) !important; border-radius: 16px !important; }
+            #security-notice-modal > section > div:last-child { padding: 16px !important; }
+        }
+</style>
 </head>
 <body class="h-full bg-slate-950 dark:bg-slate-950 text-slate-100 font-sans antialiased overflow-hidden flex flex-col relative selection:bg-emerald-500 selection:text-slate-950 transition-colors duration-300" id="body-root">
 
@@ -440,12 +492,12 @@
     </div>
 
     <!-- THÔNG BÁO AN TOÀN VÀ NGUYÊN TẮC SỬ DỤNG -->
-    <div id="security-notice-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-950/95 backdrop-blur-xl p-4 overflow-y-auto">
+    <div id="security-notice-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-950/95 backdrop-blur-xl p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="security-notice-title">
         <section class="w-full max-w-2xl my-auto rounded-2xl border border-amber-500/50 bg-slate-900 shadow-2xl overflow-hidden">
             <div class="bg-amber-950/50 border-b border-amber-700/40 px-5 py-4 flex items-center gap-3">
                 <div class="w-11 h-11 shrink-0 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-300 text-xl"><i class="fa-solid fa-shield-halved"></i></div>
                 <div>
-                    <h2 class="text-lg font-extrabold text-amber-300">THÔNG BÁO AN TOÀN THÔNG TIN</h2>
+                    <h2 id="security-notice-title" class="text-lg font-extrabold text-amber-300">⚠ THÔNG BÁO AN TOÀN THÔNG TIN</h2>
                     <p class="text-[11px] text-amber-100/70 uppercase tracking-wider">Nguyên tắc sử dụng C500 Security Hub</p>
                 </div>
             </div>
@@ -465,7 +517,7 @@
                     <span class="text-sm font-semibold text-white">Tôi đã đọc, hiểu và cam kết tuân thủ các nguyên tắc an toàn thông tin nêu trên.</span>
                 </label>
                 <button id="security-notice-continue" type="button" onclick="acceptSecurityNotice()" disabled class="w-full rounded-xl bg-emerald-700 hover:bg-emerald-600 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed py-3.5 text-sm font-bold text-white transition">
-                    XÁC NHẬN VÀ TIẾP TỤC <i class="fa-solid fa-arrow-right ml-2"></i>
+                    TÔI ĐỒNG Ý - TIẾP TỤC <i class="fa-solid fa-arrow-right ml-2"></i>
                 </button>
                 <p class="text-[10px] text-center text-slate-500">Xác nhận này được lưu theo tài khoản. Nếu không đồng ý, vui lòng đăng xuất và không tiếp tục sử dụng hệ thống.</p>
             </div>
@@ -845,6 +897,11 @@
                 mainApp.classList.add('hidden');
                 aiWidget.classList.add('hidden');
                 setupWizard.classList.add('hidden');
+                document.getElementById('security-notice-modal').classList.add('hidden');
+                document.getElementById('security-notice-modal').classList.remove('is-active');
+                document.body.classList.remove('security-notice-open');
+                securityNoticeConfirmedThisSession = false;
+                securityNoticeNeedsSetup = false;
                 return;
             }
 
@@ -882,19 +939,10 @@
                 const cfgDoc = await userRef.collection('settings').doc('ai_config').get();
                 if (cfgDoc.exists && cfgDoc.data().completed) {
                     aiConfig = { ...aiConfig, ...cfgDoc.data() };
-                    // Existing users missing the new profile slides are sent through them once.
-                    currentWizardStep = aiConfig.profileSetupCompleted ? 3 : 1;
-                    if (!aiConfig.profileSetupCompleted) {
-                        setupWizard.classList.remove('hidden');
-                        renderWizardStep();
-                    } else {
-                        await launchApp();
-                    }
-                } else {
-                    currentWizardStep = 1;
-                    setupWizard.classList.remove('hidden');
-                    renderWizardStep();
                 }
+                // Hiện cảnh báo ngay sau khi xác thực thành công, trước cả wizard và giao diện chat.
+                securityNoticeNeedsSetup = !(cfgDoc.exists && cfgDoc.data().completed && aiConfig.profileSetupCompleted);
+                showSecurityNotice();
                 await loadKeywords();
             } catch (err) {
                 console.error('Lỗi đồng bộ Firestore:', err);
@@ -1092,6 +1140,28 @@
 
         const SECURITY_NOTICE_VERSION = '2026-11-04-v1';
         let securityNoticeConfirmedThisSession = false;
+        let securityNoticeNeedsSetup = false;
+
+        function showSecurityNotice() {
+            const modal = document.getElementById('security-notice-modal');
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('setup-wizard-screen').classList.add('hidden');
+            document.getElementById('security-notice-ack').checked = false;
+            const button = document.getElementById('security-notice-continue');
+            button.disabled = true;
+            button.innerHTML = 'TÔI ĐỒNG Ý - TIẾP TỤC <i class=\"fa-solid fa-arrow-right ml-2\"></i>';
+            modal.classList.remove('hidden');
+            modal.classList.add('is-active');
+            document.body.classList.add('security-notice-open');
+        }
+
+        document.addEventListener('keydown', function (event) {
+            const modal = document.getElementById('security-notice-modal');
+            if (modal && modal.classList.contains('is-active') && event.key === 'Escape') {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        }, true);
 
         document.getElementById('security-notice-ack').addEventListener('change', function () {
             document.getElementById('security-notice-continue').disabled = !this.checked;
@@ -1129,12 +1199,12 @@
             if (!securityNoticeConfirmedThisSession) {
                     document.getElementById('main-app').classList.add('hidden');
                     document.getElementById('setup-wizard-screen').classList.add('hidden');
-                    const noticeModal = document.getElementById('security-notice-modal');
-                    noticeModal.classList.remove('hidden');
-                    noticeModal.classList.add('flex');
+                    showSecurityNotice();
                     return;
             }
             document.getElementById('security-notice-modal').classList.add('hidden');
+            document.getElementById('security-notice-modal').classList.remove('is-active');
+            document.body.classList.remove('security-notice-open');
             document.getElementById('setup-wizard-screen').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
             document.getElementById('widget-ai-nickname').innerText = aiConfig.nickname;

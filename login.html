@@ -1762,6 +1762,11 @@ loop();
                 alert('Đã thêm từ khóa kiểm duyệt thành công!');
             }
         });
-    </script>
+    
+        // Cho phép trang welcome mở thẳng giao diện đăng ký qua login.html#register.
+        if (window.location.hash === "#register") {
+            showRegisterScreen();
+        }
+</script>
 </body>
 </html>

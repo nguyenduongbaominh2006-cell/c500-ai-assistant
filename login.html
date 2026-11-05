@@ -282,6 +282,29 @@
         }
 
     
+
+        /* Trạng thái đăng ký và slide chào mừng người dùng mới */
+        #registration-loading.is-active,
+        #registration-success.is-active,
+        #new-user-onboarding.is-active { display: flex !important; }
+        .onboarding-dot { transition: background .2s ease, transform .2s ease; }
+        .onboarding-dot.active { background: #34d399 !important; transform: scale(1.25); }
+        #onboarding-slide-content .onboarding-icon {
+            display:flex; align-items:center; justify-content:center;
+            width:84px; height:84px; margin:0 auto 22px;
+            border:1px solid rgba(234,179,8,.45); border-radius:24px;
+            background:linear-gradient(145deg,rgba(5,150,105,.3),rgba(15,23,42,.8));
+            color:#facc15; font-size:34px;
+            box-shadow:0 12px 35px rgba(16,185,129,.12);
+        }
+        #onboarding-slide-content h2 { color:#fff; font-size:clamp(23px,4vw,32px); font-weight:900; line-height:1.2; }
+        #onboarding-slide-content p { max-width:510px; margin:14px auto 0; color:#cbd5e1; font-size:14px; line-height:1.8; }
+        @media(max-width:480px) {
+            #new-user-onboarding > div > div:last-child { padding:22px 18px; }
+            #onboarding-slide-content { min-height:280px; }
+            #onboarding-back,#onboarding-next { padding:11px 13px; }
+        }
+
         /* SECURITY NOTICE: modal luôn nổi chính giữa, phủ kín viewport */
         #security-notice-modal {
             position: fixed !important;
@@ -444,6 +467,48 @@
                     <button type="submit" class="flex-1 bg-gradient-to-r from-emerald-700 to-green-600 hover:from-emerald-600 hover:to-green-500 text-white font-bold py-3 rounded-xl shadow-lg transition uppercase tracking-wider text-xs">Đăng Ký Ngay</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- QUY TRÌNH ĐĂNG KÝ: ĐANG XỬ LÝ -->
+    <div id="registration-loading" class="fixed inset-0 z-[1000] hidden items-center justify-center p-5 bg-slate-950/95 backdrop-blur-xl" role="status" aria-live="polite">
+        <div class="w-full max-w-sm rounded-3xl border border-emerald-500/40 bg-slate-900 p-8 text-center shadow-2xl">
+            <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border-4 border-emerald-500/25 border-t-emerald-400 animate-spin text-emerald-300"><i class="fa-solid fa-shield-halved text-xl"></i></div>
+            <h2 class="text-lg font-extrabold text-white">C500 AI Assistant</h2>
+            <p id="registration-loading-text" class="mt-2 text-sm font-semibold text-emerald-300">Đang tiếp nhận xử lý thông tin...</p>
+            <p class="mt-2 text-xs text-slate-400">Vui lòng không đóng hoặc tải lại trang.</p>
+        </div>
+    </div>
+
+    <!-- POP-UP ĐĂNG KÝ THÀNH CÔNG: CHẠM BẤT KỲ ĐÂU ĐỂ TIẾP TỤC -->
+    <div id="registration-success" class="fixed inset-0 z-[1001] hidden items-center justify-center p-5 bg-slate-950/90 backdrop-blur-xl cursor-pointer" role="dialog" aria-modal="true" aria-labelledby="registration-success-title" onclick="startNewUserOnboarding()">
+        <div class="w-full max-w-md rounded-3xl border border-emerald-400/50 bg-slate-900 p-8 text-center shadow-2xl fade-in">
+            <div class="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full border border-emerald-400/50 bg-emerald-500/15 text-emerald-300 text-4xl"><i class="fa-solid fa-check"></i></div>
+            <p class="text-xs font-bold uppercase tracking-[.22em] text-emerald-300">C500 AI Assistant</p>
+            <h2 id="registration-success-title" class="mt-3 text-2xl font-extrabold text-white">Chúc mừng bạn!</h2>
+            <p class="mt-3 text-sm leading-relaxed text-slate-300">Bạn đã đăng ký tài khoản thành công. Hãy cùng khám phá không gian học tập số C500 AI Assistant.</p>
+            <p class="mt-6 text-xs font-bold uppercase tracking-wider text-yellow-300 animate-pulse">Chạm vào bất kỳ vị trí nào để tiếp tục <i class="fa-solid fa-arrow-right ml-1"></i></p>
+        </div>
+    </div>
+
+    <!-- SLIDE GIỚI THIỆU DÀNH RIÊNG CHO NGƯỜI DÙNG MỚI -->
+    <div id="new-user-onboarding" class="fixed inset-0 z-[1000] hidden items-center justify-center overflow-y-auto bg-slate-950 p-4">
+        <div class="relative my-auto w-full max-w-2xl overflow-hidden rounded-3xl border border-emerald-500/40 bg-slate-900 shadow-2xl">
+            <div class="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-yellow-400 to-emerald-500"></div>
+            <div class="p-6 sm:p-10">
+                <div class="mb-7 flex items-center justify-between gap-3">
+                    <span class="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-300">C500 AI Assistant · Hướng dẫn nhanh</span>
+                    <span id="onboarding-counter" class="rounded-full border border-emerald-700 bg-emerald-950 px-3 py-1 text-xs font-bold text-emerald-200">01 / 04</span>
+                </div>
+                <div id="onboarding-slide-content" class="min-h-[260px] flex flex-col items-center justify-center text-center"></div>
+                <div class="mt-8 flex items-center justify-between gap-3 border-t border-slate-800 pt-5">
+                    <button id="onboarding-back" type="button" onclick="changeOnboardingSlide(-1)" class="rounded-xl border border-slate-700 px-5 py-3 text-xs font-bold text-slate-300 hover:bg-slate-800">Quay lại</button>
+                    <div class="flex items-center gap-1.5" aria-label="Tiến trình giới thiệu">
+                        <span class="onboarding-dot h-2 w-2 rounded-full bg-emerald-400"></span><span class="onboarding-dot h-2 w-2 rounded-full bg-slate-700"></span><span class="onboarding-dot h-2 w-2 rounded-full bg-slate-700"></span><span class="onboarding-dot h-2 w-2 rounded-full bg-slate-700"></span>
+                    </div>
+                    <button id="onboarding-next" type="button" onclick="changeOnboardingSlide(1)" class="rounded-xl bg-gradient-to-r from-emerald-700 to-green-600 px-6 py-3 text-xs font-extrabold uppercase tracking-wider text-white shadow-lg">Tiếp tục <i class="fa-solid fa-arrow-right ml-2"></i></button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -762,6 +827,11 @@
         };
 
         let currentWizardStep = 1;
+        let isHandlingRegistration = false;
+        let isNewUserOnboardingPending = false;
+        let registrationFlowWaiter = null;
+        let releaseRegistrationFlow = null;
+        let currentOnboardingSlide = 0;
         const AI_FUNCTION_REGION = "asia-southeast1";
         let sensitiveKeywords = [
             'gián điệp', 'mật mã', 'trinh sát', 'tội phạm', 'biện pháp nghiệp vụ',
@@ -848,32 +918,151 @@
             }
         });
 
-        // XỬ LÝ ĐĂNG KÝ VỚI FORM RIÊNG BIỆT (TÊN, LỚP, CHUYÊN NGÀNH, NGÀY SINH, GMAIL, MẬT KHẨU)
+        // XỬ LÝ ĐĂNG KÝ: LOADING THEO TỪNG GIAI ĐOẠN -> THÀNH CÔNG -> ONBOARDING
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const form = e.currentTarget;
+            if (!form.reportValidity()) return;
+
             const fullName = document.getElementById('reg-fullname').value.trim();
             const studentClass = document.getElementById('reg-class').value.trim();
             const major = document.getElementById('reg-major').value.trim();
             const dob = document.getElementById('reg-dob').value.trim();
             const email = document.getElementById('reg-email').value.trim();
-            const password = document.getElementById('reg-password').value.trim();
+            const password = document.getElementById('reg-password').value;
 
+            const loading = document.getElementById('registration-loading');
+            const loadingText = document.getElementById('registration-loading-text');
+            const submitButton = form.querySelector('button[type="submit"]');
+
+            isHandlingRegistration = true;
+            isNewUserOnboardingPending = true;
+            registrationFlowWaiter = new Promise(resolve => { releaseRegistrationFlow = resolve; });
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang xử lý...';
+            loading.classList.add('is-active');
+            loadingText.textContent = 'Đang tiếp nhận xử lý thông tin...';
+
+            let createdUser = null;
             try {
+                await new Promise(resolve => setTimeout(resolve, 650));
+                loadingText.textContent = 'Đang tạo tài khoản...';
+
                 const cred = await auth.createUserWithEmailAndPassword(email, password);
-                // Lưu ngay thông tin hồ sơ vào Firestore
+                createdUser = cred.user;
+
                 await db.collection('users').doc(cred.user.uid).set({
-                    email,
-                    fullName,
-                    studentClass,
-                    major,
-                    dob,
-                    createdAt: new Date().toISOString()
+                    email, fullName, studentClass, major, dob,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    onboardingCompleted: false
                 }, { merge: true });
 
-                alert("Tạo tài khoản định danh thành công!");
+                currentUser = cred.user;
+                aiConfig = { ...aiConfig, email, fullName, studentClass, major, dob, username: fullName };
+                document.getElementById('user-email').innerText = email;
+                document.getElementById('user-name').innerText = fullName;
+
+                loading.classList.remove('is-active');
+                loading.classList.add('hidden');
+                document.getElementById('register-screen').classList.add('hidden');
+                document.getElementById('registration-success').classList.add('is-active');
+
+                isHandlingRegistration = false;
+                if (releaseRegistrationFlow) releaseRegistrationFlow();
+                releaseRegistrationFlow = null;
+                registrationFlowWaiter = null;
             } catch (err) {
-                alert("Lỗi tạo tài khoản: " + err.message);
+                loading.classList.remove('is-active');
+                loading.classList.add('hidden');
+                isHandlingRegistration = false;
+                isNewUserOnboardingPending = false;
+                if (releaseRegistrationFlow) releaseRegistrationFlow();
+                releaseRegistrationFlow = null;
+                registrationFlowWaiter = null;
+                submitButton.disabled = false;
+                submitButton.textContent = 'Đăng Ký Ngay';
+                alert("Không thể hoàn tất đăng ký: " + (err.code === 'auth/email-already-in-use'
+                    ? 'Địa chỉ Gmail này đã được đăng ký.'
+                    : err.message));
+                if (createdUser) console.error('Tài khoản đã tạo nhưng cần kiểm tra bước lưu hồ sơ:', err);
             }
+        });
+
+        // Các slide giới thiệu sau khi đăng ký thành công
+        const newUserSlides = [
+            {
+                icon: 'fa-hand-sparkles',
+                eyebrow: 'CHÀO MỪNG THÀNH VIÊN MỚI',
+                title: 'Chào mừng bạn đến với C500 AI Assistant',
+                text: 'Một không gian học tập số được xây dựng để đồng hành cùng bạn trong quá trình học tập, tra cứu và tổ chức tri thức. Hãy dành ít phút khám phá trước khi bắt đầu.'
+            },
+            {
+                icon: 'fa-compass',
+                eyebrow: 'KHÁM PHÁ KHÔNG GIAN',
+                title: 'Mọi công cụ cần thiết trong một giao diện',
+                text: 'Từ khu vực trò chuyện, thanh điều hướng đến hồ sơ cá nhân và lịch sử hội thoại, các khu vực được sắp xếp để bạn dễ dàng tìm thấy chức năng mình cần.'
+            },
+            {
+                icon: 'fa-brain',
+                eyebrow: 'TÍNH NĂNG HỖ TRỢ',
+                title: 'Trợ lý AI, tra cứu và quản lý thông tin',
+                text: 'Bạn có thể đặt câu hỏi, yêu cầu giải thích kiến thức, hệ thống hóa nội dung ôn tập, xem lại hội thoại và gửi phản hồi. Hãy kiểm tra các thông tin quan trọng trước khi sử dụng.'
+            },
+            {
+                icon: 'fa-user-gear',
+                eyebrow: 'BƯỚC CUỐI CÙNG',
+                title: 'Bắt đầu tạo hồ sơ cá nhân',
+                text: 'Hãy hoàn thiện một số thông tin cơ bản như ngày sinh, quốc tịch, ảnh đại diện và biệt danh trợ lý AI. Sau đó, bạn sẽ đọc và xác nhận thông báo an toàn thông tin trước khi vào hệ thống.'
+            }
+        ];
+
+        function renderOnboardingSlide() {
+            const slide = newUserSlides[currentOnboardingSlide];
+            const content = document.getElementById('onboarding-slide-content');
+            const counter = document.getElementById('onboarding-counter');
+            const back = document.getElementById('onboarding-back');
+            const next = document.getElementById('onboarding-next');
+            content.innerHTML = `
+                <div class="onboarding-icon"><i class="fa-solid ${slide.icon}"></i></div>
+                <p class="!mb-2 !text-[10px] !font-extrabold !tracking-[.22em] !text-emerald-300">${slide.eyebrow}</p>
+                <h2>${slide.title}</h2>
+                <p>${slide.text}</p>`;
+            counter.textContent = String(currentOnboardingSlide + 1).padStart(2,'0') + ' / 04';
+            back.disabled = currentOnboardingSlide === 0;
+            back.classList.toggle('opacity-40', currentOnboardingSlide === 0);
+            next.innerHTML = currentOnboardingSlide === newUserSlides.length - 1
+                ? 'Bắt đầu tạo hồ sơ <i class="fa-solid fa-arrow-right ml-2"></i>'
+                : 'Tiếp tục <i class="fa-solid fa-arrow-right ml-2"></i>';
+            document.querySelectorAll('.onboarding-dot').forEach((dot,index) => dot.classList.toggle('active', index === currentOnboardingSlide));
+        }
+
+        function changeOnboardingSlide(direction) {
+            const nextIndex = currentOnboardingSlide + direction;
+            if (nextIndex < 0 || nextIndex >= newUserSlides.length) return;
+            currentOnboardingSlide = nextIndex;
+            renderOnboardingSlide();
+        }
+
+        function startNewUserOnboarding() {
+            document.getElementById('registration-success').classList.remove('is-active');
+            document.getElementById('new-user-onboarding').classList.add('is-active');
+            currentOnboardingSlide = 0;
+            renderOnboardingSlide();
+        }
+
+        function beginNewUserProfileSetup() {
+            document.getElementById('new-user-onboarding').classList.remove('is-active');
+            isNewUserOnboardingPending = false;
+            securityNoticeConfirmedThisSession = false;
+            securityNoticeNeedsSetup = false;
+            currentWizardStep = 1;
+            document.getElementById('setup-wizard-screen').classList.remove('hidden');
+            renderWizardStep();
+        }
+
+        document.getElementById('onboarding-next').addEventListener('click', () => {
+            if (currentOnboardingSlide === newUserSlides.length - 1) beginNewUserProfileSetup();
+            else changeOnboardingSlide(1);
         });
 
         auth.onAuthStateChanged(async (user) => {
@@ -885,6 +1074,11 @@
             const aiWidget = document.getElementById('ai-widget');
             const setupWizard = document.getElementById('setup-wizard-screen');
             loadingEl.classList.add('hidden');
+
+            // Chờ quy trình đăng ký ghi hồ sơ xong; người dùng mới sẽ đi qua slide hướng dẫn trước.
+            if (user && isHandlingRegistration && registrationFlowWaiter) {
+                await registrationFlowWaiter;
+            }
 
             if (!user) {
                 currentUser = null;
@@ -940,7 +1134,20 @@
                 if (cfgDoc.exists && cfgDoc.data().completed) {
                     aiConfig = { ...aiConfig, ...cfgDoc.data() };
                 }
-                // Hiện cảnh báo ngay sau khi xác thực thành công, trước cả wizard và giao diện chat.
+                // Tài khoản vừa đăng ký sẽ đi qua slide giới thiệu và tự khởi tạo hồ sơ trước thông báo bảo mật.
+                if (isNewUserOnboardingPending) {
+                    document.getElementById('welcome-screen').classList.add('hidden');
+                    loginScreen.classList.add('hidden');
+                    registerScreen.classList.add('hidden');
+                    apiKeyScreen.classList.add('hidden');
+                    mainApp.classList.add('hidden');
+                    aiWidget.classList.add('hidden');
+                    setupWizard.classList.add('hidden');
+                    securityNoticeNeedsSetup = false;
+                    return;
+                }
+
+                // Với tài khoản đăng nhập thông thường, giữ nguyên quy trình bảo mật và thiết lập hiện tại.
                 securityNoticeNeedsSetup = !(cfgDoc.exists && cfgDoc.data().completed && aiConfig.profileSetupCompleted);
                 showSecurityNotice();
                 await loadKeywords();
@@ -1119,7 +1326,7 @@
                     aiConfig.completed = true;
                     aiConfig.profileSetupCompleted = true;
                     await db.collection('users').doc(currentUser.uid).collection('settings').doc('ai_config').set(aiConfig, {merge:true});
-                    await db.collection('users').doc(currentUser.uid).set({dob:aiConfig.dob,nationality:aiConfig.nationality,fullName:aiConfig.fullName,studentClass:aiConfig.studentClass,major:aiConfig.major}, {merge:true});
+                    await db.collection('users').doc(currentUser.uid).set({dob:aiConfig.dob,nationality:aiConfig.nationality,fullName:aiConfig.fullName,studentClass:aiConfig.studentClass,major:aiConfig.major,onboardingCompleted:true}, {merge:true});
                     document.getElementById('setup-wizard-screen').classList.add('hidden');
                     await launchApp();
                     return;

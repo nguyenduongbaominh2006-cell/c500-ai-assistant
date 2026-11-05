@@ -1071,17 +1071,19 @@
     <script>
         "use strict";
 
-        // Hiện hộp đăng nhập/đăng ký khi người dùng cuộn qua khoảng nửa màn hình.
-        // Nếu đóng hộp thoại, người dùng vẫn có thể cuộn đến hai nút ở cuối trang.
+        // Hiện popup khi cuộn qua 50% tổng chiều dài trang có thể cuộn.
+        // Tính theo scrollingElement để hoạt động nhất quán trên desktop, tablet và mobile.
         const authPopup = document.getElementById("auth-popup-backdrop");
         const closeAuthPopup = document.getElementById("auth-popup-close");
         let authPopupShown = false;
         let authPopupDismissed = false;
 
         function checkAuthPopupScroll() {
-            if (authPopupShown || authPopupDismissed) return;
-            const triggerPoint = Math.max(260, window.innerHeight * 0.6);
-            if (window.scrollY >= triggerPoint) {
+            if (!authPopup || authPopupShown || authPopupDismissed) return;
+            const scroller = document.scrollingElement || document.documentElement;
+            const maxScroll = Math.max(0, scroller.scrollHeight - window.innerHeight);
+            const currentScroll = Math.max(window.scrollY || 0, scroller.scrollTop || 0);
+            if (maxScroll > 0 && currentScroll >= maxScroll * 0.5) {
                 authPopupShown = true;
                 authPopup.classList.add("is-visible");
                 authPopup.setAttribute("aria-hidden", "false");
@@ -1094,11 +1096,14 @@
             authPopup.setAttribute("aria-hidden", "true");
         }
 
-        closeAuthPopup.addEventListener("click", dismissAuthPopup);
-        authPopup.addEventListener("click", event => {
-            if (event.target === authPopup) dismissAuthPopup();
-        });
-        window.addEventListener("scroll", checkAuthPopupScroll, { passive: true });
+        if (authPopup && closeAuthPopup) {
+            closeAuthPopup.addEventListener("click", dismissAuthPopup);
+            authPopup.addEventListener("click", event => {
+                if (event.target === authPopup) dismissAuthPopup();
+            });
+            window.addEventListener("scroll", checkAuthPopupScroll, { passive: true });
+            window.addEventListener("resize", checkAuthPopupScroll, { passive: true });
+        }
 
         // Tự cập nhật năm ở chân trang.
         document.getElementById("current-year").textContent =

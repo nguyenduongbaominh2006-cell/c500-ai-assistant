@@ -738,6 +738,101 @@
             }
         }
 
+
+        /* POP-UP ĐĂNG NHẬP / ĐĂNG KÝ KHI NGƯỜI DÙNG CUỘN TRANG */
+        .auth-popup-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(2, 9, 16, 0.72);
+            backdrop-filter: blur(8px);
+        }
+
+        .auth-popup-backdrop.is-visible {
+            display: flex;
+            animation: fadeIn 0.22s ease both;
+        }
+
+        .auth-popup {
+            position: relative;
+            width: min(470px, 100%);
+            padding: 30px;
+            border: 1px solid rgba(232, 199, 121, 0.38);
+            border-radius: 23px;
+            background: linear-gradient(145deg, #142d3b, #091724 78%);
+            box-shadow: 0 25px 90px rgba(0, 0, 0, 0.55);
+            text-align: center;
+            animation: fadeUp 0.3s ease both;
+        }
+
+        .auth-popup-close {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            width: 34px;
+            height: 34px;
+            border: 1px solid rgba(167, 183, 200, 0.22);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            color: #dce7ed;
+            font-size: 21px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .auth-popup h2 {
+            margin: 8px 0;
+            font-size: 25px;
+        }
+
+        .auth-popup p {
+            margin-bottom: 22px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .auth-popup-actions,
+        .bottom-auth-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .auth-login {
+            background: linear-gradient(120deg, #087f68, #20ad83);
+            color: #fff;
+            box-shadow: 0 9px 24px rgba(20, 148, 109, 0.2);
+        }
+
+        .auth-register {
+            background: linear-gradient(120deg, #d6a83f, #f0cf79);
+            color: #17202a;
+            box-shadow: 0 9px 24px rgba(214, 168, 63, 0.16);
+        }
+
+        .bottom-auth-actions .btn {
+            min-height: 58px;
+            width: 100%;
+        }
+
+        .bottom-auth-actions .auth-login,
+        .bottom-auth-actions .auth-register {
+            border-radius: 14px;
+        }
+
+        @media (max-width: 560px) {
+            .auth-popup { padding: 28px 19px 22px; }
+            .auth-popup h2 { font-size: 21px; }
+            .auth-popup-actions { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .auth-popup-actions .btn { padding: 12px 9px; font-size: 12px; }
+            .bottom-auth-actions { grid-template-columns: 1fr 1fr; gap: 9px; }
+            .bottom-auth-actions .btn { padding: 12px 8px; font-size: 12px; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             *,
             *::before,
@@ -752,6 +847,20 @@
 </head>
 
 <body>
+    <!-- POP-UP XUẤT HIỆN SAU KHI CUỘN TRANG -->
+    <div class="auth-popup-backdrop" id="auth-popup-backdrop" aria-hidden="true">
+        <section class="auth-popup" role="dialog" aria-modal="true" aria-labelledby="auth-popup-title">
+            <button class="auth-popup-close" id="auth-popup-close" type="button" aria-label="Đóng">×</button>
+            <div class="eyebrow"><span class="eyebrow-star">✦</span> C500 AI ASSISTANT</div>
+            <h2 id="auth-popup-title">Tiếp tục khám phá C500</h2>
+            <p>Đăng nhập nếu bạn đã có tài khoản hoặc đăng ký để bắt đầu trải nghiệm.</p>
+            <div class="auth-popup-actions">
+                <a class="btn auth-login" href="login.html">Đăng nhập</a>
+                <a class="btn auth-register" href="login.html#register">Đăng ký</a>
+            </div>
+        </section>
+    </div>
+
     <div class="background-grid" aria-hidden="true"></div>
 
     <!-- THANH ĐIỀU HƯỚNG -->
@@ -931,18 +1040,23 @@
             </div>
         </section>
 
-        <!-- LỜI KÊU GỌI -->
-        <section class="bottom-cta">
+        <!-- LỜI KÊU GỌI CUỐI TRANG -->
+        <section class="bottom-cta" id="get-started">
             <div>
                 <h2>Sẵn sàng bắt đầu?</h2>
                 <p>
-                    Đăng nhập để thiết lập trải nghiệm C500 của riêng bạn.
+                    Chọn đăng nhập hoặc tạo tài khoản để sử dụng C500 AI Assistant.
                 </p>
             </div>
 
-            <a class="btn btn-primary" href="login.html">
-                Đăng nhập ngay <span aria-hidden="true">→</span>
-            </a>
+            <div class="bottom-auth-actions">
+                <a class="btn auth-login" href="login.html">
+                    Đăng nhập <span aria-hidden="true">→</span>
+                </a>
+                <a class="btn auth-register" href="login.html#register">
+                    Đăng ký <span aria-hidden="true">✦</span>
+                </a>
+            </div>
         </section>
     </main>
 
@@ -956,6 +1070,35 @@
 
     <script>
         "use strict";
+
+        // Hiện hộp đăng nhập/đăng ký khi người dùng cuộn qua khoảng nửa màn hình.
+        // Nếu đóng hộp thoại, người dùng vẫn có thể cuộn đến hai nút ở cuối trang.
+        const authPopup = document.getElementById("auth-popup-backdrop");
+        const closeAuthPopup = document.getElementById("auth-popup-close");
+        let authPopupShown = false;
+        let authPopupDismissed = false;
+
+        function checkAuthPopupScroll() {
+            if (authPopupShown || authPopupDismissed) return;
+            const triggerPoint = Math.max(260, window.innerHeight * 0.6);
+            if (window.scrollY >= triggerPoint) {
+                authPopupShown = true;
+                authPopup.classList.add("is-visible");
+                authPopup.setAttribute("aria-hidden", "false");
+            }
+        }
+
+        function dismissAuthPopup() {
+            authPopupDismissed = true;
+            authPopup.classList.remove("is-visible");
+            authPopup.setAttribute("aria-hidden", "true");
+        }
+
+        closeAuthPopup.addEventListener("click", dismissAuthPopup);
+        authPopup.addEventListener("click", event => {
+            if (event.target === authPopup) dismissAuthPopup();
+        });
+        window.addEventListener("scroll", checkAuthPopupScroll, { passive: true });
 
         // Tự cập nhật năm ở chân trang.
         document.getElementById("current-year").textContent =

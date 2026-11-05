@@ -722,6 +722,128 @@ button:focus-visible {
 
 .footer a:hover { color: white; }
 
+
+/* NÚT ĐĂNG NHẬP / ĐĂNG KÝ NGAY DƯỚI BA BƯỚC HƯỚNG DẪN */
+.how-auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 13px;
+  align-items: center;
+}
+.how-auth-button {
+  display: inline-flex;
+  min-width: 190px;
+  min-height: 49px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 24px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 800;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.how-auth-button:hover {
+  transform: translateY(-3px);
+}
+.how-auth-login {
+  color: #fff;
+  background: linear-gradient(120deg, #087f68, #20ad83);
+  box-shadow: 0 8px 22px #087f6830;
+}
+.how-auth-register {
+  color: #17372e;
+  background: linear-gradient(120deg, #d6a83f, #f0cf79);
+  box-shadow: 0 8px 22px #d6a83f30;
+}
+
+/* POP-UP ĐĂNG NHẬP / ĐĂNG KÝ KHI CUỘN TRANG */
+.auth-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(2, 12, 10, .76);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+}
+.auth-popup-backdrop.is-visible {
+  display: flex;
+  animation: authPopupFade .22s ease both;
+}
+.auth-popup {
+  position: relative;
+  width: min(460px, 100%);
+  padding: 34px 28px 28px;
+  border: 1px solid rgba(229, 189, 102, .55);
+  border-radius: 20px;
+  background: linear-gradient(145deg, #103c33, #061f1c 78%);
+  color: #fffdf6;
+  box-shadow: 0 25px 90px rgba(0, 0, 0, .55);
+  text-align: center;
+}
+.auth-popup-kicker {
+  color: #ffe7a2;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+.auth-popup h2 {
+  margin: 12px 0 8px;
+  color: #ffe7a2;
+  font-size: clamp(22px, 4vw, 27px);
+}
+.auth-popup p {
+  margin: 0 0 23px;
+  color: #c6d6ce;
+  font-size: 14px;
+}
+.auth-popup-close {
+  position: absolute;
+  top: 11px;
+  right: 12px;
+  display: grid;
+  width: 35px;
+  height: 35px;
+  place-items: center;
+  border: 1px solid #ffffff30;
+  border-radius: 50%;
+  background: #ffffff10;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+.auth-popup-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+.auth-popup-actions .how-auth-button {
+  min-width: 0;
+  width: 100%;
+  padding: 12px 10px;
+  font-size: 13px;
+}
+@keyframes authPopupFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (max-width: 520px) {
+  .how-auth-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  .how-auth-button { min-width: 0; width: 100%; padding: 12px 9px; font-size: 12px; }
+  .auth-popup { padding: 32px 18px 22px; }
+  .auth-popup-actions { gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-popup-backdrop.is-visible { animation: none; }
+  .how-auth-button { transition: none; }
+}
+
 /* Hiệu ứng cuộn vào màn hình */
 
 .reveal {
@@ -1016,6 +1138,20 @@ img {
     </div>
 </div>
 
+<!-- POP-UP ĐĂNG NHẬP / ĐĂNG KÝ: HIỆN KHI CUỘN QUA NỬA TRANG -->
+<div class="auth-popup-backdrop" id="authPopupBackdrop" aria-hidden="true">
+  <section class="auth-popup" role="dialog" aria-modal="true" aria-labelledby="authPopupTitle">
+    <button class="auth-popup-close" id="authPopupClose" type="button" aria-label="Đóng cửa sổ">×</button>
+    <div class="auth-popup-kicker">C500 AI ASSISTANT</div>
+    <h2 id="authPopupTitle">Bắt đầu trải nghiệm C500 AI Assistant</h2>
+    <p>Đăng nhập bằng tài khoản hiện có hoặc đăng ký tài khoản mới để tiếp tục.</p>
+    <div class="auth-popup-actions">
+      <a class="how-auth-button how-auth-login" href="login.html">Đăng nhập <span aria-hidden="true">→</span></a>
+      <a class="how-auth-button how-auth-register" href="login.html#register">Đăng ký <span aria-hidden="true">✦</span></a>
+    </div>
+  </section>
+</div>
+
 <!-- HEADER -->
 <header class="header">
   <a class="brand" href="#top" aria-label="C500 AI Assistant - Trang chủ">
@@ -1307,9 +1443,12 @@ img {
       </article>
     </div>
 
-    <div class="reveal" style="margin-top:30px">
-      <a class="button" href="login.html">
-        Vào C500 AI Assistant →
+    <div class="reveal how-auth-actions" style="margin-top:30px" aria-label="Đăng nhập hoặc đăng ký">
+      <a class="how-auth-button how-auth-login" href="login.html">
+        Đăng nhập <span aria-hidden="true">→</span>
+      </a>
+      <a class="how-auth-button how-auth-register" href="login.html#register">
+        Đăng ký <span aria-hidden="true">✦</span>
       </a>
     </div>
   </section>
@@ -1473,6 +1612,53 @@ img {
             openCurtain();
         }
     });
+})();
+</script>
+
+
+<!-- ĐIỀU KHIỂN POP-UP CUỘN TRANG -->
+<script>
+(() => {
+  "use strict";
+  const backdrop = document.getElementById("authPopupBackdrop");
+  const closeButton = document.getElementById("authPopupClose");
+  if (!backdrop || !closeButton) return;
+
+  let popupShown = false;
+  let popupDismissed = false;
+
+  function checkScrollForAuthPopup() {
+    if (popupShown || popupDismissed) return;
+    const scroller = document.scrollingElement || document.documentElement;
+    const scrollableDistance = Math.max(0, scroller.scrollHeight - window.innerHeight);
+    const currentScroll = Math.max(window.scrollY || 0, scroller.scrollTop || 0);
+
+    if (scrollableDistance > 0 && currentScroll >= scrollableDistance * 0.5) {
+      popupShown = true;
+      backdrop.classList.add("is-visible");
+      backdrop.setAttribute("aria-hidden", "false");
+      closeButton.focus({ preventScroll: true });
+    }
+  }
+
+  function closeAuthPopup() {
+    popupDismissed = true;
+    backdrop.classList.remove("is-visible");
+    backdrop.setAttribute("aria-hidden", "true");
+  }
+
+  closeButton.addEventListener("click", closeAuthPopup);
+  backdrop.addEventListener("click", event => {
+    if (event.target === backdrop) closeAuthPopup();
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && backdrop.classList.contains("is-visible")) {
+      closeAuthPopup();
+    }
+  });
+  window.addEventListener("scroll", checkScrollForAuthPopup, { passive: true });
+  window.addEventListener("resize", checkScrollForAuthPopup, { passive: true });
+  checkScrollForAuthPopup();
 })();
 </script>
 

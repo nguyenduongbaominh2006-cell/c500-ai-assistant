@@ -116,18 +116,29 @@
         .brand-logo {
             width: 48px;
             height: 48px;
-            display: grid;
-            place-items: center;
-            border: 1px solid rgba(232, 199, 121, 0.6);
-            border-radius: 15px;
-            background: linear-gradient(
-                145deg,
-                #174538,
-                #0a201c
-            );
-            color: var(--gold);
-            font-size: 25px;
-            box-shadow: 0 0 30px rgba(42, 169, 126, 0.12);
+            flex: 0 0 48px;
+            display: block;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(232, 199, 121, 0.75);
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 30px rgba(42, 169, 126, 0.18);
+            isolation: isolate;
+        }
+
+        .brand-logo img {
+            display: block;
+            width: 142%;
+            height: 142%;
+            max-width: none;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            object-fit: cover;
+            object-position: center;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
         }
 
         .brand-name {
@@ -866,7 +877,9 @@
     <!-- THANH ĐIỀU HƯỚNG -->
     <header class="navbar">
         <a class="brand" href="welcome.html" aria-label="C500 AI Assistant">
-            <div class="brand-logo" aria-hidden="true">🛡️</div>
+            <div class="brand-logo">
+                <img src="assets/academy-logo.png" alt="Logo Học viện An ninh Nhân dân">
+            </div>
 
             <div>
                 <div class="brand-name">C500 AI ASSISTANT</div>

@@ -160,28 +160,24 @@ button:focus-visible {
         opacity .35s ease,
         transform .35s ease;
 }
-/* LOGO CURTAIN - HIỂN THỊ NỀN TRONG SUỐT */
+/* LOGO CURTAIN - PHÓNG TO, LOẠI BỎ CẢM GIÁC KHUNG ẢNH TRẮNG */
 .curtain-center img {
     display: block;
-
-    width: 90px;
-    height: 90px;
-    max-width: 90px;
-    max-height: 90px;
-
-    object-fit: contain;
+    width: 136px;
+    height: 136px;
+    max-width: 136px;
+    max-height: 136px;
+    object-fit: cover;
     object-position: center;
-
-    margin: 0 auto 15px;
+    margin: 0 auto 18px;
     padding: 0;
-
-    background: transparent !important;
     border: 0 !important;
     outline: 0 !important;
     box-shadow: none !important;
-    border-radius: 0 !important;
-
-    mix-blend-mode: normal;
+    border-radius: 50%;
+    clip-path: circle(50% at 50% 50%);
+    /* Nền trắng của ảnh JPEG hòa vào phông rèm, không còn thành ô vuông */
+    mix-blend-mode: multiply;
     filter: none;
 }
 
@@ -1034,7 +1030,7 @@ button:focus-visible {
   .feature-grid, .steps { grid-template-columns: 1fr; }
   .feature-card { min-height: 0; }
   .footer { flex-direction: column; align-items: flex-start; }
-  .curtain-title img { width: 70px; height: 70px; }
+  .curtain-title img { width: 112px; height: 112px; max-width: 112px; max-height: 112px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
